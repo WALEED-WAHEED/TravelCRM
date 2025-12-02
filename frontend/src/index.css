@@ -1,0 +1,189 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Nahd Travels Design System - Professional, airy, modern travel management
+All colors MUST be HSL for consistency
+*/
+
+@layer base {
+  :root {
+    /* Base colors - clean white background with soft blue accents */
+    --background: 0 0% 100%;
+    --foreground: 215 25% 27%;
+
+    /* Card system - elevated surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 27%;
+
+    /* Popover surfaces */
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 27%;
+
+    /* Primary brand colors - soft blue gradient system */
+    --primary: 202 100% 59%; /* #2bb7ff */
+    --primary-light: 205 100% 63%; /* #4ea8ff */
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary colors - subtle backgrounds */
+    --secondary: 210 25% 97%;
+    --secondary-foreground: 215 25% 27%;
+
+    /* Muted colors for subtle elements */
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 15% 55%;
+
+    /* Accent colors for highlights */
+    --accent: 202 45% 94%;
+    --accent-foreground: 202 100% 59%;
+
+    /* Status colors */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    /* UI elements */
+    --border: 210 20% 92%;
+    --input: 210 20% 96%;
+    --ring: 202 100% 59%;
+
+    /* Travel-specific gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(202 100% 59%), hsl(205 100% 63%));
+    --gradient-sky: linear-gradient(180deg, hsl(202 45% 94%), hsl(0 0% 100%));
+    --gradient-cloud: radial-gradient(circle at center, hsl(202 30% 88% / 0.3), transparent 70%);
+
+    /* Shadows for depth */
+    --shadow-soft: 0 4px 12px hsl(202 20% 20% / 0.08);
+    --shadow-card: 0 2px 8px hsl(202 20% 20% / 0.06);
+    --shadow-elevated: 0 8px 24px hsl(202 20% 20% / 0.12);
+
+    /* Animation variables */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.15s ease-out;
+
+    /* Radius system for modern rounded design */
+    --radius: 0.75rem;
+    --radius-sm: 0.5rem;
+    --radius-lg: 1rem;
+
+    /* Sidebar colors for navigation */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 215 25% 27%;
+    --sidebar-primary: 202 100% 59%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 202 45% 94%;
+    --sidebar-accent-foreground: 202 100% 59%;
+    --sidebar-border: 210 20% 92%;
+    --sidebar-ring: 202 100% 59%;
+  }
+
+  .dark {
+    /* Dark mode maintains the blue brand colors but with darker backgrounds */
+    --background: 215 30% 7%;
+    --foreground: 210 20% 95%;
+
+    --card: 215 25% 10%;
+    --card-foreground: 210 20% 95%;
+
+    --popover: 215 25% 10%;
+    --popover-foreground: 210 20% 95%;
+
+    --primary: 202 100% 59%;
+    --primary-light: 205 100% 63%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 215 20% 15%;
+    --secondary-foreground: 210 20% 95%;
+
+    --muted: 215 20% 12%;
+    --muted-foreground: 215 15% 65%;
+
+    --accent: 202 30% 20%;
+    --accent-foreground: 202 100% 59%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 20% 18%;
+    --input: 215 20% 15%;
+    --ring: 202 100% 59%;
+
+    --sidebar-background: 215 25% 8%;
+    --sidebar-foreground: 210 20% 95%;
+    --sidebar-primary: 202 100% 59%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 20% 15%;
+    --sidebar-accent-foreground: 202 100% 59%;
+    --sidebar-border: 215 20% 18%;
+    --sidebar-ring: 202 100% 59%;
+
+    /* Update gradients for dark mode */
+    --gradient-sky: linear-gradient(180deg, hsl(215 25% 10%), hsl(215 30% 7%));
+    --gradient-cloud: radial-gradient(circle at center, hsl(202 30% 25% / 0.2), transparent 70%);
+    --shadow-soft: 0 4px 12px hsl(0 0% 0% / 0.2);
+    --shadow-card: 0 2px 8px hsl(0 0% 0% / 0.15);
+    --shadow-elevated: 0 8px 24px hsl(0 0% 0% / 0.3);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    background-image: 
+      radial-gradient(circle at 85% 15%, hsl(202 30% 88% / 0.15), transparent 50%),
+      radial-gradient(circle at 15% 85%, hsl(202 30% 88% / 0.15), transparent 50%);
+  }
+
+  /* Smooth transitions for all interactive elements */
+  button, a, input, select, textarea {
+    transition: var(--transition-fast);
+  }
+
+  /* Custom scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.6);
+  }
+}
+
+@layer components {
+  /* Travel management specific component styles */
+  .login-bg {
+    background: 
+      radial-gradient(circle at 80% 20%, hsl(202 30% 88% / 0.3), transparent 60%),
+      radial-gradient(circle at 20% 80%, hsl(202 30% 88% / 0.25), transparent 60%),
+      hsl(var(--background));
+  }
+
+  .glass-card {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border));
+  }
+
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
