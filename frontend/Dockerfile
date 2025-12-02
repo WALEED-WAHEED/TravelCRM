@@ -2,7 +2,11 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Copy package files first for better caching
 COPY package*.json ./
+COPY tsconfig*.json ./
+COPY vite.config.ts ./
+
 RUN npm ci
 
 COPY . .
