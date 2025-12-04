@@ -40,13 +40,13 @@ services:
       dockerfile: Dockerfile
       target: backend
     container_name: nahd_travels_backend
-    command: gunicorn travelcrm.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    command: gunicorn travelcrm.wsgi:application --bind 0.0.0.0:8001 --workers 3
     volumes:
       - ./backend:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/media
     ports:
-      - "${BACKEND_PORT:-8000}:8000"
+      - "${BACKEND_PORT:-8001}:8001"
     environment:
       - DEBUG=${DJANGO_DEBUG:-False}
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
