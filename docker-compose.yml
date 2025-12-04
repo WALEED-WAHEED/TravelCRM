@@ -36,14 +36,9 @@ services:
   # Backend Django API
   backend:
     build:
-<<<<<<< HEAD
       context: .
       dockerfile: Dockerfile
       target: backend
-=======
-      context: ./backend
-      dockerfile: Dockerfile
->>>>>>> e6f3d6c9bf1eee7a70d264e664cfae7391b77267
     container_name: nahd_travels_backend
     command: gunicorn travelcrm.wsgi:application --bind 0.0.0.0:8000 --workers 3
     volumes:
@@ -86,14 +81,9 @@ services:
   # Celery Worker for Background Tasks
   celery:
     build:
-<<<<<<< HEAD
       context: .
       dockerfile: Dockerfile
       target: backend
-=======
-      context: ./backend
-      dockerfile: Dockerfile
->>>>>>> e6f3d6c9bf1eee7a70d264e664cfae7391b77267
     container_name: nahd_travels_celery
     command: celery -A travelcrm worker -l info
     volumes:
@@ -121,18 +111,11 @@ services:
   # Frontend React Application
   frontend:
     build:
-<<<<<<< HEAD
       context: .
       dockerfile: Dockerfile
       target: frontend
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
-=======
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8000}
->>>>>>> e6f3d6c9bf1eee7a70d264e664cfae7391b77267
     container_name: nahd_travels_frontend
     volumes:
       - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
@@ -140,11 +123,6 @@ services:
       - "${FRONTEND_PORT:-3000}:80"
     depends_on:
       - backend
-<<<<<<< HEAD
-=======
-    environment:
-      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8000}
->>>>>>> e6f3d6c9bf1eee7a70d264e664cfae7391b77267
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
@@ -163,8 +141,3 @@ volumes:
 networks:
   default:
     name: nahd_travels_network
-
-<<<<<<< HEAD
-
-=======
->>>>>>> e6f3d6c9bf1eee7a70d264e664cfae7391b77267
