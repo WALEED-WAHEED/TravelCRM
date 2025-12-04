@@ -28,9 +28,13 @@ from drf_spectacular.views import (
     SpectacularRedocView,
 )
 from accounts.views import current_user
+from .health import health_check
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # Health check endpoint (no auth required)
+    path('health/', health_check, name='health-check'),
 
     # JWT Auth
     path("api/v1/auth/login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),

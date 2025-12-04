@@ -119,6 +119,9 @@ RUN python -m pip install --upgrade pip \
 # Copy backend project
 COPY backend/ /app/
 
+# Make entrypoint script executable
+RUN chmod +x /app/docker-entrypoint.sh
+
 # Create directories for static and media files
 RUN mkdir -p /app/staticfiles \
     && mkdir -p /app/media
@@ -128,6 +131,9 @@ RUN python manage.py collectstatic --noinput || true
 
 # Expose port
 EXPOSE 8001
+
+# Set entrypoint
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
 # Default command (can be overridden in docker-compose)
 CMD ["gunicorn", "travelcrm.wsgi:application", "--bind", "0.0.0.0:8001"]
