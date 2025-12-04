@@ -127,8 +127,8 @@ RUN mkdir -p /app/staticfiles \
 RUN python manage.py collectstatic --noinput || true
 
 # Expose port
-EXPOSE 8000
+EXPOSE 8001
 
 # Default command (can be overridden in docker-compose)
-CMD ["gunicorn", "travelcrm.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "travelcrm.wsgi:application", "--bind", "0.0.0.0:8001"]
 

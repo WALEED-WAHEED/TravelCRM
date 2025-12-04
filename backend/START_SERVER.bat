@@ -10,15 +10,15 @@ echo Activating virtual environment...
 call env\Scripts\activate.bat
 
 echo.
-echo Server starting at: http://127.0.0.1:8000/
+echo Server starting at: http://127.0.0.1:8001/
 echo.
 echo ================================================================================
 echo                    IMPORTANT URLS TO ACCESS
 echo ================================================================================
 echo.
-echo API Documentation (Swagger): http://127.0.0.1:8000/api/docs/
-echo Django Admin Panel:           http://127.0.0.1:8000/admin/
-echo OpenAPI Schema:               http://127.0.0.1:8000/api/schema/
+echo API Documentation (Swagger): http://127.0.0.1:8001/api/docs/
+echo Django Admin Panel:           http://127.0.0.1:8001/admin/
+echo OpenAPI Schema:               http://127.0.0.1:8001/api/schema/
 echo.
 echo ================================================================================
 echo                         TEST CREDENTIALS

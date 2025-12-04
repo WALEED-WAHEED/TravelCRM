@@ -69,11 +69,11 @@ export default function MemberDashboard() {
       // Set dummy data for other sections until APIs are implemented
       setRevenueData([
         { month: 'Jan', revenue: 15000 },
-        { month: 'Feb', revenue: 18000 },
+        { month: 'Feb', revenue: 18001 },
         { month: 'Mar', revenue: 22000 },
         { month: 'Apr', revenue: 19500 },
         { month: 'May', revenue: 25000 },
-        { month: 'Jun', revenue: 28000 },
+        { month: 'Jun', revenue: 28001 },
       ]);
       
       setVoucherStats([

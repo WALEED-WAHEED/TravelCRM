@@ -14,7 +14,7 @@ RUN npm ci
 COPY . .
 
 # Set a default value for VITE_API_BASE_URL
-ARG VITE_API_BASE_URL=http://localhost:8000
+ARG VITE_API_BASE_URL=http://localhost:8001
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 # Build the app
