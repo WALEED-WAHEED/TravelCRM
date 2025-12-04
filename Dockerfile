@@ -99,11 +99,22 @@ RUN apt-get update \
         libpq-dev \
         gettext \
         curl \
+        python3-dev \
+        libcairo2-dev \
+        libpango1.0-dev \
+        pkg-config \
+        python3-pip \
+        libjpeg-dev \
+        zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy backend requirements
 COPY backend/requirements.txt /app/
-RUN pip install --no-cache-dir -r requirements.txt
+
+# Upgrade pip and install requirements
+RUN python -m pip install --upgrade pip \
+    && pip install --no-cache-dir --upgrade setuptools wheel \
+    && pip install --no-cache-dir -r requirements.txt
 
 # Copy backend project
 COPY backend/ /app/
