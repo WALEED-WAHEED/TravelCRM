@@ -40,7 +40,7 @@ services:
     container_name: nahd_travels_backend
     working_dir: /app/backend
     volumes:
-      - ./backend:/app/backend
+      #- ./backend:/app/backend
       - static_volume:/app/staticfiles
       - media_volume:/app/media
     environment:
