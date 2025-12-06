@@ -85,9 +85,7 @@ services:
       dockerfile: Dockerfile
       target: backend
     container_name: nahd_travels_celery
-    command: celery -A travelcrm worker -l info
-    volumes:
-      - ./backend:/app
+    command: python -m celery -A travelcrm worker -l info
     environment:
       - DEBUG=${DJANGO_DEBUG:-False}
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
