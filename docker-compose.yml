@@ -79,18 +79,14 @@ services:
       start_period: 60s
 
   # Celery Worker for Background Tasks
-    # Celery Worker for Background Tasks
   celery:
     build:
       context: .
       dockerfile: Dockerfile
       target: backend
     container_name: nahd_travels_celery
-    volumes:
-      - ./backend:/app
-      - static_volume:/app/staticfiles
-      - media_volume:/app/media
-    command: python -m celery -A travelcrm worker -l info
+    working_dir: /app
+    command: bash -c "pip install -r /app/requirements.txt && python -m celery -A travelcrm worker -l info"
     environment:
       - PYTHONPATH=/app
       - DEBUG=${DJANGO_DEBUG:-False}
