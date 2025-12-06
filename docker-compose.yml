@@ -40,13 +40,13 @@ services:
       dockerfile: Dockerfile
       target: backend
     container_name: nahd_travels_backend
-    working_dir: /app/backend
+    working_dir: /app
     volumes:
       - ./backend:/app/backend
       - static_volume:/app/staticfiles
       - media_volume:/app/media
     environment:
-      - PYTHONPATH=/app/backend
+      - PYTHONPATH=/app
       - DJANGO_SETTINGS_MODULE=travelcrm.settings
       - DEBUG=${DJANGO_DEBUG:-False}
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
