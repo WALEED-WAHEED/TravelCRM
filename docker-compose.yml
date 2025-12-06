@@ -34,49 +34,35 @@ services:
       retries: 5
 
   # Backend Django API
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: backend
-    container_name: nahd_travels_backend
-    volumes:
-      - ./backend:/app
-      - static_volume:/app/staticfiles
-      - media_volume:/app/media
-    ports:
-      - "${BACKEND_PORT:-8001}:8001"
-    environment:
-      - DEBUG=${DJANGO_DEBUG:-False}
-      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-      - POSTGRES_DB=${POSTGRES_DB:-travelcrm}
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
-      - REDIS_URL=redis://redis:6379/1
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
-      - EMAIL_BACKEND=${EMAIL_BACKEND:-django.core.mail.backends.console.EmailBackend}
-      - EMAIL_HOST=${EMAIL_HOST:-smtp.gmail.com}
-      - EMAIL_PORT=${EMAIL_PORT:-587}
-      - EMAIL_USE_TLS=${EMAIL_USE_TLS:-True}
-      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
-      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
-      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-noreply@nahdtravels.com}
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8001/health/ || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+backend:
+  build:
+    context: .
+    dockerfile: Dockerfile
+    target: backend
+  container_name: nahd_travels_backend
+  working_dir: /app/backend
+  volumes:
+    - ./backend:/app/backend
+    - static_volume:/app/staticfiles
+    - media_volume:/app/media
+  environment:
+    - PYTHONPATH=/app/backend
+    - DJANGO_SETTINGS_MODULE=travelcrm.settings
+    - DEBUG=${DJANGO_DEBUG:-False}
+    - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+    - POSTGRES_DB=${POSTGRES_DB:-travelcrm}
+    - POSTGRES_USER=${POSTGRES_USER:-postgres}
+    - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+    - POSTGRES_HOST=db
+    - POSTGRES_PORT=5432
+    - REDIS_URL=redis://redis:6379/1
+  command: gunicorn travelcrm.wsgi:application --bind 0.0.0.0:8001
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  restart: unless-stopped
 
   # Celery Worker for Background Tasks
   # celery:

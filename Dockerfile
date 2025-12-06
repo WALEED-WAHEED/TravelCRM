@@ -89,7 +89,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # Set work directory
-WORKDIR /app
+WORKDIR /app/backend
 
 # Install system dependencies
 RUN apt-get update \
@@ -109,7 +109,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy backend requirements
-COPY backend/requirements.txt /app/
+COPY backend/requirements.txt .
 
 # Upgrade pip and install requirements
 RUN python -m pip install --upgrade pip \
@@ -117,7 +117,7 @@ RUN python -m pip install --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
 # Copy backend project
-COPY backend/ /app/
+COPY backend/ .
 
 # Create directories for static and media files
 RUN mkdir -p /app/staticfiles \
@@ -130,5 +130,4 @@ RUN python manage.py collectstatic --noinput || true
 EXPOSE 8001
 
 # Default command (can be overridden in docker-compose)
-CMD ["sh", "-c", "cd /app && gunicorn travelcrm.wsgi:application --bind 0.0.0.0:8001"]
-
+CMD ["gunicorn", "travelcrm.wsgi:application", "--bind", "0.0.0.0:8001"]
