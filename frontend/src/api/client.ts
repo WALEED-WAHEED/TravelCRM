@@ -1,8 +1,13 @@
 import axios from 'axios';
 import { toast } from '@/hooks/use-toast';
 
-// Get API base URL from environment or default to localhost
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+// Determine API base URL with sensible fallbacks
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  // If running in the browser, use the current host (keeps prod pointing off-box)
+  (typeof window !== 'undefined'
+    ? `${window.location.protocol}//${window.location.hostname}:8001`
+    : 'http://localhost:8001');
 
 // Flag to prevent multiple simultaneous refresh attempts
 let isRefreshing = false;
