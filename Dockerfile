@@ -38,15 +38,15 @@ RUN echo "=== Build Environment Verification ===" && \
     echo "" && \
     echo "=== Verifying utils.ts file ===" && \
     if [ -f src/lib/utils.ts ]; then \
-      echo "✓ src/lib/utils.ts exists" && \
-      echo "File size: $(stat -c%s src/lib/utils.ts) bytes"; \
+    echo "✓ src/lib/utils.ts exists" && \
+    echo "File size: $(stat -c%s src/lib/utils.ts) bytes"; \
     else \
-      echo "✗ ERROR: src/lib/utils.ts NOT FOUND!" && \
-      echo "Searching for any utils.ts files:" && \
-      find . -name "utils.ts" -type f 2>/dev/null || echo "No utils.ts files found" && \
-      echo "Full directory tree:" && \
-      find src -type f 2>/dev/null | head -20 && \
-      exit 1; \
+    echo "✗ ERROR: src/lib/utils.ts NOT FOUND!" && \
+    echo "Searching for any utils.ts files:" && \
+    find . -name "utils.ts" -type f 2>/dev/null || echo "No utils.ts files found" && \
+    echo "Full directory tree:" && \
+    find src -type f 2>/dev/null | head -20 && \
+    exit 1; \
     fi && \
     echo "" && \
     echo "=== Verifying configuration files ===" && \
@@ -94,18 +94,18 @@ WORKDIR /app/backend
 # Install system dependencies
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        postgresql-client \
-        build-essential \
-        libpq-dev \
-        gettext \
-        curl \
-        python3-dev \
-        libcairo2-dev \
-        libpango1.0-dev \
-        pkg-config \
-        python3-pip \
-        libjpeg-dev \
-        zlib1g-dev \
+    postgresql-client \
+    build-essential \
+    libpq-dev \
+    gettext \
+    curl \
+    python3-dev \
+    libcairo2-dev \
+    libpango1.0-dev \
+    pkg-config \
+    python3-pip \
+    libjpeg-dev \
+    zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy backend requirements
@@ -118,6 +118,10 @@ RUN python -m pip install --upgrade pip \
 
 # Copy backend project
 COPY backend/ .
+
+# Make entrypoint executable and fix line endings (for Windows)
+RUN sed -i 's/\r$//g' /app/backend/docker-entrypoint.sh && \
+    chmod +x /app/backend/docker-entrypoint.sh
 
 # Create directories for static and media files
 RUN mkdir -p /app/staticfiles \
