@@ -11,6 +11,7 @@ services:
       #- ./backend:/app/backend
       - static_volume:/app/staticfiles
       - media_volume:/app/media
+      - db_data:/app/backend/db_data
     environment:
       - PYTHONPATH=/app
       - DJANGO_SETTINGS_MODULE=travelcrm.settings
@@ -51,6 +52,8 @@ volumes:
   static_volume:
     driver: local
   media_volume:
+    driver: local
+  db_data:
     driver: local
 
 networks:
