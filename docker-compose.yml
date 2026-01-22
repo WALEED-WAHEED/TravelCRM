@@ -1,36 +1,4 @@
 services:
-  # PostgreSQL Database
-  db:
-    image: postgres:15
-    container_name: nahd_travels_db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-travelcrm}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Redis for caching and Celery
-  redis:
-    image: redis:7-alpine
-    container_name: nahd_travels_redis
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # Backend Django API
   backend:
     build:
@@ -48,22 +16,11 @@ services:
       - DJANGO_SETTINGS_MODULE=travelcrm.settings
       - DEBUG=${DJANGO_DEBUG:-False}
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-      - POSTGRES_DB=${POSTGRES_DB:-travelcrm}
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
-      - POSTGRES_HOST=db
+
     ports:
-      # Exposing port 8001 is now optional if all access is through frontend proxy
-      # But kept for debugging or direct API tools access if needed. 
-      # To be fully secure, you can bind to localhost only:
       - "127.0.0.1:8001:8001"
     entrypoint: ["/app/backend/docker-entrypoint.sh"]
     command: gunicorn travelcrm.wsgi:application --bind 0.0.0.0:8001
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     restart: unless-stopped
 
   # Frontend React Application
@@ -90,8 +47,7 @@ services:
       retries: 3
 
 volumes:
-  postgres_data:
-    driver: local
+
   static_volume:
     driver: local
   media_volume:
