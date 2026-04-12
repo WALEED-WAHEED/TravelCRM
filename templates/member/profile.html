@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<div class="page-profile page-hotels">
+    <header class="hotels-hero hotels-reveal" style="--d:0ms">
+        <div class="hotels-hero__copy">
+            <p class="hotels-eyebrow">Agency</p>
+            <h1 class="page-title hotels-hero__title">Company profile</h1>
+            <p class="page-subtitle hotels-hero__sub">Logo and contact details shown on vouchers and documents.</p>
+        </div>
+    </header>
+
+    <section class="card hotels-panel hotels-reveal" style="--d:120ms">
+        <div class="hotels-panel__head">
+            <div>
+                <h2 class="hotels-panel__title">Company details</h2>
+                <p class="hotels-panel__hint text-muted text-sm">Update what appears for your agency on printed vouchers.</p>
+            </div>
+        </div>
+        <div class="card-content hotels-panel__body">
+            <form id="profile-company-form" class="hotels-modal-form" method="post" action="#" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label class="form-label" for="profile-logo">Company logo</label>
+                    <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
+                        {% if branding.logo %}
+                        <div style="width:96px;height:96px;border-radius:12px;border:1px solid var(--border);overflow:hidden;background:var(--muted);flex-shrink:0;">
+                            <img src="{{ branding.logo.url }}" alt="Logo" style="width:100%;height:100%;object-fit:contain;">
+                        </div>
+                        {% endif %}
+                        <div style="flex:1;min-width:200px;">
+                            <input id="profile-logo" class="form-input" type="file" name="logo" accept="image/jpeg,image/png,image/gif,image/svg+xml">
+                            <p class="form-hint">JPEG, PNG, GIF, or SVG — max 5MB. Leave empty to keep current logo.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="profile-company-name">Company name *</label>
+                    <input id="profile-company-name" class="form-input" name="company_name" required maxlength="200"
+                        value="{{ branding.company_name|default:agency.name|default:'' }}" placeholder="e.g. NAHD TRAVELS">
+                </div>
+
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="profile-phone">Phone</label>
+                        <input id="profile-phone" class="form-input tabular-nums" name="phone" maxlength="20"
+                            value="{{ branding.phone|default:agency.phone|default:'' }}" placeholder="+92…">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="profile-email">Email</label>
+                        <input id="profile-email" class="form-input" type="email" name="email" maxlength="254"
+                            value="{{ branding.email|default:agency.email|default:'' }}" placeholder="name@example.com">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="profile-website">Website URL</label>
+                    <input id="profile-website" class="form-input" name="website" maxlength="200"
+                        value="{{ branding.website|default:'' }}" placeholder="https://">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="profile-address">Address</label>
+                    <textarea id="profile-address" class="form-textarea" name="address" rows="3"
+                        placeholder="Full business address">{{ branding.address|default:agency.address|default:'' }}</textarea>
+                </div>
+
+                <div style="margin-top:8px;padding-top:20px;border-top:1px solid var(--border);">
+                    <h3 class="text-sm font-medium" style="margin-bottom:14px;">Shirka company (right-side on voucher)</h3>
+                    <div class="grid grid-3">
+                        <div class="form-group">
+                            <label class="form-label" for="profile-shirka-name">Shirka company name</label>
+                            <input id="profile-shirka-name" class="form-input" name="shirka_company_name" maxlength="200"
+                                value="{{ branding.shirka_company_name|default:'' }}" placeholder="e.g., NOORI KAKI CO.">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="profile-shirka-country">Shirka company country</label>
+                            <input id="profile-shirka-country" class="form-input" name="shirka_company_country" maxlength="100"
+                                value="{{ branding.shirka_company_country|default:'' }}" placeholder="e.g., PAKISTAN">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="profile-shirka-whatsapp">Shirka company WhatsApp</label>
+                            <input id="profile-shirka-whatsapp" class="form-input tabular-nums" name="shirka_company_whatsapp" maxlength="50"
+                                value="{{ branding.shirka_company_whatsapp|default:'' }}" placeholder="WhatsApp number">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex;justify-content:flex-end;margin-top:20px;">
+                    <button type="submit" class="btn btn-primary hotels-cta-btn" id="profile-save-btn">Save</button>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        var form = document.getElementById('profile-company-form');
+        var btn = document.getElementById('profile-save-btn');
+        if (!form) return;
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            try {
+                if (btn) btn.disabled = true;
+                var fd = new FormData(form);
+                var res = await fetch('{% url "profile-update-branding" %}', { method: 'POST', body: fd });
+                if (!res.ok) {
+                    var t = await res.text();
+                    showToast(t || 'Unable to save', 'error');
+                    return;
+                }
+                showToast('Saved', 'success');
+                window.location.reload();
+            } catch (err) {
+                showToast('Unable to save', 'error');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        });
+    })();
+</script>
+{% endblock %}

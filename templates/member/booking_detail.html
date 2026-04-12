@@ -1,0 +1,525 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block extra_head %}
+<style>
+    .booking-detail-hero .hotels-hero__sub { max-width: 42rem; }
+    .bd-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    .bd-builder-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+    @media (min-width: 1100px) {
+        .bd-builder-grid {
+            grid-template-columns: 1fr 380px;
+            align-items: start;
+        }
+    }
+    .bd-side-card {
+        position: sticky;
+        top: 1rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg, 12px);
+        background: var(--card);
+        overflow: hidden;
+    }
+    .bd-side-card__head {
+        padding: 0.75rem 1rem;
+        background: linear-gradient(135deg, color-mix(in oklab, var(--primary) 18%, var(--card)), var(--card));
+        border-bottom: 1px solid var(--border);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted-foreground);
+    }
+    .bd-side-card__body { padding: 0.75rem 1rem; font-size: 0.75rem; }
+    .bd-mini-header {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 0.5rem;
+        font-size: 0.65rem;
+        line-height: 1.4;
+        margin-bottom: 0.75rem;
+    }
+    .bd-mini-header__c { text-align: center; }
+    .bd-mini-header__logo { max-height: 48px; max-width: 120px; object-fit: contain; }
+    .bd-mini-header__r { text-align: right; }
+    .bd-section-title {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        margin: 1.25rem 0 0.5rem;
+        color: var(--foreground);
+    }
+    .bd-table-wrap { overflow-x: auto; margin-bottom: 0.5rem; }
+    .bd-row-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+    .bd-row-table th {
+        text-align: left;
+        padding: 0.35rem 0.5rem;
+        background: color-mix(in oklab, var(--muted) 12%, transparent);
+        font-weight: 600;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .bd-row-table td { padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .bd-row-table .form-input, .bd-row-table .form-select { font-size: 0.8125rem; padding: 0.35rem 0.5rem; min-width: 0; }
+    .bd-row-table .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+    .bd-multi-help { font-size: 0.75rem; color: var(--muted-foreground); margin-top: 0.25rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-hotels page-bookings booking-detail-hero">
+    <header class="hotels-hero hotels-reveal" style="--d:0ms">
+        <div class="hotels-hero__copy">
+            <p class="hotels-eyebrow"><a href="{% url 'member-bookings' %}" class="text-muted" style="text-decoration:none;">Bookings</a> · Builder</p>
+            <h1 class="page-title hotels-hero__title">{{ booking.voucher_number }}</h1>
+            <p class="page-subtitle hotels-hero__sub">Compose this voucher: profile header (logo / agency / Shirka) prints on the PDF. Link hotels, flights, transport, mutamers, and contact instructions from your saved data, then add dates and notes unique to this trip.</p>
+        </div>
+        <div class="hotels-hero__actions hotels-reveal bd-actions" style="--d:60ms">
+            <a href="{% url 'member-booking-voucher-print' booking.id %}" target="_blank" rel="noopener" class="btn btn-outline hotels-cta-btn">Print view</a>
+            <a href="{% url 'member-booking-voucher-pdf' booking.id %}" class="btn btn-primary hotels-cta-btn">Download PDF</a>
+        </div>
+    </header>
+
+    <div class="bd-builder-grid">
+        <div>
+            <form id="booking-builder-form" method="post" action="{% url 'member-booking-update' booking.id %}" class="card hotels-panel hotels-reveal" style="--d:80ms;padding:0;">
+                {% csrf_token %}
+                <input type="hidden" name="hotels_json" id="id_hotels_json" value="[]">
+                <input type="hidden" name="flights_json" id="id_flights_json" value="[]">
+                <input type="hidden" name="transports_json" id="id_transports_json" value="[]">
+
+                <div class="hotels-panel__head" style="padding:1rem 1.25rem;border-bottom:1px solid var(--border);">
+                    <h2 class="hotels-panel__title" style="margin:0;">Trip &amp; client</h2>
+                    <p class="hotels-panel__hint text-muted text-sm" style="margin:0.35rem 0 0;">Fields you set here are specific to this voucher.</p>
+                </div>
+                <div class="card-content" style="padding:1.25rem;">
+                    <div class="grid grid-2" style="gap:1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="id_package_name">Package name</label>
+                            <input id="id_package_name" class="form-input" name="package_name" value="{{ booking.package_name }}" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="id_manual_number">Manual voucher #</label>
+                            <input id="id_manual_number" class="form-input" name="manual_number" value="{{ booking.manual_number }}" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="grid grid-3" style="gap:1rem;margin-top:1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="id_client_company">Client company</label>
+                            <input id="id_client_company" class="form-input" name="client_company" value="{{ booking.client_company }}" autocomplete="organization">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="id_client_country">Client country</label>
+                            <input id="id_client_country" class="form-input" name="client_country" value="{{ booking.client_country }}" autocomplete="country-name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="id_client_whatsapp">Client WhatsApp</label>
+                            <input id="id_client_whatsapp" class="form-input" name="client_whatsapp" value="{{ booking.client_whatsapp }}" inputmode="tel">
+                        </div>
+                    </div>
+                    <div class="grid grid-4" style="gap:1rem;margin-top:1rem;grid-template-columns:repeat(4,minmax(0,1fr));">
+                        <div class="form-group">
+                            <label class="form-label" for="id_pax_adults">Adults</label>
+                            <input id="id_pax_adults" class="form-input" type="number" min="0" name="pax_adults" value="{{ booking.pax_adults }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="id_pax_children">Children</label>
+                            <input id="id_pax_children" class="form-input" type="number" min="0" name="pax_children" value="{{ booking.pax_children }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="id_pax_infants">Infants</label>
+                            <input id="id_pax_infants" class="form-input" type="number" min="0" name="pax_infants" value="{{ booking.pax_infants }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="id_total_beds">Total beds</label>
+                            <input id="id_total_beds" class="form-input" type="number" min="0" name="total_beds" value="{{ booking.total_beds }}">
+                        </div>
+                    </div>
+                    <div class="grid grid-3" style="gap:1rem;margin-top:1rem;">
+                        <div class="form-group">
+                            <label class="form-label" for="id_total_amount">Total amount (PKR)</label>
+                            <input id="id_total_amount" class="form-input" name="total_amount" value="{{ booking.total_amount }}" inputmode="decimal">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="id_total_price">Quoted / payable (PKR)</label>
+                            <input id="id_total_price" class="form-input" name="total_price" value="{{ booking.total_price }}" inputmode="decimal">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="id_status">Status</label>
+                            <select id="id_status" class="form-select" name="status">
+                                {% for val, label in booking_status_choices %}
+                                <option value="{{ val }}" {% if booking.status == val %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top:1rem;">
+                        <label class="form-label" for="id_notes">Notes</label>
+                        <textarea id="id_notes" class="form-textarea" name="notes" rows="2">{{ booking.notes }}</textarea>
+                    </div>
+
+                    <h3 class="bd-section-title">Hotels <span class="text-muted font-normal text-sm">(from Hotels — add stay details)</span></h3>
+                    <div class="bd-table-wrap">
+                        <table class="bd-row-table" id="hotel-rows-table">
+                            <thead>
+                                <tr>
+                                    <th>Hotel</th>
+                                    <th>Check-in</th>
+                                    <th>Check-out</th>
+                                    <th>Room</th>
+                                    <th>Meal</th>
+                                    <th>Conf. #</th>
+                                    <th>View</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="hotel-rows">
+                                {% for bh in booking_hotels %}
+                                <tr data-hotel-row>
+                                    <td>
+                                        <select class="form-select js-hotel-id" data-required>
+                                            <option value="">—</option>
+                                            {% for h in hotels_list %}
+                                            <option value="{{ h.id }}" {% if bh.hotel_id == h.id %}selected{% endif %}>{{ h.name }} ({{ h.city }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td><input type="date" class="form-input js-hotel-ci" value="{{ bh.check_in|date:'Y-m-d' }}"></td>
+                                    <td><input type="date" class="form-input js-hotel-co" value="{{ bh.check_out|date:'Y-m-d' }}"></td>
+                                    <td><input type="text" class="form-input js-hotel-room" value="{{ bh.room_type }}" placeholder="sharing"></td>
+                                    <td><input type="text" class="form-input js-hotel-meal" value="{{ bh.meal_plan }}" placeholder="RO"></td>
+                                    <td><input type="text" class="form-input js-hotel-conf" value="{{ bh.confirmation_number }}"></td>
+                                    <td><input type="text" class="form-input js-hotel-view" value="{{ bh.view }}"></td>
+                                    <td><button type="button" class="btn btn-outline btn-sm js-row-remove" aria-label="Remove row">×</button></td>
+                                </tr>
+                                {% empty %}
+                                <tr data-hotel-row>
+                                    <td>
+                                        <select class="form-select js-hotel-id">
+                                            <option value="">—</option>
+                                            {% for h in hotels_list %}
+                                            <option value="{{ h.id }}">{{ h.name }} ({{ h.city }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td><input type="date" class="form-input js-hotel-ci"></td>
+                                    <td><input type="date" class="form-input js-hotel-co"></td>
+                                    <td><input type="text" class="form-input js-hotel-room" placeholder="sharing"></td>
+                                    <td><input type="text" class="form-input js-hotel-meal" placeholder="RO"></td>
+                                    <td><input type="text" class="form-input js-hotel-conf"></td>
+                                    <td><input type="text" class="form-input js-hotel-view" placeholder="Standard"></td>
+                                    <td><button type="button" class="btn btn-outline btn-sm js-row-remove" aria-label="Remove row">×</button></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <button type="button" class="btn btn-outline btn-sm" id="btn-add-hotel-row">+ Add hotel row</button>
+
+                    <h3 class="bd-section-title">Flights</h3>
+                    <div class="bd-table-wrap">
+                        <table class="bd-row-table">
+                            <thead>
+                                <tr>
+                                    <th>Flight</th>
+                                    <th>Leg</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="flight-rows">
+                                {% for bf in booking_flights %}
+                                <tr data-flight-row>
+                                    <td>
+                                        <select class="form-select js-flight-id" data-required>
+                                            <option value="">—</option>
+                                            {% for f in flights_list %}
+                                            <option value="{{ f.id }}" {% if bf.flight_id == f.id %}selected{% endif %}>{{ f.airline }} {{ f.flight_number|default:"" }} — {{ f.departure_city }}→{{ f.arrival_city }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="form-select js-flight-type">
+                                            <option value="outbound" {% if bf.flight_type == 'outbound' %}selected{% endif %}>Outbound</option>
+                                            <option value="return" {% if bf.flight_type == 'return' %}selected{% endif %}>Return</option>
+                                        </select>
+                                    </td>
+                                    <td><button type="button" class="btn btn-outline btn-sm js-row-remove">×</button></td>
+                                </tr>
+                                {% empty %}
+                                <tr data-flight-row>
+                                    <td>
+                                        <select class="form-select js-flight-id">
+                                            <option value="">—</option>
+                                            {% for f in flights_list %}
+                                            <option value="{{ f.id }}">{{ f.airline }} {{ f.flight_number|default:"" }} — {{ f.departure_city }}→{{ f.arrival_city }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="form-select js-flight-type">
+                                            <option value="outbound" selected>Outbound</option>
+                                            <option value="return">Return</option>
+                                        </select>
+                                    </td>
+                                    <td><button type="button" class="btn btn-outline btn-sm js-row-remove">×</button></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <button type="button" class="btn btn-outline btn-sm" id="btn-add-flight-row">+ Add flight row</button>
+
+                    <h3 class="bd-section-title">Ground transport</h3>
+                    <div class="bd-table-wrap">
+                        <table class="bd-row-table">
+                            <thead>
+                                <tr>
+                                    <th>Transport</th>
+                                    <th>Travel date</th>
+                                    <th>Transporter</th>
+                                    <th>Vehicle</th>
+                                    <th>Description</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="transport-rows">
+                                {% for bt in booking_transports %}
+                                <tr data-transport-row>
+                                    <td>
+                                        <select class="form-select js-transport-id" data-required>
+                                            <option value="">—</option>
+                                            {% for t in transports_list %}
+                                            <option value="{{ t.id }}" {% if bt.transport_id == t.id %}selected{% endif %}>{{ t.name }} ({{ t.get_transport_type_display }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td><input type="date" class="form-input js-transport-date" value="{{ bt.travel_date|date:'Y-m-d' }}"></td>
+                                    <td><input type="text" class="form-input js-transporter" value="{{ bt.transporter }}"></td>
+                                    <td><input type="text" class="form-input js-vehicle" value="{{ bt.vehicle_type }}"></td>
+                                    <td><input type="text" class="form-input js-transport-desc" value="{{ bt.description }}"></td>
+                                    <td><button type="button" class="btn btn-outline btn-sm js-row-remove">×</button></td>
+                                </tr>
+                                {% empty %}
+                                <tr data-transport-row>
+                                    <td>
+                                        <select class="form-select js-transport-id">
+                                            <option value="">—</option>
+                                            {% for t in transports_list %}
+                                            <option value="{{ t.id }}">{{ t.name }} ({{ t.get_transport_type_display }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td><input type="date" class="form-input js-transport-date"></td>
+                                    <td><input type="text" class="form-input js-transporter"></td>
+                                    <td><input type="text" class="form-input js-vehicle"></td>
+                                    <td><input type="text" class="form-input js-transport-desc"></td>
+                                    <td><button type="button" class="btn btn-outline btn-sm js-row-remove">×</button></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <button type="button" class="btn btn-outline btn-sm" id="btn-add-transport-row">+ Add transport row</button>
+
+                    <h3 class="bd-section-title">Mutamers <span class="text-muted font-normal text-sm">(Ctrl/Cmd + click for several)</span></h3>
+                    <select name="mutamer_ids" id="id_mutamer_ids" class="form-select" multiple size="8" style="min-height:8rem;">
+                        {% for m in mutamers_list %}
+                        <option value="{{ m.id }}" {% if m.id in selected_mutamer_ids %}selected{% endif %}>{{ m.name }} — {{ m.passport_number }}{% if m.family_id %} (family){% endif %}</option>
+                        {% empty %}
+                        <option disabled>No mutamers yet</option>
+                        {% endfor %}
+                    </select>
+                    <p class="bd-multi-help">Saved under <a href="{% url 'member-mutamers' %}">Mutamers</a>.</p>
+
+                    <h3 class="bd-section-title">Local contacts <span class="text-muted font-normal text-sm">(from Contacts instructions)</span></h3>
+                    <select name="instruction_ids" id="id_instruction_ids" class="form-select" multiple size="6" style="min-height:6rem;">
+                        {% for ins in instructions_list %}
+                        <option value="{{ ins.id }}" {% if ins.id in selected_instruction_ids %}selected{% endif %}>{{ ins.city }} — {{ ins.role }}: {{ ins.contact_name }} ({{ ins.phone_number }})</option>
+                        {% empty %}
+                        <option disabled>Add instructions on the Contacts page</option>
+                        {% endfor %}
+                    </select>
+                    <p class="bd-multi-help">Manage at <a href="{% url 'member-contacts' %}">Contacts</a>. Profile / Shirka block: <a href="{% url 'profile' %}">Company profile</a>.</p>
+
+                    <div style="margin-top:1.5rem;display:flex;gap:0.75rem;flex-wrap:wrap;">
+                        <button type="submit" class="btn btn-primary">Save voucher</button>
+                        <a href="{% url 'member-bookings' %}" class="btn btn-outline">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <aside class="bd-side-card hotels-reveal" style="--d:100ms;" aria-label="Voucher header preview">
+            <div class="bd-side-card__head">Live header (from profile)</div>
+            <div class="bd-side-card__body">
+                {% if branding %}
+                <div class="bd-mini-header">
+                    <div>
+                        <strong style="color:var(--primary);font-size:0.72rem;display:block;margin-bottom:0.25rem;">{% firstof branding.company_name booking.agency.name %}</strong>
+                        {% if branding.address %}<span style="white-space:pre-line;">{{ branding.address }}</span><br>{% endif %}
+                        {% if branding.phone %}<span>{{ branding.phone }}</span><br>{% endif %}
+                        {% if branding.email %}<span>{{ branding.email }}</span>{% endif %}
+                    </div>
+                    <div class="bd-mini-header__c">
+                        {% if branding.logo %}
+                        <img class="bd-mini-header__logo" src="{{ branding.logo.url }}" alt="">
+                        {% else %}<span class="text-muted">No logo</span>{% endif %}
+                    </div>
+                    <div class="bd-mini-header__r">
+                        <strong style="font-size:0.7rem;">Shirka</strong><br>
+                        {% if branding.shirka_company_name %}{{ branding.shirka_company_name }}<br>{% endif %}
+                        {% if branding.shirka_company_country %}{{ branding.shirka_company_country }}<br>{% endif %}
+                        {% if branding.shirka_company_whatsapp %}WA: {{ branding.shirka_company_whatsapp }}{% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted text-sm">Branding not configured.</p>
+                {% endif %}
+                <p class="text-muted" style="margin:0.5rem 0 0;font-size:0.7rem;">PDF uses the same header layout in a print-ready format.</p>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<template id="tpl-hotel-row">
+    <tr data-hotel-row>
+        <td>
+            <select class="form-select js-hotel-id">
+                <option value="">—</option>
+                {% for h in hotels_list %}
+                <option value="{{ h.id }}">{{ h.name }} ({{ h.city }})</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td><input type="date" class="form-input js-hotel-ci"></td>
+        <td><input type="date" class="form-input js-hotel-co"></td>
+        <td><input type="text" class="form-input js-hotel-room" placeholder="sharing"></td>
+        <td><input type="text" class="form-input js-hotel-meal" placeholder="RO"></td>
+        <td><input type="text" class="form-input js-hotel-conf"></td>
+        <td><input type="text" class="form-input js-hotel-view" placeholder="Standard"></td>
+        <td><button type="button" class="btn btn-outline btn-sm js-row-remove" aria-label="Remove row">×</button></td>
+    </tr>
+</template>
+<template id="tpl-flight-row">
+    <tr data-flight-row>
+        <td>
+            <select class="form-select js-flight-id">
+                <option value="">—</option>
+                {% for f in flights_list %}
+                <option value="{{ f.id }}">{{ f.airline }} {{ f.flight_number|default:"" }} — {{ f.departure_city }}→{{ f.arrival_city }}</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td>
+            <select class="form-select js-flight-type">
+                <option value="outbound" selected>Outbound</option>
+                <option value="return">Return</option>
+            </select>
+        </td>
+        <td><button type="button" class="btn btn-outline btn-sm js-row-remove">×</button></td>
+    </tr>
+</template>
+<template id="tpl-transport-row">
+    <tr data-transport-row>
+        <td>
+            <select class="form-select js-transport-id">
+                <option value="">—</option>
+                {% for t in transports_list %}
+                <option value="{{ t.id }}">{{ t.name }} ({{ t.get_transport_type_display }})</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td><input type="date" class="form-input js-transport-date"></td>
+        <td><input type="text" class="form-input js-transporter"></td>
+        <td><input type="text" class="form-input js-vehicle"></td>
+        <td><input type="text" class="form-input js-transport-desc"></td>
+        <td><button type="button" class="btn btn-outline btn-sm js-row-remove">×</button></td>
+    </tr>
+</template>
+
+<script>
+(function () {
+    function val(sel, root) { var el = root.querySelector(sel); return el ? el.value.trim() : ''; }
+    function collectHotels() {
+        var rows = document.querySelectorAll('#hotel-rows [data-hotel-row]');
+        var out = [];
+        rows.forEach(function (tr) {
+            var id = val('.js-hotel-id', tr);
+            if (!id) return;
+            out.push({
+                hotel_id: parseInt(id, 10),
+                check_in: val('.js-hotel-ci', tr),
+                check_out: val('.js-hotel-co', tr),
+                room_type: val('.js-hotel-room', tr) || 'sharing',
+                meal_plan: val('.js-hotel-meal', tr) || 'RO',
+                confirmation_number: val('.js-hotel-conf', tr),
+                view: val('.js-hotel-view', tr) || 'Standard'
+            });
+        });
+        document.getElementById('id_hotels_json').value = JSON.stringify(out);
+    }
+    function collectFlights() {
+        var rows = document.querySelectorAll('#flight-rows [data-flight-row]');
+        var out = [];
+        rows.forEach(function (tr) {
+            var id = val('.js-flight-id', tr);
+            if (!id) return;
+            out.push({
+                flight_id: parseInt(id, 10),
+                flight_type: val('.js-flight-type', tr) || 'outbound'
+            });
+        });
+        document.getElementById('id_flights_json').value = JSON.stringify(out);
+    }
+    function collectTransports() {
+        var rows = document.querySelectorAll('#transport-rows [data-transport-row]');
+        var out = [];
+        rows.forEach(function (tr) {
+            var id = val('.js-transport-id', tr);
+            if (!id) return;
+            out.push({
+                transport_id: parseInt(id, 10),
+                travel_date: val('.js-transport-date', tr),
+                transporter: val('.js-transporter', tr),
+                vehicle_type: val('.js-vehicle', tr),
+                description: val('.js-transport-desc', tr)
+            });
+        });
+        document.getElementById('id_transports_json').value = JSON.stringify(out);
+    }
+    function cloneTpl(id) {
+        var t = document.getElementById(id);
+        return t.content.cloneNode(true);
+    }
+    document.getElementById('btn-add-hotel-row').addEventListener('click', function () {
+        document.getElementById('hotel-rows').appendChild(cloneTpl('tpl-hotel-row'));
+    });
+    document.getElementById('btn-add-flight-row').addEventListener('click', function () {
+        document.getElementById('flight-rows').appendChild(cloneTpl('tpl-flight-row'));
+    });
+    document.getElementById('btn-add-transport-row').addEventListener('click', function () {
+        document.getElementById('transport-rows').appendChild(cloneTpl('tpl-transport-row'));
+    });
+    document.getElementById('booking-builder-form').addEventListener('click', function (e) {
+        if (e.target.closest('.js-row-remove')) {
+            var tr = e.target.closest('tr');
+            var tbody = tr && tr.parentElement;
+            if (tbody && tbody.rows.length > 1) tr.remove();
+        }
+    });
+    document.getElementById('booking-builder-form').addEventListener('submit', function () {
+        collectHotels();
+        collectFlights();
+        collectTransports();
+    });
+})();
+</script>
+{% endblock %}

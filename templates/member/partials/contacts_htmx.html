@@ -1,0 +1,4 @@
+{% include "member/partials/contacts_table.html" %}
+<span id="contacts-count-display" class="text-sm text-muted hotels-toolbar-count" hx-swap-oob="true">
+    {{ contacts|length }} contact{{ contacts|length|pluralize }}
+</span>

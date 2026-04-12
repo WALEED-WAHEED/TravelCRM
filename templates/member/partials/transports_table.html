@@ -1,0 +1,58 @@
+{% load currency_tags %}
+{% if transports %}
+<table class="hotels-data-table">
+    <thead>
+        <tr>
+            <th>Vehicle / unit</th>
+            <th>Type</th>
+            <th>Capacity</th>
+            <th>Sale (PKR)</th>
+            <th>Cost (PKR)</th>
+            <th class="hotels-col-actions" scope="col"><span class="sr-only">Actions</span></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for t in transports %}
+        <tr class="hotels-row" style="--row-i: {{ forloop.counter0 }}">
+            <td>
+                <div class="hotels-cell-name">
+                    <span class="hotels-cell-name__title font-medium">{{ t.name }}</span>
+                    {% if not t.is_active %}
+                    <span class="hotels-cell-name__code text-xs" style="color:var(--muted-foreground);">Inactive</span>
+                    {% endif %}
+                </div>
+            </td>
+            <td><span class="badge badge-default">{{ t.get_transport_type_display }}</span></td>
+            <td><span class="tabular-nums">{{ t.capacity }}</span> <span class="text-muted text-sm">pax</span></td>
+            <td>{% if t.sale_price %}<span class="hotels-money">{{ t.sale_price|pkr }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+            <td>{% if t.purchase_price %}<span class="hotels-money hotels-money--muted">{{ t.purchase_price|pkr }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+            <td class="hotels-col-actions">
+                <div class="hotels-row-actions">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="openTransportEditModal({{ t.id }})">Edit</button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteTransport({{ t.id }})">Delete</button>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="hotels-empty">
+    <div class="hotels-empty__glow" aria-hidden="true"></div>
+    <div class="hotels-empty__icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" aria-hidden="true">
+            <path d="M1 3h15v13H1z" />
+            <path d="M16 8h4l3 3v5h-7V8z" />
+            <circle cx="5.5" cy="18.5" r="2.5" />
+            <circle cx="18.5" cy="18.5" r="2.5" />
+        </svg>
+    </div>
+    <h3 class="hotels-empty__title">{% if search_q %}No matches{% else %}No transports yet{% endif %}</h3>
+    <p class="hotels-empty__text">{% if search_q %}Try another search or clear the filter to see all vehicles.{% else %}Add coaches, vans, or cars for ground services and packages.{% endif %}</p>
+    {% if search_q %}
+    <a href="{% url 'member-transports' %}" class="btn btn-outline hotels-empty__btn">View all transports</a>
+    {% else %}
+    <button type="button" class="btn btn-primary hotels-empty__btn" onclick="openTransportAddModal()">Add transport</button>
+    {% endif %}
+</div>
+{% endif %}

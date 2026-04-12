@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Agent Bookings{% endblock %}
+{% block content %}
+<div class="page-header flex justify-between items-center">
+    <div>
+        <h1 class="page-title">My Bookings</h1>
+        <p class="page-subtitle">Bookings you have created</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('modal-agent-booking')">+ New Booking</button>
+</div>
+<div class="card">
+    <div class="card-content" style="padding-top:20px;">
+        {% if bookings %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Voucher #</th>
+                        <th>Client</th>
+                        <th>PAX</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in bookings %}
+                    <tr>
+                        <td class="font-medium" style="color:var(--primary);font-family:monospace;">{{ b.voucher_number
+                            }}</td>
+                        <td>{{ b.client_company|default:"—" }}</td>
+                        <td>{{ b.pax_adults }}A {% if b.pax_children %}{{ b.pax_children }}C{% endif %}</td>
+                        <td><span
+                                class="badge {% if b.status == 'confirmed' %}badge-success{% elif b.status == 'cancelled' %}badge-danger{% else %}badge-default{% endif %}">{{
+                                b.get_status_display }}</span></td>
+                        <td class="text-muted text-sm">{{ b.created_at|date:"d M Y" }}</td>
+                        <td><button class="btn btn-outline btn-sm">View</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No bookings yet</h3>
+            <p>Create your first booking.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,177 @@
+{% load static %}
+{% load currency_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% include "partials/theme_init.html" %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ledger Report — {{ month_filter }}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <style>
+        body { background: var(--muted); padding: 28px 16px; }
+        .report { max-width: 980px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-card); padding: 28px; }
+        .rep-top { display:flex; justify-content:space-between; gap: 16px; border-bottom: 2px solid var(--border); padding-bottom: 16px; margin-bottom: 18px; }
+        .rep-brand h1 { margin:0; font-size: 1.25rem; color: var(--primary); }
+        .rep-brand .meta { color: var(--muted-foreground); font-size: 0.85rem; line-height: 1.35; margin-top: 4px; }
+        .rep-meta { text-align:right; }
+        .rep-meta .title { font-weight: 700; font-size: 1.05rem; margin:0; }
+        .rep-meta .sub { color: var(--muted-foreground); font-size: 0.85rem; margin-top: 6px; }
+        .rep-actions { display:flex; justify-content:flex-end; gap: 10px; margin-bottom: 14px; }
+        .section-title { margin: 18px 0 10px; font-size: 0.95rem; font-weight: 700; }
+        .rep-table { width:100%; border-collapse: collapse; }
+        .rep-table th, .rep-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align:left; vertical-align: top; }
+        .rep-table th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); background: var(--muted); }
+        .mono { font-family: ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+        .right { text-align:right; }
+        .muted { color: var(--muted-foreground); }
+        .group-head { background: color-mix(in srgb, var(--muted) 55%, transparent); }
+        .totals { display:flex; justify-content: flex-end; gap: 18px; margin-top: 10px; }
+        .totals .pill { background: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 8px 12px; font-size: 0.85rem; }
+        @media print {
+            body { background: white; padding: 0; }
+            .report { box-shadow:none; border:none; border-radius:0; padding: 0; }
+            .rep-actions { display:none !important; }
+            .theme-toggle-floating { display:none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="report">
+        <div class="rep-actions">
+            <a class="btn btn-outline btn-sm" href="{% url 'member-ledger' %}?month={{ month_filter }}">Back</a>
+            <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">Print</button>
+        </div>
+
+        <div class="rep-top">
+            <div class="rep-brand">
+                <h1>{{ agency.name|default:"Agency" }}</h1>
+                <div class="meta">
+                    {{ agency.address|default:"" }}{% if agency.city %}, {{ agency.city }}{% endif %}{% if agency.country %}, {{ agency.country }}{% endif %}<br>
+                    {% if agency.phone %}{{ agency.phone }}{% endif %}
+                </div>
+            </div>
+            <div class="rep-meta">
+                <p class="title">Account Ledger</p>
+                <div class="sub">
+                    Period: {{ period_start|date:"d/m/y" }} To: {{ period_end|date:"d/m/y" }}<br>
+                    Print Date: {{ print_date|date:"d/m/y" }}
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">Party accounts (Debit / Credit)</div>
+        {% if party_groups %}
+            {% for g in party_groups %}
+            <table class="rep-table" style="margin-bottom:14px;">
+                <thead>
+                    <tr class="group-head">
+                        <th colspan="8">
+                            <span class="font-medium">{{ g.name }}</span>
+                            {% if g.type %}<span class="muted"> — {{ g.type|title }}</span>{% endif %}
+                            <span class="muted" style="margin-left:10px;">Debit:</span> <span class="mono">{{ g.debit_total|floatformat:0 }}</span>
+                            <span class="muted" style="margin-left:10px;">Credit:</span> <span class="mono">{{ g.credit_total|floatformat:0 }}</span>
+                            <span class="muted" style="margin-left:10px;">Balance:</span> <span class="mono">{{ g.balance_total|floatformat:0 }}</span>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th style="width:90px;">Date</th>
+                        <th style="width:90px;">Type</th>
+                        <th style="width:80px;">Rate</th>
+                        <th class="right" style="width:120px;">Debit</th>
+                        <th class="right" style="width:120px;">Credit</th>
+                        <th class="right" style="width:120px;">Balance</th>
+                        <th style="width:120px;">Trans.#</th>
+                        <th style="width:160px;">Particulars / Inv-Ref</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in g.rows %}
+                    <tr>
+                        {% if row.is_opening %}
+                        <td class="mono muted">{{ period_start|date:"d/m/y" }}</td>
+                        <td class="muted">—</td>
+                        <td class="mono muted">—</td>
+                        <td class="right mono">0</td>
+                        <td class="right mono">0</td>
+                        <td class="right mono">{{ row.running|floatformat:0 }}</td>
+                        <td class="mono muted">—</td>
+                        <td class="muted">Previous Balance</td>
+                        {% else %}
+                        <td class="mono">{{ row.e.transaction_date|date:"d/m/y" }}</td>
+                        <td class="muted">{{ row.e.get_transaction_type_display }}</td>
+                        <td class="mono muted">{% if row.e.rate %}{{ row.e.rate|floatformat:2 }}{% else %}—{% endif %}</td>
+                        <td class="right mono">{% if row.e.direction == 'debit' %}{{ row.e.amount|floatformat:0 }}{% else %}0{% endif %}</td>
+                        <td class="right mono">{% if row.e.direction == 'credit' %}{{ row.e.amount|floatformat:0 }}{% else %}0{% endif %}</td>
+                        <td class="right mono">{{ row.running|floatformat:0 }}</td>
+                        <td class="mono muted">{{ row.e.trans_no|default:"—" }}</td>
+                        <td>
+                            {{ row.e.description }}
+                            <div class="muted mono" style="margin-top:2px;">
+                                {% if row.e.inv_ref %}{{ row.e.inv_ref }}{% elif row.e.reference_number %}{{ row.e.reference_number }}{% else %}—{% endif %}
+                            </div>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endfor %}
+        {% else %}
+            <p class="muted">No party entries in this period.</p>
+        {% endif %}
+
+        <div class="section-title">Company expenses</div>
+        <table class="rep-table">
+            <thead>
+                <tr>
+                    <th style="width:90px;">Date</th>
+                    <th style="width:120px;">Category</th>
+                    <th>Description</th>
+                    <th style="width:140px;">Method</th>
+                    <th class="right" style="width:140px;">Amount</th>
+                    <th style="width:120px;">Ref</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in expense_entries %}
+                <tr>
+                    <td class="mono">{{ e.transaction_date|date:"d/m/y" }}</td>
+                    <td class="muted">{{ e.category|default:"—" }}</td>
+                    <td>{{ e.description }}</td>
+                    <td class="muted">{{ e.get_payment_method_display }}</td>
+                    <td class="right mono">{{ e.amount|floatformat:0 }}</td>
+                    <td class="mono muted">{{ e.reference_number|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="muted">No company expenses in this period.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="totals">
+            <div class="pill"><span class="muted">Total expenses:</span> <span class="mono">{{ expense_total|floatformat:0 }}</span></div>
+        </div>
+    </div>
+
+    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-floating" aria-label="Toggle light or dark theme">
+        <svg class="icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="5" />
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        </svg>
+        <svg class="icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+    </button>
+    <script src="{% static 'js/app.js' %}"></script>
+    <script>
+      (function () {
+        try {
+          var p = new URLSearchParams(window.location.search);
+          if (p.get('autoprint') === '1') setTimeout(function () { window.print(); }, 250);
+        } catch (e) { /* ignore */ }
+      })();
+    </script>
+</body>
+</html>
+

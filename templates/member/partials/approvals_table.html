@@ -1,0 +1,76 @@
+{% if vouchers %}
+<table class="hotels-data-table">
+    <thead>
+        <tr>
+            <th>Voucher</th>
+            <th>Pilgrim</th>
+            <th>Agent</th>
+            <th>Services</th>
+            <th>Submitted</th>
+            <th class="hotels-col-actions" scope="col"><span class="sr-only">Actions</span></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for v in vouchers %}
+        <tr class="hotels-row" style="--row-i: {{ forloop.counter0 }}">
+            <td>
+                <div class="hotels-cell-name">
+                    <span class="hotels-cell-name__title font-medium" style="font-family:ui-monospace,monospace;color:var(--primary);">
+                        {{ v.voucher_number }}
+                    </span>
+                    {% if v.manual_number %}
+                    <span class="hotels-cell-name__code text-xs text-muted">Manual: {{ v.manual_number }}</span>
+                    {% endif %}
+                </div>
+            </td>
+            <td>
+                <div class="hotels-cell-name">
+                    <span class="hotels-cell-name__title font-medium">{{ v.mutamer.name }}</span>
+                    <span class="hotels-cell-name__code text-xs text-muted mutamer-passport">{{ v.mutamer.passport_number }}</span>
+                </div>
+            </td>
+            <td class="text-sm">{{ v.agent.get_full_name|default:v.agent.username }}</td>
+            <td><span class="badge badge-default">{{ v.services.count }} service{{ v.services.count|pluralize }}</span></td>
+            <td class="text-muted text-sm">{{ v.created_at|date:"d M Y, H:i" }}</td>
+            <td class="hotels-col-actions">
+                <div class="hotels-row-actions">
+                    {% if v.public_token %}
+                    <a class="btn btn-outline btn-sm" target="_blank" href="{% url 'public-voucher' v.public_token %}">Preview</a>
+                    {% else %}
+                    <button type="button" class="btn btn-outline btn-sm" disabled>Preview</button>
+                    {% endif %}
+                    <form method="post" action="/api/v1/vouchers/{{ v.id }}/approve/"
+                        hx-post="/api/v1/vouchers/{{ v.id }}/approve/"
+                        hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'
+                        hx-on="htmx:afterRequest: location.reload();">
+                        <button type="submit" class="btn btn-primary btn-sm">Approve</button>
+                    </form>
+                    <form method="post" action="/api/v1/vouchers/{{ v.id }}/reject/"
+                        hx-post="/api/v1/vouchers/{{ v.id }}/reject/"
+                        hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'
+                        hx-on="htmx:afterRequest: location.reload();">
+                        <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="hotels-empty">
+    <div class="hotels-empty__glow" aria-hidden="true"></div>
+    <div class="hotels-empty__icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" aria-hidden="true">
+            <polyline points="9 11 12 14 22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+        </svg>
+    </div>
+    <h3 class="hotels-empty__title">{% if search_q %}No matches{% else %}All caught up{% endif %}</h3>
+    <p class="hotels-empty__text">{% if search_q %}Try another search to find pending vouchers.{% else %}There are no pending vouchers requiring your approval right now.{% endif %}</p>
+    {% if search_q %}
+    <a href="{% url 'member-approvals' %}" class="btn btn-outline hotels-empty__btn">View pending approvals</a>
+    {% endif %}
+</div>
+{% endif %}
+

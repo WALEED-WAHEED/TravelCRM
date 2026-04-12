@@ -1,0 +1,337 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    {% include "partials/theme_init.html" %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voucher {{ voucher.voucher_number }} — Nahd Travels</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <style>
+        body {
+            background: var(--muted);
+            padding: 40px 20px;
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.25s ease;
+        }
+
+        .voucher-print {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card);
+            color: var(--card-foreground);
+            border-radius: 12px;
+            box-shadow: var(--shadow-card);
+            padding: 40px;
+        }
+
+        .voucher-header-top {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 20px 28px;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 700px) {
+            .voucher-header-top {
+                grid-template-columns: 1fr;
+            }
+
+            .voucher-col-right {
+                text-align: left;
+                justify-self: start;
+            }
+        }
+
+        .voucher-col-left {
+            text-align: left;
+            font-size: 0.875rem;
+            line-height: 1.55;
+            color: var(--foreground);
+        }
+
+        .voucher-col-left .agency-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0 0 6px 0;
+        }
+
+        .voucher-col-center {
+            text-align: center;
+            justify-self: center;
+        }
+
+        .voucher-logo {
+            max-height: 88px;
+            max-width: 200px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .voucher-col-right {
+            text-align: right;
+            justify-self: end;
+            font-size: 0.875rem;
+            line-height: 1.55;
+        }
+
+        .voucher-col-right .shirka-heading {
+            font-weight: 700;
+            color: var(--foreground);
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .voucher-header-meta {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 16px;
+            padding-bottom: 24px;
+            margin-bottom: 32px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .voucher-header-meta .tagline {
+            margin: 0;
+            font-size: 0.875rem;
+            color: var(--muted-foreground);
+        }
+
+        .meta-numbers {
+            text-align: right;
+        }
+
+        .meta-numbers h2 {
+            font-size: 1.5rem;
+            margin: 0;
+            font-family: ui-monospace, monospace;
+            color: var(--primary);
+        }
+
+        .print-only {
+            display: none;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .voucher-print {
+                box-shadow: none;
+                padding: 0;
+                background: white !important;
+                color: #111 !important;
+            }
+
+            .theme-toggle-floating {
+                display: none !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .print-only {
+                display: block;
+            }
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 16px 0;
+            color: var(--foreground);
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .data-item .label {
+            font-size: 0.75rem;
+            color: var(--muted-foreground);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .data-item .val {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--foreground);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 32px;
+        }
+
+        th,
+        td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--muted-foreground);
+            background: var(--muted);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="voucher-print">
+        <div class="no-print flex justify-end" style="margin-bottom:20px;">
+            <button class="btn btn-primary" onclick="window.print()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 6 2 18 2 18 9" />
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                    <rect x="6" y="14" width="12" height="8" />
+                </svg>
+                Print Voucher
+            </button>
+        </div>
+
+        <div class="voucher-header-top">
+            <div class="voucher-col-left">
+                <p class="agency-title">{% if branding and branding.company_name %}{{ branding.company_name }}{% else %}{{ agency.name|default:"Nahd Travels" }}{% endif %}</p>
+                {% if branding %}
+                {% if branding.address %}<div>{{ branding.address|linebreaksbr }}</div>{% endif %}
+                {% if branding.phone %}<div>{{ branding.phone }}</div>{% endif %}
+                {% if branding.email %}<div>{{ branding.email }}</div>{% endif %}
+                {% if branding.website %}<div class="text-muted text-sm">{{ branding.website }}</div>{% endif %}
+                {% elif agency.address or agency.phone or agency.email %}
+                {% if agency.address %}<div>{{ agency.address|linebreaksbr }}</div>{% endif %}
+                {% if agency.phone %}<div>{{ agency.phone }}</div>{% endif %}
+                {% if agency.email %}<div>{{ agency.email }}</div>{% endif %}
+                {% endif %}
+            </div>
+            <div class="voucher-col-center">
+                {% if branding and branding.logo %}
+                <img class="voucher-logo" src="{{ branding.logo.url }}" alt="">
+                {% else %}
+                <span class="text-sm text-muted">Official voucher</span>
+                {% endif %}
+            </div>
+            <div class="voucher-col-right">
+                <p class="shirka-heading">Shirka company</p>
+                {% if branding %}
+                    {% if branding.shirka_company_name or branding.shirka_company_country or branding.shirka_company_whatsapp %}
+                        {% if branding.shirka_company_name %}<div>{{ branding.shirka_company_name }}</div>{% endif %}
+                        {% if branding.shirka_company_country %}<div>{{ branding.shirka_company_country }}</div>{% endif %}
+                        {% if branding.shirka_company_whatsapp %}<div>WhatsApp: {{ branding.shirka_company_whatsapp }}</div>{% endif %}
+                    {% else %}
+                        <span class="text-muted text-sm">—</span>
+                    {% endif %}
+                {% else %}
+                    <span class="text-muted text-sm">—</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="voucher-header-meta">
+            <p class="tagline">Official service voucher</p>
+            <div class="meta-numbers">
+                <h2>{{ voucher.voucher_number }}</h2>
+                <p class="text-sm font-medium" style="margin:8px 0 0;">Status: <span
+                        class="badge {% if voucher.status == 'approved' %}badge-success{% else %}badge-warning{% endif %}">{{
+                        voucher.get_status_display }}</span></p>
+                <p class="text-xs text-muted" style="margin-top:4px;">Issued: {{ voucher.created_at|date:"d M Y" }}</p>
+            </div>
+        </div>
+
+        <h3 class="section-title">Pilgrim Information</h3>
+        <div class="data-grid">
+            <div class="data-item">
+                <div class="label">Full Name</div>
+                <div class="val">{{ voucher.mutamer.name }}</div>
+            </div>
+            <div class="data-item">
+                <div class="label">Passport Number</div>
+                <div class="val" style="font-family:monospace;">{{ voucher.mutamer.passport_number }}</div>
+            </div>
+            <div class="data-item">
+                <div class="label">Nationality</div>
+                <div class="val">{{ voucher.mutamer.nationality }}</div>
+            </div>
+            <div class="data-item">
+                <div class="label">Gender</div>
+                <div class="val">{{ voucher.mutamer.gender|title }}</div>
+            </div>
+        </div>
+
+        <h3 class="section-title">Included Services</h3>
+        {% if voucher.services.exists %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Service Date</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in voucher.services.all %}
+                <tr>
+                    <td style="text-transform:capitalize;font-weight:500;">{{ s.service_type }}</td>
+                    <td>{{ s.service_details }}</td>
+                    <td>{{ s.service_date|date:"d M Y" }}</td>
+                    <td class="text-xs text-muted">{{ s.notes|default:"—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted text-sm" style="margin-bottom:32px;">No specific services listed on this voucher.</p>
+        {% endif %}
+
+        <div style="margin-top:60px;padding-top:24px;border-top:1px dashed var(--border);text-align:center;">
+            <p class="text-sm font-medium">This is a system-generated official voucher. Please present this document
+                upon request.</p>
+            <p class="text-xs text-muted" style="margin-top:8px;">For support, contact your issuing agent: {{
+                voucher.agent.get_full_name|default:voucher.agent.username }}</p>
+        </div>
+    </div>
+    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-floating" aria-label="Toggle light or dark theme">
+        <svg class="icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="5" />
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        </svg>
+        <svg class="icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+    </button>
+    <script src="{% static 'js/app.js' %}"></script>
+    <script>
+      (function () {
+        try {
+          var p = new URLSearchParams(window.location.search);
+          if (p.get('autoprint') === '1') {
+            setTimeout(function () { window.print(); }, 250);
+          }
+        } catch (e) { /* ignore */ }
+      })();
+    </script>
+</body>
+
+</html>

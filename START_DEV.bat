@@ -1,32 +1,22 @@
 @echo off
 echo ================================================================================
-echo               NAHD TRAVELS - STARTING FRONTEND AND BACKEND
+echo               NAHD TRAVELS - STARTING DEVELOPMENT SERVER
 echo ================================================================================
 echo.
 
 cd /d "%~dp0"
 
-REM Start Backend Server
-echo Starting Backend Server on port 8001...
-start "NAHD Travels Backend" cmd /k "cd backend && call venv\Scripts\activate.bat && python manage.py runserver 8001"
-
-REM Wait a moment for backend to start
-timeout /t 3 /nobreak >nul
-
-REM Start Frontend Server
-echo Starting Frontend Server on port 9006...
-start "NAHD Travels Frontend" cmd /k "cd frontend && npm run dev"
+echo Activating virtual environment and starting Django Server on port 8000...
+call .venv\Scripts\activate.bat && python manage.py runserver
 
 echo.
 echo ================================================================================
 echo                    IMPORTANT URLS TO ACCESS
 echo ================================================================================
 echo.
-echo Backend API:              http://127.0.0.1:8001/
-echo Backend API Docs:         http://127.0.0.1:8001/api/docs/
-echo Django Admin Panel:       http://127.0.0.1:8001/admin/
-echo.
-echo Frontend Application:     http://127.0.0.1:9006/
+echo Member Portal:            http://127.0.0.1:8000/
+echo Django Admin Panel:       http://127.0.0.1:8000/admin/
+echo Backend API Docs:         http://127.0.0.1:8000/api/docs/
 echo.
 echo ================================================================================
 echo                         TEST CREDENTIALS
@@ -34,14 +24,12 @@ echo ===========================================================================
 echo.
 echo Username: admin
 echo Password: admin123
-echo Role: developer
+echo Role: administrator/developer
 echo.
 echo ================================================================================
-echo                    SERVERS ARE STARTING...
+echo                    SERVER IS RUNNING
 echo ================================================================================
 echo.
-echo Two separate windows have been opened for Backend and Frontend.
-echo Close those windows to stop the servers.
+echo Close this window to stop the server.
 echo.
 pause
-

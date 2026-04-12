@@ -1,0 +1,67 @@
+{% load currency_tags %}
+{% if bookings %}
+<table class="hotels-data-table">
+    <thead>
+        <tr>
+            <th>Voucher #</th>
+            <th>Client</th>
+            <th>PAX</th>
+            <th>Status</th>
+            <th>Total (PKR)</th>
+            <th>Date</th>
+            <th class="hotels-col-actions" scope="col"><span class="sr-only">Actions</span></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for b in bookings %}
+        <tr class="hotels-row" style="--row-i: {{ forloop.counter0 }}">
+            <td>
+                <div class="hotels-cell-name">
+                    <span class="hotels-cell-name__title font-medium" style="font-family:ui-monospace,monospace;color:var(--primary);">{{ b.voucher_number }}</span>
+                    {% if b.package_name %}
+                    <span class="hotels-cell-name__code text-xs text-muted">{{ b.package_name }}</span>
+                    {% endif %}
+                </div>
+            </td>
+            <td>
+                <div class="hotels-cell-name">
+                    <span class="hotels-cell-name__title font-medium">{{ b.client_company|default:"—" }}</span>
+                    {% if b.client_country %}
+                    <span class="hotels-cell-name__code text-xs text-muted">{{ b.client_country }}</span>
+                    {% endif %}
+                </div>
+            </td>
+            <td class="text-sm">{{ b.pax_adults }}A{% if b.pax_children %} {{ b.pax_children }}C{% endif %}{% if b.pax_infants %} {{ b.pax_infants }}I{% endif %}</td>
+            <td>
+                <span class="badge {% if b.status == 'confirmed' or b.status == 'completed' %}badge-success{% elif b.status == 'cancelled' %}badge-danger{% elif b.status == 'draft' %}badge-default{% else %}badge-warning{% endif %}">
+                    {{ b.get_status_display }}
+                </span>
+            </td>
+            <td class="font-medium">{{ b.total_price|pkr }}</td>
+            <td class="text-muted text-sm">{{ b.created_at|date:"d M Y" }}</td>
+            <td class="hotels-col-actions">
+                <div class="hotels-row-actions">
+                    <a href="{% url 'member-bookings' %}?edit={{ b.id }}#voucher-worksheet" class="btn btn-outline btn-sm">Edit voucher</a>
+                    <a href="{% url 'member-booking-voucher-pdf' b.id %}" class="btn btn-outline btn-sm" title="Download PDF">PDF</a>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="hotels-empty">
+    <div class="hotels-empty__glow" aria-hidden="true"></div>
+    <div class="hotels-empty__icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" aria-hidden="true">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+        </svg>
+    </div>
+    <h3 class="hotels-empty__title">{% if search_q or status_filter %}No matches{% else %}No bookings yet{% endif %}</h3>
+    <p class="hotels-empty__text">{% if search_q or status_filter %}Try another search or change the status filter.{% else %}Create a booking to assign a voucher number and build packages for your clients.{% endif %}</p>
+    {% if search_q or status_filter %}
+    <a href="{% url 'member-bookings' %}" class="btn btn-outline hotels-empty__btn">View all bookings</a>
+    {% endif %}
+</div>
+{% endif %}

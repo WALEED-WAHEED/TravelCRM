@@ -1,0 +1,942 @@
+{% extends "base.html" %}
+{% block title %}Mutamers{% endblock %}
+{% block content %}
+<div class="page-mutamers">
+    <header class="hotels-hero hotels-reveal" style="--d:0ms">
+        <div class="hotels-hero__copy">
+            <p class="hotels-eyebrow">Profiles</p>
+            <h1 class="page-title hotels-hero__title">Mutamers</h1>
+            <p class="page-subtitle hotels-hero__sub">Pilgrim records for visas, vouchers, manifests, and family grouping across your Umrah &amp; Hajj operations.</p>
+        </div>
+        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms">
+            <button type="button" class="btn btn-primary hotels-cta-btn" onclick="openMutamerAddModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Add mutamer
+            </button>
+        </div>
+    </header>
+
+    <div class="hotels-stat-grid">
+        <div class="hotels-stat-card hotels-reveal" style="--d:80ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+            </div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">Total pilgrims</span>
+                <span class="hotels-stat-card__value">{{ mutamer_stats.total }}</span>
+            </div>
+        </div>
+        <div class="hotels-stat-card hotels-stat-card--accent hotels-reveal" style="--d:120ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+            </div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">Active profiles</span>
+                <span class="hotels-stat-card__value">{{ mutamer_stats.active }}</span>
+            </div>
+        </div>
+        <div class="hotels-stat-card hotels-reveal" style="--d:160ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+            </div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">Family heads</span>
+                <span class="hotels-stat-card__value">{{ mutamer_stats.family_heads }}</span>
+            </div>
+        </div>
+    </div>
+
+    <section class="card hotels-panel hotels-reveal" style="--d:200ms">
+        <div class="hotels-panel__head">
+            <div>
+                <h2 class="hotels-panel__title">Directory</h2>
+                <p class="hotels-panel__hint text-muted text-sm">Search by name, passport, nationality, phone, or visa. Updates as you type.</p>
+            </div>
+        </div>
+        <div class="card-content hotels-panel__body">
+            <div class="toolbar hotels-toolbar">
+                <div class="search-bar hotels-search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input type="search"
+                        name="q"
+                        placeholder="Search mutamers…"
+                        value="{{ search_q }}"
+                        autocomplete="off"
+                        aria-label="Search mutamers"
+                        hx-get="{% url 'member-mutamers' %}"
+                        hx-trigger="keyup changed delay:350ms, search"
+                        hx-target="#mutamer-table"
+                        hx-push-url="false">
+                </div>
+                <span id="mutamer-count-display" class="text-sm text-muted hotels-toolbar-count">{{ mutamers|length }} pilgrim{{ mutamers|length|pluralize }}</span>
+            </div>
+
+            <div class="table-wrapper hotels-table-wrap" id="mutamer-table">
+                {% include "member/partials/mutamers_table.html" %}
+            </div>
+        </div>
+    </section>
+</div>
+
+<div id="modal-add-mutamer" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-add-mutamer-title" aria-describedby="modal-add-mutamer-desc">
+    <div class="modal-box hotels-modal" style="max-width:640px;">
+        <div class="modal-header hotels-modal__header">
+            <div>
+                <span id="modal-add-mutamer-title" class="modal-title">Add mutamer</span>
+                <p id="modal-add-mutamer-desc" class="hotels-modal-sub">Create a pilgrim profile individually or add a whole family group at once.</p>
+            </div>
+            <button type="button" class="modal-close" onclick="closeModal('modal-add-mutamer')" aria-label="Close dialog">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+        <form id="mutamer-modal-form" class="hotels-modal-form" method="post" action="#">
+            {% csrf_token %}
+            <div class="modal-body hotels-modal__body">
+                <div class="tabs" style="margin-bottom:16px;">
+                    <button type="button" class="tab active" data-mutamer-tab="single">Individual</button>
+                    <button type="button" class="tab" data-mutamer-tab="family">Family group</button>
+                    <input type="radio" name="add_mode" value="single" checked hidden>
+                    <input type="radio" name="add_mode" value="family" hidden>
+                </div>
+
+                <div id="mutamer-family-actions" style="display:none;margin-bottom:12px;">
+                    <div class="card" style="padding:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                        <div>
+                            <div class="font-medium">Family members</div>
+                            <div class="text-sm text-muted">Add members, choose one head, then save.</div>
+                        </div>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="addFamilyMemberRow()">+ Add member</button>
+                    </div>
+                </div>
+
+                <div id="mutamer-single-form">
+                    <input type="hidden" name="family_id">
+                    <input type="hidden" name="family_head_name">
+                    <div class="form-group">
+                        <label class="form-label" for="mutamer-name">Full name *</label>
+                        <input id="mutamer-name" class="form-input" name="name" required placeholder="As per passport" autocomplete="name">
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label" for="mutamer-passport">Passport number *</label>
+                            <input id="mutamer-passport" class="form-input tabular-nums" name="passport_number" required placeholder="AB1234567" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="mutamer-visa">Visa number</label>
+                            <input id="mutamer-visa" class="form-input" name="visa_number" placeholder="Optional" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label" for="mutamer-nationality">Nationality *</label>
+                            <input id="mutamer-nationality" class="form-input" name="nationality" required placeholder="Pakistani" autocomplete="country-name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="mutamer-gender">Gender *</label>
+                            <select id="mutamer-gender" class="form-select" name="gender">
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label" for="mutamer-person-type">Person type</label>
+                            <select id="mutamer-person-type" class="form-select" name="person_type">
+                                <option value="">— Select —</option>
+                                <option value="adult">Adult</option>
+                                <option value="child">Child</option>
+                                <option value="infant">Infant</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="mutamer-dob">Date of birth</label>
+                            <input id="mutamer-dob" class="form-input" name="date_of_birth" type="date">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="mutamer-phone">Phone</label>
+                        <input id="mutamer-phone" class="form-input" name="phone" placeholder="+92 300 0000000" autocomplete="tel">
+                    </div>
+                    <input type="hidden" name="is_family_head" value="false">
+                </div>
+
+                <div id="mutamer-family-form" style="display:none;">
+                    <div id="mutamer-family-rows"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-mutamer')">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="modal-mutamer-submit">Save mutamer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modal-view-mutamer" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-view-mutamer-title" aria-describedby="modal-view-mutamer-desc">
+    <div class="modal-box hotels-modal" style="max-width:720px;">
+        <div class="modal-header hotels-modal__header">
+            <div>
+                <span id="modal-view-mutamer-title" class="modal-title">Mutamer details</span>
+                <p id="modal-view-mutamer-desc" class="hotels-modal-sub">View full profile details.</p>
+            </div>
+            <button type="button" class="modal-close" onclick="closeModal('modal-view-mutamer')" aria-label="Close dialog">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body hotels-modal__body">
+            <div id="mutamer-view-body" class="grid grid-2"></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('modal-view-mutamer')">Close</button>
+            <button type="button" class="btn btn-outline" id="mutamer-view-edit-btn">Edit</button>
+            <button type="button" class="btn btn-danger" id="mutamer-view-delete-btn">Delete</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-delete-mutamer" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-delete-mutamer-title" aria-describedby="modal-delete-mutamer-desc">
+    <div class="modal-box hotels-modal">
+        <div class="modal-header hotels-modal__header">
+            <div>
+                <span id="modal-delete-mutamer-title" class="modal-title">Delete mutamer?</span>
+                <p id="modal-delete-mutamer-desc" class="hotels-modal-sub">This deletes the pilgrim record. If this record is used in bookings/vouchers, links may be removed. This cannot be undone.</p>
+            </div>
+            <button type="button" class="modal-close" onclick="cancelMutamerDelete()" aria-label="Close dialog">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="cancelMutamerDelete()">Cancel</button>
+            <button type="button" class="btn btn-danger" id="modal-delete-mutamer-confirm">Delete</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var pendingMutamerDeleteId = null;
+  var pendingFamilyDeleteId = null;
+
+  window.cancelMutamerDelete = function () {
+    pendingMutamerDeleteId = null;
+    closeModal('modal-delete-mutamer');
+  };
+
+  window.deleteMutamer = function (id) {
+    if (!id) return;
+    pendingMutamerDeleteId = id;
+    openModal('modal-delete-mutamer');
+  };
+
+  window.deleteFamilyGroup = function (familyId) {
+    if (!familyId) return;
+    pendingFamilyDeleteId = String(familyId);
+    pendingMutamerDeleteId = null;
+    var t = document.getElementById('modal-delete-mutamer-title');
+    var d = document.getElementById('modal-delete-mutamer-desc');
+    if (t) t.textContent = 'Delete family group?';
+    if (d) d.textContent = 'This deletes all members in this family group. This cannot be undone.';
+    openModal('modal-delete-mutamer');
+  };
+
+  window.toggleFamilyGroup = function (key) {
+    if (!key) return;
+    var rows = document.querySelectorAll('[data-family-member-row=\"' + key + '\"]');
+    if (!rows || !rows.length) return;
+    var isHidden = rows[0].classList.contains('hidden');
+    for (var i = 0; i < rows.length; i++) {
+      if (isHidden) rows[i].classList.remove('hidden');
+      else rows[i].classList.add('hidden');
+    }
+    var row = document.querySelector('[data-family-group=\"' + key + '\"]');
+    if (row) {
+      row.dataset.expanded = isHidden ? 'true' : 'false';
+      row.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+      var hint = row.querySelector('.mutamer-family-hint');
+      if (hint) hint.textContent = isHidden ? 'Collapse' : 'Expand';
+    }
+  };
+
+  var MODAL_ID = 'modal-add-mutamer';
+  var form = document.getElementById('mutamer-modal-form');
+  var familyRowsEl = document.getElementById('mutamer-family-rows');
+  var familyActionsEl = document.getElementById('mutamer-family-actions');
+  var singleWrap = document.getElementById('mutamer-single-form');
+  var familyWrap = document.getElementById('mutamer-family-form');
+  var submitBtn = document.getElementById('modal-mutamer-submit');
+  var familyEditState = null;
+
+  function csrfToken() {
+    var el = document.querySelector('#mutamer-modal-form input[name="csrfmiddlewaretoken"]');
+    return el ? el.value : '';
+  }
+
+  function setText(el, text) { if (el) el.textContent = text; }
+
+  function fmt(val) { return (val === null || typeof val === 'undefined' || val === '') ? '—' : String(val); }
+
+  function viewField(label, value) {
+    return (
+      '<div class="form-group">' +
+        '<label class="form-label">' + label + '</label>' +
+        '<div class="form-input" style="display:flex;align-items:center;min-height:40px;">' + fmt(value) + '</div>' +
+      '</div>'
+    );
+  }
+
+  function uid() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'fam_' + Math.random().toString(16).slice(2) + '_' + Date.now().toString(16);
+  }
+
+  function currentMode() {
+    var el = form ? form.querySelector('input[name="add_mode"]:checked') : null;
+    return el ? el.value : 'single';
+  }
+
+  function setDisabledWithin(root, disabled) {
+    if (!root) return;
+    var nodes = root.querySelectorAll('input, select, textarea, button');
+    for (var i = 0; i < nodes.length; i++) {
+      nodes[i].disabled = !!disabled;
+    }
+  }
+
+  function ensureFamilyHeadSelected() {
+    if (!familyRowsEl || !familyRowsEl.children.length) return;
+    var checked = familyRowsEl.querySelector('input[name="family_head_idx"]:checked');
+    if (checked) return;
+    var first = familyRowsEl.querySelector('input[name="family_head_idx"]');
+    if (first) first.checked = true;
+  }
+
+  function setMode(mode) {
+    if (!singleWrap || !familyWrap || !familyActionsEl) return;
+    var isFamily = mode === 'family';
+    singleWrap.style.display = isFamily ? 'none' : '';
+    familyWrap.style.display = isFamily ? '' : 'none';
+    familyActionsEl.style.display = isFamily ? '' : 'none';
+    if (submitBtn) submitBtn.textContent = isFamily ? 'Save family group' : 'Save mutamer';
+    // Important: disable the hidden section so HTML5 "required" fields don't block submit,
+    // and so FormData doesn't mix single + family fields.
+    setDisabledWithin(singleWrap, isFamily);
+    setDisabledWithin(familyWrap, !isFamily);
+    if (!isFamily) {
+      var fab = document.getElementById('mutamer-family-actions');
+      if (fab) {
+        var b = fab.querySelector('button');
+        if (b) b.disabled = true;
+      }
+    } else {
+      var fab2 = document.getElementById('mutamer-family-actions');
+      if (fab2) {
+        var b2 = fab2.querySelector('button');
+        if (b2) b2.disabled = false;
+      }
+    }
+    if (isFamily && familyRowsEl && familyRowsEl.children.length === 0) addFamilyMemberRow();
+    if (isFamily) ensureFamilyHeadSelected();
+  }
+
+  window.openMutamerAddModal = function () {
+    if (!form) return;
+    form.reset();
+    delete form.dataset.mutamerId;
+    // default to individual
+    var singleRadio = form.querySelector('input[name="add_mode"][value="single"]');
+    if (singleRadio) singleRadio.checked = true;
+    if (familyRowsEl) familyRowsEl.innerHTML = '';
+    setMode('single');
+    var t = document.getElementById('modal-add-mutamer-title');
+    var d = document.getElementById('modal-add-mutamer-desc');
+    if (t) t.textContent = 'Add mutamer';
+    if (d) d.textContent = 'Create a pilgrim profile individually or add a whole family group at once.';
+    openModal(MODAL_ID);
+  };
+
+  window.openMutamerEditModal = async function (id) {
+    if (!form || !id) return;
+    try {
+      var r = await fetch('/api/v1/mutamers/' + id + '/', {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      });
+      if (!r.ok) throw new Error('load');
+      var m = await r.json();
+      form.reset();
+      form.dataset.mutamerId = String(id);
+      var singleRadio = form.querySelector('input[name="add_mode"][value="single"]');
+      if (singleRadio) singleRadio.checked = true;
+      if (familyRowsEl) familyRowsEl.innerHTML = '';
+      setMode('single');
+
+      form.elements.namedItem('name').value = m.name || '';
+      form.elements.namedItem('passport_number').value = m.passport_number || '';
+      form.elements.namedItem('nationality').value = m.nationality || '';
+      form.elements.namedItem('gender').value = m.gender || 'male';
+      var pt = form.elements.namedItem('person_type');
+      if (pt) pt.value = m.person_type != null ? String(m.person_type) : '';
+      var dob = form.elements.namedItem('date_of_birth');
+      if (dob) dob.value = m.date_of_birth || '';
+      var ph = form.elements.namedItem('phone');
+      if (ph) ph.value = m.phone || '';
+      var visa = form.elements.namedItem('visa_number');
+      if (visa) visa.value = m.visa_number || '';
+      var fid = form.elements.namedItem('family_id');
+      if (fid) fid.value = m.family_id || '';
+      var fhn = form.elements.namedItem('family_head_name');
+      if (fhn) fhn.value = m.family_head_name || '';
+      var headCb = form.querySelector('input[name="is_family_head"]');
+      if (headCb) headCb.checked = !!m.is_family_head;
+
+      var t = document.getElementById('modal-add-mutamer-title');
+      var d = document.getElementById('modal-add-mutamer-desc');
+      if (t) t.textContent = 'Edit mutamer';
+      if (d) d.textContent = 'Update pilgrim details. Passport must remain unique.';
+      if (submitBtn) submitBtn.textContent = 'Update mutamer';
+      openModal(MODAL_ID);
+    } catch (e) {
+      if (typeof showToast === 'function') showToast('Could not load mutamer.', 'error');
+    }
+  };
+
+  function setFamilyRowValues(rowEl, data) {
+    if (!rowEl || !data) return;
+    rowEl.dataset.memberId = data.id != null ? String(data.id) : '';
+    var set = function (name, value) {
+      var el = rowEl.querySelector('[name="' + name + '"]');
+      if (el) el.value = value != null ? String(value) : '';
+    };
+    set('fam_name', data.name || '');
+    set('fam_passport_number', data.passport_number || '');
+    set('fam_nationality', data.nationality || '');
+    set('fam_gender', data.gender || 'male');
+    set('fam_person_type', data.person_type != null ? String(data.person_type) : '');
+    set('fam_date_of_birth', data.date_of_birth || '');
+    set('fam_phone', data.phone || '');
+    set('fam_visa_number', data.visa_number || '');
+  }
+
+  window.openFamilyEditModal = async function (familyId) {
+    if (!form || !familyId) return;
+    familyEditState = { familyId: String(familyId), existingIds: [] };
+    // switch modal to family mode
+    form.reset();
+    delete form.dataset.mutamerId;
+    var familyRadio = form.querySelector('input[name="add_mode"][value="family"]');
+    if (familyRadio) familyRadio.checked = true;
+    setMode('family');
+    // setMode('family') auto-adds an empty row when none exist; clear it before we hydrate from API.
+    if (familyRowsEl) familyRowsEl.innerHTML = '';
+
+    var t = document.getElementById('modal-add-mutamer-title');
+    var d = document.getElementById('modal-add-mutamer-desc');
+    if (t) t.textContent = 'Edit family group';
+    if (d) d.textContent = 'Update members, change head, add/remove people. All changes apply to this family.';
+    if (submitBtn) submitBtn.textContent = 'Update family group';
+
+    try {
+      var r = await fetch('/api/v1/mutamers/?family_id=' + encodeURIComponent(String(familyId)), {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      });
+      if (!r.ok) throw new Error('load');
+      var payload = await r.json();
+      // DRF may return an array or a paginated object: { count, next, previous, results: [...] }
+      var members = Array.isArray(payload) ? payload : (payload && Array.isArray(payload.results) ? payload.results : []);
+      if (!members.length) {
+        addFamilyMemberRow();
+        ensureFamilyHeadSelected();
+        openModal(MODAL_ID);
+        return;
+      }
+      // build rows
+      for (var i = 0; i < members.length; i++) {
+        addFamilyMemberRow();
+        var rowEl = familyRowsEl.children[familyRowsEl.children.length - 1];
+        setFamilyRowValues(rowEl, members[i]);
+        if (members[i] && members[i].id != null) familyEditState.existingIds.push(String(members[i].id));
+        if (members[i] && members[i].is_family_head) {
+          var headRadio = rowEl.querySelector('input[name="family_head_idx"]');
+          if (headRadio) headRadio.checked = true;
+        }
+      }
+      ensureFamilyHeadSelected();
+      openModal(MODAL_ID);
+    } catch (e) {
+      if (typeof showToast === 'function') showToast('Could not load family group.', 'error');
+    }
+  };
+
+  window.openMutamerViewModal = async function (id) {
+    if (!id) return;
+    var body = document.getElementById('mutamer-view-body');
+    var editBtn = document.getElementById('mutamer-view-edit-btn');
+    var delBtn = document.getElementById('mutamer-view-delete-btn');
+    if (editBtn) editBtn.onclick = function () { closeModal('modal-view-mutamer'); openMutamerEditModal(id); };
+    if (delBtn) delBtn.onclick = function () { closeModal('modal-view-mutamer'); deleteMutamer(id); };
+
+    try {
+      var r = await fetch('/api/v1/mutamers/' + id + '/', {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      });
+      if (!r.ok) throw new Error('load');
+      var m = await r.json();
+      if (body) {
+        body.innerHTML =
+          viewField('Full name', m.name) +
+          viewField('Passport number', m.passport_number) +
+          viewField('Nationality', m.nationality) +
+          viewField('Gender', m.gender) +
+          viewField('Person type', m.person_type) +
+          viewField('Date of birth', m.date_of_birth) +
+          viewField('Phone', m.phone) +
+          viewField('Visa number', m.visa_number) +
+          viewField('Family ID', m.family_id) +
+          viewField('Family head', m.is_family_head ? 'Yes' : 'No') +
+          viewField('Family head name', m.family_head_name);
+      }
+      var title = document.getElementById('modal-view-mutamer-title');
+      setText(title, m.name ? ('Mutamer: ' + m.name) : 'Mutamer details');
+      openModal('modal-view-mutamer');
+    } catch (e) {
+      if (typeof showToast === 'function') showToast('Could not load mutamer.', 'error');
+    }
+  };
+
+  window.openFamilyViewModal = async function (familyId) {
+    if (!familyId) return;
+    var body = document.getElementById('mutamer-view-body');
+    var editBtn = document.getElementById('mutamer-view-edit-btn');
+    var delBtn = document.getElementById('mutamer-view-delete-btn');
+    if (editBtn) editBtn.onclick = function () { closeModal('modal-view-mutamer'); openFamilyEditModal(String(familyId)); };
+    if (delBtn) delBtn.onclick = function () { closeModal('modal-view-mutamer'); deleteFamilyGroup(String(familyId)); };
+
+    try {
+      var r = await fetch('/api/v1/mutamers/?family_id=' + encodeURIComponent(String(familyId)), {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      });
+      if (!r.ok) throw new Error('load');
+      var payload = await r.json();
+      var members = Array.isArray(payload) ? payload : (payload && Array.isArray(payload.results) ? payload.results : []);
+
+      var head = null;
+      for (var i = 0; i < members.length; i++) {
+        if (members[i] && members[i].is_family_head) { head = members[i]; break; }
+      }
+      if (!head && members.length) head = members[0];
+
+      var html = '';
+      html += viewField('Family ID', familyId);
+      html += viewField('Members', members.length);
+      html += viewField('Head', head && head.name ? head.name : '—');
+      html += '<div class="form-group" style="grid-column:1 / -1;margin-top:6px;">' +
+        '<label class="form-label">Members list</label>' +
+        '<div class="form-hint">All members in this family group.</div>' +
+      '</div>';
+
+      for (var j = 0; j < members.length; j++) {
+        var m = members[j] || {};
+        var title = (m.name || '—') + (m.is_family_head ? ' (Head)' : '');
+        html += '<div class="card" style="grid-column:1 / -1;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
+          '<div style="min-width:0;">' +
+            '<div class="font-medium" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + title + '</div>' +
+            '<div class="text-sm text-muted" style="margin-top:2px;">' +
+              '<span class="mutamer-passport">' + (m.passport_number ? String(m.passport_number) : '—') + '</span>' +
+              ' <span class="mutamer-dot">•</span> ' + (m.nationality ? String(m.nationality) : '—') +
+              ' <span class="mutamer-dot">•</span> ' + (m.gender ? String(m.gender) : '—') +
+              (m.person_type ? (' <span class="mutamer-dot">•</span> ' + String(m.person_type)) : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="hotels-row-actions" style="flex-direction:row;gap:8px;">' +
+            (m.id ? ('<button type="button" class="btn btn-outline btn-sm" onclick="openMutamerViewModal(' + m.id + ')">View</button>') : '') +
+          '</div>' +
+        '</div>';
+      }
+
+      if (body) body.innerHTML = html;
+      var titleEl = document.getElementById('modal-view-mutamer-title');
+      if (titleEl) titleEl.textContent = 'Family group';
+      var descEl = document.getElementById('modal-view-mutamer-desc');
+      if (descEl) descEl.textContent = 'Family group summary and member list.';
+      openModal('modal-view-mutamer');
+    } catch (e) {
+      if (typeof showToast === 'function') showToast('Could not load family group.', 'error');
+    }
+  };
+
+  var mutamerDeleteConfirm = document.getElementById('modal-delete-mutamer-confirm');
+  if (mutamerDeleteConfirm) {
+    mutamerDeleteConfirm.addEventListener('click', async function () {
+      var id = pendingMutamerDeleteId;
+      pendingMutamerDeleteId = null;
+      var familyId = pendingFamilyDeleteId;
+      pendingFamilyDeleteId = null;
+      closeModal('modal-delete-mutamer');
+      if (!id && !familyId) return;
+      try {
+        if (familyId) {
+          var lr = await fetch('/api/v1/mutamers/?family_id=' + encodeURIComponent(String(familyId)), {
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' },
+          });
+          if (!lr.ok) throw new Error('load');
+          var payload = await lr.json();
+          var members = Array.isArray(payload) ? payload : (payload && Array.isArray(payload.results) ? payload.results : []);
+          for (var i = 0; i < members.length; i++) {
+            if (!members[i] || members[i].id == null) continue;
+            await fetch('/api/v1/mutamers/' + members[i].id + '/', {
+              method: 'DELETE',
+              credentials: 'same-origin',
+              headers: { 'X-CSRFToken': csrfToken(), Accept: 'application/json' },
+            });
+          }
+          location.reload();
+          return;
+        }
+        var r = await fetch('/api/v1/mutamers/' + id + '/', {
+          method: 'DELETE',
+          credentials: 'same-origin',
+          headers: { 'X-CSRFToken': csrfToken(), Accept: 'application/json' },
+        });
+        if (r.ok) {
+          location.reload();
+          return;
+        }
+        var msg = 'Delete failed';
+        try {
+          var data = await r.json();
+          if (data && typeof data === 'object' && data.detail) msg = String(data.detail);
+        } catch (_) {}
+        if (typeof showToast === 'function') showToast(msg, 'error');
+      } catch (e) {
+        if (typeof showToast === 'function') showToast('Delete failed', 'error');
+      }
+    });
+  }
+
+  window.addFamilyMemberRow = function () {
+    if (!familyRowsEl) return;
+    var rowId = 'fam_' + (window.crypto && crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(16).slice(2) + '_' + Date.now().toString(16)));
+    var headName = 'family_head_idx';
+
+    var wrapper = document.createElement('div');
+    wrapper.className = 'card';
+    wrapper.style.padding = '12px';
+    wrapper.style.marginBottom = '12px';
+    wrapper.dataset.rowId = rowId;
+    wrapper.dataset.memberId = '';
+
+    wrapper.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;">
+        <div class="text-sm text-muted">Member</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <label class="text-sm" style="display:flex;align-items:center;gap:8px;margin:0;color:var(--foreground);">
+            <input type="radio" name="${headName}" value="${rowId}">
+            Family head
+          </label>
+          <button type="button" class="btn btn-outline btn-sm" data-remove>Remove</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Full name *</label>
+        <input class="form-input" name="fam_name" required placeholder="As per passport" autocomplete="name">
+      </div>
+      <div class="grid grid-2" style="align-items:end;">
+        <div class="form-group">
+          <label class="form-label">Passport number *</label>
+          <input class="form-input tabular-nums" name="fam_passport_number" required placeholder="AB1234567" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Visa number</label>
+          <input class="form-input" name="fam_visa_number" placeholder="Optional" autocomplete="off">
+        </div>
+      </div>
+      <div class="grid grid-2">
+        <div class="form-group">
+          <label class="form-label">Nationality *</label>
+          <input class="form-input" name="fam_nationality" required placeholder="Pakistani" autocomplete="country-name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gender *</label>
+          <select class="form-select" name="fam_gender">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-2">
+        <div class="form-group">
+          <label class="form-label">Person type</label>
+          <select class="form-select" name="fam_person_type">
+            <option value="">— Select —</option>
+            <option value="adult">Adult</option>
+            <option value="child">Child</option>
+            <option value="infant">Infant</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date of birth</label>
+          <input class="form-input" name="fam_date_of_birth" type="date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone</label>
+        <input class="form-input" name="fam_phone" placeholder="+92 300 0000000" autocomplete="tel">
+      </div>
+    `;
+
+    var removeBtn = wrapper.querySelector('[data-remove]');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', function () {
+        wrapper.remove();
+        // keep at least one row
+        if (familyRowsEl.children.length === 0) addFamilyMemberRow();
+        else ensureFamilyHeadSelected();
+      });
+    }
+
+    familyRowsEl.appendChild(wrapper);
+
+    // auto mark first row as head
+    if (familyRowsEl.children.length === 1) {
+      var firstHead = wrapper.querySelector('input[type="radio"][name="family_head_idx"]');
+      if (firstHead) firstHead.checked = true;
+    }
+    if (currentMode() === 'family') {
+      setDisabledWithin(familyWrap, false);
+      ensureFamilyHeadSelected();
+    }
+  };
+
+  if (form) {
+    // Modal tabs (Individual / Family)
+    function setTab(mode) {
+      var single = form.querySelector('input[name="add_mode"][value="single"]');
+      var family = form.querySelector('input[name="add_mode"][value="family"]');
+      if (mode === 'family') {
+        if (family) family.checked = true;
+      } else {
+        if (single) single.checked = true;
+      }
+      var tabs = form.querySelectorAll('[data-mutamer-tab]');
+      for (var i = 0; i < tabs.length; i++) {
+        var t = tabs[i];
+        t.classList.toggle('active', t.getAttribute('data-mutamer-tab') === mode);
+      }
+      setMode(mode);
+    }
+    var tabBtns = form.querySelectorAll('[data-mutamer-tab]');
+    for (var ti = 0; ti < tabBtns.length; ti++) {
+      tabBtns[ti].addEventListener('click', function (e) {
+        e.preventDefault();
+        var mode = this.getAttribute('data-mutamer-tab') || 'single';
+        setTab(mode);
+      });
+    }
+    form.addEventListener('change', function (e) {
+      if (e.target && e.target.name === 'add_mode') setMode(e.target.value);
+    });
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var mode = currentMode();
+      if (submitBtn) submitBtn.disabled = true;
+
+      try {
+        if (mode === 'single') {
+          var id = form.dataset.mutamerId;
+          var fd = new FormData(form);
+          // Only keep single-form fields
+          fd.delete('add_mode');
+          var url = id ? ('/api/v1/mutamers/' + id + '/') : '/api/v1/mutamers/';
+          var method = id ? 'PATCH' : 'POST';
+          var r = await fetch(url, {
+            method: method,
+            body: fd,
+            credentials: 'same-origin',
+            headers: { 'X-CSRFToken': csrfToken() },
+          });
+          if (!r.ok) {
+            var msg = 'Save failed';
+            try { var data = await r.json(); msg = data.detail ? data.detail : JSON.stringify(data); } catch (_) {}
+            if (typeof showToast === 'function') showToast(msg, 'error');
+            return;
+          }
+          closeModal(MODAL_ID);
+          location.reload();
+          return;
+        }
+
+        // family mode
+        if (!familyRowsEl || familyRowsEl.children.length === 0) {
+          if (typeof showToast === 'function') showToast('Add at least one family member.', 'error');
+          return;
+        }
+        var headRadio = familyRowsEl.querySelector('input[name="family_head_idx"]:checked');
+        if (!headRadio) {
+          if (typeof showToast === 'function') showToast('Select a family head.', 'error');
+          return;
+        }
+        var headRowId = String(headRadio.value);
+        var familyId = familyEditState && familyEditState.familyId ? familyEditState.familyId : uid();
+
+        // Collect row payloads
+        var rows = Array.prototype.slice.call(familyRowsEl.children);
+        var payloads = rows.map(function (row) {
+          var get = function (n) {
+            var el = row.querySelector('[name="' + n + '"]');
+            return el ? el.value : '';
+          };
+          return {
+            name: get('fam_name').trim(),
+            passport_number: get('fam_passport_number').trim(),
+            nationality: get('fam_nationality').trim(),
+            gender: get('fam_gender') || 'male',
+            person_type: (get('fam_person_type') || '').trim(),
+            date_of_birth: (get('fam_date_of_birth') || '').trim(),
+            phone: (get('fam_phone') || '').trim(),
+            visa_number: (get('fam_visa_number') || '').trim(),
+            family_id: familyId,
+            is_family_head: String(row.dataset.rowId) === headRowId,
+          };
+        });
+
+        // Basic validation before API calls
+        for (var i = 0; i < payloads.length; i++) {
+          var p = payloads[i];
+          if (!p.name || !p.passport_number || !p.nationality || !p.gender) {
+            if (typeof showToast === 'function') showToast('Please fill required fields for each family member.', 'error');
+            return;
+          }
+        }
+
+        var headNameValue = '';
+        for (var hi = 0; hi < rows.length; hi++) {
+          if (String(rows[hi].dataset.rowId) === headRowId) {
+            var hel = rows[hi].querySelector('[name="fam_name"]');
+            headNameValue = hel ? hel.value.trim() : '';
+            break;
+          }
+        }
+        payloads = payloads.map(function (p) {
+          if (!p.is_family_head) p.family_head_name = headNameValue || null;
+          else p.family_head_name = null;
+          // normalize empties so serializer coercion works nicely
+          if (!p.person_type) p.person_type = '';
+          if (!p.date_of_birth) p.date_of_birth = '';
+          if (!p.phone) p.phone = '';
+          if (!p.visa_number) p.visa_number = '';
+          return p;
+        });
+
+        // Create/update/delete in one action:
+        // - existing rows with memberId -> PATCH
+        // - new rows without memberId -> POST
+        // - removed existing ids -> DELETE
+        var desiredExistingIds = [];
+        for (var j = 0; j < payloads.length; j++) {
+          var rowEl2 = rows[j];
+          var memberId = rowEl2 && rowEl2.dataset && rowEl2.dataset.memberId ? String(rowEl2.dataset.memberId) : '';
+          var body = new FormData();
+          Object.keys(payloads[j]).forEach(function (k) {
+            var v = payloads[j][k];
+            if (v === null || typeof v === 'undefined') return;
+            if (typeof v === 'boolean') {
+              body.append(k, v ? 'true' : 'false');
+              return;
+            }
+            body.append(k, String(v));
+          });
+
+          var rr;
+          if (memberId) {
+            desiredExistingIds.push(memberId);
+            rr = await fetch('/api/v1/mutamers/' + memberId + '/', {
+              method: 'PATCH',
+              body: body,
+              credentials: 'same-origin',
+              headers: { 'X-CSRFToken': csrfToken() },
+            });
+          } else {
+            rr = await fetch('/api/v1/mutamers/', {
+              method: 'POST',
+              body: body,
+              credentials: 'same-origin',
+              headers: { 'X-CSRFToken': csrfToken() },
+            });
+            if (rr.ok) {
+              try {
+                var created = await rr.json();
+                if (created && created.id != null && rowEl2) rowEl2.dataset.memberId = String(created.id);
+              } catch (_) {}
+            }
+          }
+
+          if (!rr.ok) {
+            var msg2 = 'Save failed';
+            try {
+              var data2 = await rr.json();
+              if (data2 && typeof data2 === 'object') msg2 = JSON.stringify(data2);
+            } catch (_) {}
+            if (typeof showToast === 'function') showToast('Member ' + (j + 1) + ' failed: ' + msg2, 'error');
+            return;
+          }
+        }
+
+        if (familyEditState && Array.isArray(familyEditState.existingIds) && familyEditState.existingIds.length) {
+          for (var di = 0; di < familyEditState.existingIds.length; di++) {
+            var exId = String(familyEditState.existingIds[di]);
+            if (desiredExistingIds.indexOf(exId) !== -1) continue;
+            // removed member -> delete
+            await fetch('/api/v1/mutamers/' + exId + '/', {
+              method: 'DELETE',
+              credentials: 'same-origin',
+              headers: { 'X-CSRFToken': csrfToken(), Accept: 'application/json' },
+            });
+          }
+        }
+
+        closeModal(MODAL_ID);
+        location.reload();
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+  }
+})();
+</script>
+{% endblock %}

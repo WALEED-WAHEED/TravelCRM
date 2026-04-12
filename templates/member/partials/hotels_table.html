@@ -1,0 +1,63 @@
+{% load currency_tags %}
+{% if hotels %}
+<table class="hotels-data-table">
+    <thead>
+        <tr>
+            <th>Property</th>
+            <th>Location</th>
+            <th>Rating</th>
+            <th>Sale / night (PKR)</th>
+            <th>Cost / night (PKR)</th>
+            <th class="hotels-col-actions" scope="col"><span class="sr-only">Actions</span></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for h in hotels %}
+        <tr class="hotels-row" style="--row-i: {{ forloop.counter0 }}">
+            <td>
+                <div class="hotels-cell-name">
+                    <span class="hotels-cell-name__title font-medium">{{ h.name }}</span>
+                    <span class="hotels-cell-name__code text-xs text-muted">{{ h.code }}</span>
+                </div>
+            </td>
+            <td><span class="hotels-loc">{{ h.city }}, {{ h.country }}</span></td>
+            <td>
+                {% if h.rating %}
+                <span class="hotels-stars" aria-label="{{ h.rating }} out of 5 stars">
+                    {% for i in "12345" %}{% if forloop.counter <= h.rating %}<span class="hotels-star hotels-star--on">★</span>{% else %}<span class="hotels-star">☆</span>{% endif %}{% endfor %}
+                </span>
+                {% else %}
+                <span class="text-muted">—</span>
+                {% endif %}
+            </td>
+            <td><span class="hotels-money">{{ h.sale_price|pkr }}</span></td>
+            <td><span class="hotels-money hotels-money--muted">{{ h.purchase_price|pkr }}</span></td>
+            <td class="hotels-col-actions">
+                <div class="hotels-row-actions">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="openHotelEditModal({{ h.id }})">Edit</button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteHotel({{ h.id }})">Delete</button>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="hotels-empty">
+    <div class="hotels-empty__glow" aria-hidden="true"></div>
+    <div class="hotels-empty__icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" aria-hidden="true">
+            <path d="M3 22V7l9-5 9 5v15" />
+            <path d="M21 22H3" />
+            <path d="M9 22V12h6v10" />
+        </svg>
+    </div>
+    <h3 class="hotels-empty__title">{% if search_q %}No matches{% else %}No hotels yet{% endif %}</h3>
+    <p class="hotels-empty__text">{% if search_q %}Try another search or clear the filter to see all properties.{% else %}Add your first property to start building packages and vouchers.{% endif %}</p>
+    {% if search_q %}
+    <a href="{% url 'member-hotels' %}" class="btn btn-outline hotels-empty__btn">View all hotels</a>
+    {% else %}
+    <button type="button" class="btn btn-primary hotels-empty__btn" onclick="openHotelAddModal()">Add hotel</button>
+    {% endif %}
+</div>
+{% endif %}

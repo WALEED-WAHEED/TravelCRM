@@ -1,0 +1,68 @@
+{% load currency_tags %}
+{% if flights %}
+<table class="hotels-data-table">
+    <thead>
+        <tr>
+            <th>Airline</th>
+            <th>Route</th>
+            <th>Type</th>
+            <th>Class</th>
+            <th>PNR</th>
+            <th>Sale (PKR)</th>
+            <th>Status</th>
+            <th class="hotels-col-actions" scope="col"><span class="sr-only">Actions</span></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for f in flights %}
+        <tr class="hotels-row" style="--row-i: {{ forloop.counter0 }}">
+            <td>
+                <div class="hotels-cell-name">
+                    <span class="hotels-cell-name__title font-medium">{{ f.airline }}</span>
+                    <span class="hotels-cell-name__code text-xs text-muted">{{ f.flight_number|default:"No flight #" }}</span>
+                </div>
+            </td>
+            <td>
+                <span class="flights-route">
+                    <span class="flights-route__city">{{ f.departure_city }}</span>
+                    <span class="flights-route__arrow" aria-hidden="true">→</span>
+                    <span class="flights-route__city">{{ f.arrival_city }}</span>
+                </span>
+            </td>
+            <td><span class="badge badge-default">{{ f.get_flight_type_display }}</span></td>
+            <td class="text-muted text-sm">{{ f.get_flight_class_display }}</td>
+            <td><span class="text-xs" style="font-family:ui-monospace,monospace;">{{ f.pnr_number|default:"—" }}</span></td>
+            <td><span class="hotels-money">{{ f.sale_price|pkr }}</span></td>
+            <td>
+                <span class="badge {% if f.status == 'scheduled' %}badge-primary{% elif f.status == 'completed' %}badge-success{% elif f.status == 'cancelled' %}badge-danger{% else %}badge-warning{% endif %}">
+                    {{ f.get_status_display }}
+                </span>
+            </td>
+            <td class="hotels-col-actions">
+                <div class="hotels-row-actions">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="openFlightEditModal({{ f.id }})">Edit</button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="deleteFlight({{ f.id }})">Delete</button>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="hotels-empty">
+    <div class="hotels-empty__glow" aria-hidden="true"></div>
+    <div class="hotels-empty__icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" aria-hidden="true">
+            <path d="M22 2 11 13" />
+            <path d="M22 2 15 22 11 13 2 9 22 2z" />
+        </svg>
+    </div>
+    <h3 class="hotels-empty__title">{% if search_q %}No matches{% else %}No flights yet{% endif %}</h3>
+    <p class="hotels-empty__text">{% if search_q %}Try another search or clear the filter to see all flights.{% else %}Add your first flight to build packages and vouchers.{% endif %}</p>
+    {% if search_q %}
+    <a href="{% url 'member-flights' %}" class="btn btn-outline hotels-empty__btn">View all flights</a>
+    {% else %}
+    <button type="button" class="btn btn-primary hotels-empty__btn" onclick="openFlightAddModal()">Add flight</button>
+    {% endif %}
+</div>
+{% endif %}

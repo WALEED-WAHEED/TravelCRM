@@ -1,0 +1,569 @@
+{% extends "base.html" %}
+{% block title %}Attendance{% endblock %}
+{% block content %}
+<div class="page-attendance page-hotels">
+    <header class="hotels-hero hotels-reveal" style="--d:0ms">
+        <div class="hotels-hero__copy">
+            <p class="hotels-eyebrow">HR</p>
+            <h1 class="page-title hotels-hero__title">Attendance</h1>
+            <p class="page-subtitle hotels-hero__sub">
+                {% if can_edit %}
+                Mark daily attendance for every member in your agency — safely locked behind an admin password.
+                {% else %}
+                View your daily attendance record — secure and private to your account.
+                {% endif %}
+            </p>
+        </div>
+        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms">
+            {% if is_admin_user %}
+            <button type="button" class="btn btn-outline" onclick="openModal('modal-attendance-unlock')">
+                {% if has_admin_password %}Attendance password{% else %}Set attendance password{% endif %}
+            </button>
+            {% endif %}
+            {% if can_edit %}
+            <button type="button" class="btn btn-primary hotels-cta-btn" onclick="openAttendanceMarkModal()">
+                Mark attendance
+            </button>
+            {% endif %}
+        </div>
+    </header>
+
+    <div class="hotels-stat-grid">
+        <div class="hotels-stat-card hotels-reveal" style="--d:80ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <path d="M20 7v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7" />
+                    <path d="M16 3h-1a2 2 0 0 0-2 2v1" />
+                    <path d="M8 3h1a2 2 0 0 1 2 2v1" />
+                    <path d="M4 7h16" />
+                </svg>
+            </div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">Present ({{ month_filter }})</span>
+                <span class="hotels-stat-card__value">{{ attendance_stats.present }}</span>
+            </div>
+        </div>
+        <div class="hotels-stat-card hotels-stat-card--accent hotels-reveal" style="--d:120ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M8 12h8" />
+                </svg>
+            </div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">Absent ({{ month_filter }})</span>
+                <span class="hotels-stat-card__value">{{ attendance_stats.absent }}</span>
+            </div>
+        </div>
+        <div class="hotels-stat-card hotels-reveal" style="--d:160ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 6v6l4 2" />
+                </svg>
+            </div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">Late / Leave ({{ month_filter }})</span>
+                <span class="hotels-stat-card__value">{{ attendance_stats.late|add:attendance_stats.leave }}</span>
+            </div>
+        </div>
+    </div>
+
+    <section class="card hotels-panel hotels-reveal" style="--d:200ms">
+        <div class="hotels-panel__head">
+            <div>
+                <h2 class="hotels-panel__title">{% if can_edit %}Agency attendance{% else %}My attendance{% endif %}</h2>
+                <p class="hotels-panel__hint text-muted text-sm">
+                    {% if can_edit %}
+                    Filter by month. Mark attendance entries with date, status, and optional check-in/out times.
+                    {% else %}
+                    Filter by month. Your attendance remains visible only to your account.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        <div class="card-content hotels-panel__body">
+            <div class="toolbar hotels-toolbar">
+                <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+                    <form method="get" action="" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                        <div class="form-group" style="margin:0;min-width:240px;">
+                            <label class="form-label" for="attendance-month" style="margin-bottom:6px;">Month</label>
+                            <input id="attendance-month" class="form-input" type="month" name="month" value="{{ month_filter }}" />
+                        </div>
+                        <button class="btn btn-outline" type="submit" style="margin-top:22px;">Apply</button>
+                    </form>
+                </div>
+                <span class="text-sm text-muted hotels-toolbar-count">
+                    {{ logs|length }} record{{ logs|length|pluralize }}
+                </span>
+            </div>
+
+            {% if is_admin_user and attendance_admin_name %}
+            <div class="text-sm text-muted" style="margin:-6px 0 12px;">
+                Attendance admin: <span class="font-medium">{{ attendance_admin_name }}</span>
+                {% if has_admin_password %}<span class="text-muted">• Password required for every edit</span>{% endif %}
+            </div>
+            {% endif %}
+
+            <div class="table-wrapper hotels-table-wrap">
+                {% if logs %}
+                <table class="hotels-data-table">
+                    <thead>
+                        <tr>
+                            <th>Member</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Check in</th>
+                            <th>Check out</th>
+                            <th>Notes</th>
+                            {% if can_edit %}<th style="width:160px;">Actions</th>{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for l in logs %}
+                        <tr class="hotels-row"
+                            data-log-id="{{ l.id }}"
+                            data-user-id="{{ l.user_id }}"
+                            data-person-name="{{ l.person_name|default:''|escape }}"
+                            data-date="{{ l.date|date:'Y-m-d' }}"
+                            data-status="{{ l.status }}"
+                            data-check-in="{{ l.check_in_time|time:'H:i'|default:'' }}"
+                            data-check-out="{{ l.check_out_time|time:'H:i'|default:'' }}"
+                            data-notes="{{ l.notes|default:''|escape }}">
+                            <td class="font-medium">{{ l.person_name }}</td>
+                            <td class="text-muted text-sm">{{ l.date|date:"d M Y" }}</td>
+                            <td>
+                                <span class="badge {% if l.status == 'present' %}badge-success{% elif l.status == 'absent' %}badge-danger{% elif l.status == 'late' %}badge-warning{% else %}badge-default{% endif %}">
+                                    {{ l.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="tabular-nums">{{ l.check_in_time|time:"H:i"|default:"—" }}</td>
+                            <td class="tabular-nums">{{ l.check_out_time|time:"H:i"|default:"—" }}</td>
+                            <td class="text-muted text-sm">{{ l.notes|default:"—" }}</td>
+                            {% if can_edit %}
+                            <td>
+                                <div style="display:flex;gap:8px;justify-content:flex-end;">
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="openAttendanceEditFromRow(this)">Edit</button>
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="openAttendanceDeleteFromRow(this)">Delete</button>
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <h3>No attendance records</h3>
+                    <p>{% if can_edit %}Start by marking attendance for today.{% else %}Your attendance will appear here.{% endif %}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    {% csrf_token %}
+
+    <div id="modal-attendance-unlock" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-attendance-unlock-title" aria-describedby="modal-attendance-unlock-desc">
+        <div class="modal-box hotels-modal" style="max-width:520px;">
+            <div class="modal-header hotels-modal__header">
+                <div>
+                    <span id="modal-attendance-unlock-title" class="modal-title">{% if has_admin_password %}Attendance password{% else %}Set attendance password{% endif %}</span>
+                    <p id="modal-attendance-unlock-desc" class="hotels-modal-sub">
+                        {% if has_admin_password %}
+                        Confirm your password (used on every attendance save).
+                        {% else %}
+                        Set an attendance password once. Only your account will be able to mark attendance for everyone.
+                        {% endif %}
+                    </p>
+                </div>
+                <button type="button" class="modal-close" onclick="closeModal('modal-attendance-unlock')" aria-label="Close dialog">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body hotels-modal__body">
+                {% if not has_admin_password %}
+                <div class="form-group">
+                    <label class="form-label" for="attendance-set-password">New attendance password <span class="text-muted">(set once)</span></label>
+                    <input id="attendance-set-password" class="form-input" type="password" autocomplete="new-password" placeholder="Create password">
+                    <p class="form-hint">Only your account can mark attendance. Password will be required on every save.</p>
+                </div>
+                {% else %}
+                <div class="form-group" style="margin-bottom:8px;">
+                    <div class="text-sm font-medium" style="margin-bottom:8px;">Manage password</div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button type="button" class="btn btn-outline btn-sm" id="attendance-mode-change">Change password</button>
+                        <button type="button" class="btn btn-outline btn-sm" id="attendance-mode-reset">Forgot password (reset)</button>
+                    </div>
+                    <p class="form-hint" style="margin-top:8px;">Choose one option below. Only one “new password” field is needed.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="attendance-new-password">New attendance password *</label>
+                    <input id="attendance-new-password" class="form-input" type="password" autocomplete="new-password" placeholder="New password">
+                </div>
+
+                <div id="attendance-change-block">
+                    <div class="form-group">
+                        <label class="form-label" for="attendance-change-current">Current attendance password *</label>
+                        <input id="attendance-change-current" class="form-input" type="password" autocomplete="current-password" placeholder="Current password">
+                        <p class="form-hint">Use this when you think someone saw the password.</p>
+                    </div>
+                </div>
+
+                <div id="attendance-reset-block" class="hidden" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+                    <div class="text-sm font-medium" style="margin-bottom:8px;">Reset using account password</div>
+                    <div class="form-group">
+                        <label class="form-label" for="attendance-reset-account">Confirm your account password *</label>
+                        <input id="attendance-reset-account" class="form-input" type="password" autocomplete="current-password" placeholder="Your login password">
+                        <p class="form-hint">Reset uses your normal login password to recover access.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-attendance-unlock')">Cancel</button>
+                {% if not has_admin_password %}
+                <button type="button" class="btn btn-primary" id="attendance-set-btn">Set password</button>
+                {% else %}
+                <button type="button" class="btn btn-outline" id="attendance-reset-btn">Reset</button>
+                <button type="button" class="btn btn-primary" id="attendance-change-btn">Change</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if can_edit %}
+    <div id="modal-attendance-mark" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-attendance-mark-title" aria-describedby="modal-attendance-mark-desc">
+        <div class="modal-box hotels-modal" style="max-width:760px;">
+            <div class="modal-header hotels-modal__header">
+                <div>
+                    <span id="modal-attendance-mark-title" class="modal-title">Mark attendance</span>
+                    <p id="modal-attendance-mark-desc" class="hotels-modal-sub">Save present/absent/late/leave with optional times and notes.</p>
+                </div>
+                <button type="button" class="modal-close" onclick="closeModal('modal-attendance-mark')" aria-label="Close dialog">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body hotels-modal__body">
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="att-mark-date">Date *</label>
+                        <input id="att-mark-date" class="form-input" type="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="att-mark-user-name">Member name *</label>
+                        <input id="att-mark-user-name" class="form-input" type="text" placeholder="Type name…" autocomplete="off" spellcheck="false">
+                        <p class="form-hint">Enter any name (your agency can track staff without creating accounts).</p>
+                    </div>
+                </div>
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="att-mark-status">Status *</label>
+                        <select id="att-mark-status" class="form-select" required>
+                            <option value="present">Present</option>
+                            <option value="absent">Absent</option>
+                            <option value="late">Late</option>
+                            <option value="leave">Leave</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="att-mark-notes">Notes <span class="text-muted">(optional)</span></label>
+                        <input id="att-mark-notes" class="form-input" type="text" maxlength="500" placeholder="Optional notes">
+                    </div>
+                </div>
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="att-mark-in">Check in <span class="text-muted">(optional)</span></label>
+                        <input id="att-mark-in" class="form-input tabular-nums" type="time">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="att-mark-out">Check out <span class="text-muted">(optional)</span></label>
+                        <input id="att-mark-out" class="form-input tabular-nums" type="time">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:6px;">
+                    <label class="form-label" for="att-mark-password">Attendance password *</label>
+                    <input id="att-mark-password" class="form-input" type="password" autocomplete="current-password" placeholder="Required to save">
+                    <p class="form-hint">For security, password is required on every save.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-attendance-mark')">Cancel</button>
+                <button type="button" class="btn btn-primary" id="attendance-mark-btn">Save</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if can_edit %}
+    <div id="modal-attendance-delete" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-attendance-delete-title" aria-describedby="modal-attendance-delete-desc">
+        <div class="modal-box hotels-modal" style="max-width:560px;">
+            <div class="modal-header hotels-modal__header">
+                <div>
+                    <span id="modal-attendance-delete-title" class="modal-title">Delete attendance record</span>
+                    <p id="modal-attendance-delete-desc" class="hotels-modal-sub">This action is permanent. Password is required.</p>
+                </div>
+                <button type="button" class="modal-close" onclick="closeModal('modal-attendance-delete')" aria-label="Close dialog">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body hotels-modal__body">
+                <div class="form-group">
+                    <label class="form-label" for="att-del-summary">Record</label>
+                    <input id="att-del-summary" class="form-input" type="text" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="att-del-password">Attendance password *</label>
+                    <input id="att-del-password" class="form-input" type="password" autocomplete="current-password" placeholder="Required to delete">
+                </div>
+                <input type="hidden" id="att-del-log-id" value="">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-attendance-delete')">Cancel</button>
+                <button type="button" class="btn btn-primary" id="attendance-delete-btn" style="background:var(--destructive);border-color:transparent;">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        var csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        var csrf = csrfInput ? csrfInput.value : '';
+
+        var setBtn = document.getElementById('attendance-set-btn');
+        if (setBtn) {
+            setBtn.addEventListener('click', async function () {
+                try {
+                    var pw = (document.getElementById('attendance-set-password') ? document.getElementById('attendance-set-password').value : '').trim();
+                    if (!pw) return showToast('Enter new attendance password', 'error');
+                    var fd = new FormData();
+                    fd.append('csrfmiddlewaretoken', csrf);
+                    fd.append('password', pw);
+                    var res = await fetch('{% url "member-attendance-unlock" %}', { method: 'POST', body: fd });
+                    if (!res.ok) {
+                        var t = await res.text();
+                        return showToast(t || 'Unable to set password', 'error');
+                    }
+                    closeModal('modal-attendance-unlock');
+                    showToast('Attendance password set', 'success');
+                    window.location.reload();
+                } catch (e) {
+                    showToast('Unable to set password', 'error');
+                }
+            });
+        }
+
+        var changeBtn = document.getElementById('attendance-change-btn');
+        if (changeBtn) {
+            changeBtn.addEventListener('click', async function () {
+                try {
+                    var cur = (document.getElementById('attendance-change-current') ? document.getElementById('attendance-change-current').value : '').trim();
+                    var nw = (document.getElementById('attendance-new-password') ? document.getElementById('attendance-new-password').value : '').trim();
+                    if (!cur || !nw) return showToast('Enter current and new password', 'error');
+                    var fd = new FormData();
+                    fd.append('csrfmiddlewaretoken', csrf);
+                    fd.append('current_password', cur);
+                    fd.append('new_password', nw);
+                    var res = await fetch('{% url "member-attendance-password-change" %}', { method: 'POST', body: fd });
+                    if (!res.ok) {
+                        var t = await res.text();
+                        return showToast(t || 'Unable to change password', 'error');
+                    }
+                    closeModal('modal-attendance-unlock');
+                    showToast('Attendance password changed', 'success');
+                    window.location.reload();
+                } catch (e) {
+                    showToast('Unable to change password', 'error');
+                }
+            });
+        }
+
+        var resetBtn = document.getElementById('attendance-reset-btn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', async function () {
+                try {
+                    var acc = (document.getElementById('attendance-reset-account') ? document.getElementById('attendance-reset-account').value : '').trim();
+                    var nw = (document.getElementById('attendance-new-password') ? document.getElementById('attendance-new-password').value : '').trim();
+                    if (!acc || !nw) return showToast('Enter account password and new attendance password', 'error');
+                    var fd = new FormData();
+                    fd.append('csrfmiddlewaretoken', csrf);
+                    fd.append('account_password', acc);
+                    fd.append('new_password', nw);
+                    var res = await fetch('{% url "member-attendance-password-reset" %}', { method: 'POST', body: fd });
+                    if (!res.ok) {
+                        var t = await res.text();
+                        return showToast(t || 'Unable to reset password', 'error');
+                    }
+                    closeModal('modal-attendance-unlock');
+                    showToast('Attendance password reset', 'success');
+                    window.location.reload();
+                } catch (e) {
+                    showToast('Unable to reset password', 'error');
+                }
+            });
+        }
+
+        var modeChange = document.getElementById('attendance-mode-change');
+        var modeReset = document.getElementById('attendance-mode-reset');
+        var changeBlock = document.getElementById('attendance-change-block');
+        var resetBlock = document.getElementById('attendance-reset-block');
+        if (modeChange && modeReset && changeBlock && resetBlock) {
+            var setMode = function (m) {
+                if (m === 'reset') {
+                    changeBlock.classList.add('hidden');
+                    resetBlock.classList.remove('hidden');
+                    modeReset.classList.add('btn-primary');
+                    modeReset.classList.remove('btn-outline');
+                    modeChange.classList.add('btn-outline');
+                    modeChange.classList.remove('btn-primary');
+                } else {
+                    resetBlock.classList.add('hidden');
+                    changeBlock.classList.remove('hidden');
+                    modeChange.classList.add('btn-primary');
+                    modeChange.classList.remove('btn-outline');
+                    modeReset.classList.add('btn-outline');
+                    modeReset.classList.remove('btn-primary');
+                }
+            };
+            modeChange.addEventListener('click', function () { setMode('change'); });
+            modeReset.addEventListener('click', function () { setMode('reset'); });
+            setMode('change');
+        }
+
+        window.openAttendanceMarkModal = function () {
+            var dateEl = document.getElementById('att-mark-date');
+            var userNameEl = document.getElementById('att-mark-user-name');
+            var pwEl = document.getElementById('att-mark-password');
+            if (dateEl && !dateEl.value) {
+                var d = new Date();
+                var mm = String(d.getMonth() + 1).padStart(2, '0');
+                var dd = String(d.getDate()).padStart(2, '0');
+                dateEl.value = d.getFullYear() + '-' + mm + '-' + dd;
+            }
+            if (userNameEl) userNameEl.value = '';
+            if (pwEl) pwEl.value = '';
+            openModal('modal-attendance-mark');
+        };
+
+        window.openAttendanceEditFromRow = function (btn) {
+            try {
+                var tr = btn && btn.closest ? btn.closest('tr') : null;
+                if (!tr) return;
+                var dateEl = document.getElementById('att-mark-date');
+                var userNameEl = document.getElementById('att-mark-user-name');
+                var statusEl = document.getElementById('att-mark-status');
+                var inEl = document.getElementById('att-mark-in');
+                var outEl = document.getElementById('att-mark-out');
+                var notesEl = document.getElementById('att-mark-notes');
+                if (dateEl) dateEl.value = tr.dataset.date || '';
+                if (userNameEl) userNameEl.value = tr.dataset.personName || (tr.querySelector('td') ? tr.querySelector('td').textContent.trim() : '');
+                if (statusEl) statusEl.value = tr.dataset.status || 'present';
+                if (inEl) inEl.value = tr.dataset.checkIn || '';
+                if (outEl) outEl.value = tr.dataset.checkOut || '';
+                if (notesEl) notesEl.value = tr.dataset.notes || '';
+                openModal('modal-attendance-mark');
+            } catch (e) { }
+        };
+
+        window.openAttendanceDeleteFromRow = function (btn) {
+            try {
+                var tr = btn && btn.closest ? btn.closest('tr') : null;
+                if (!tr) return;
+                var logId = tr.dataset.logId || '';
+                var name = (tr.querySelector('td') ? tr.querySelector('td').textContent.trim() : 'Record');
+                var dateTxt = tr.dataset.date || '';
+                var statusTxt = tr.dataset.status || '';
+                var sumEl = document.getElementById('att-del-summary');
+                var idEl = document.getElementById('att-del-log-id');
+                var pwEl = document.getElementById('att-del-password');
+                if (sumEl) sumEl.value = name + ' • ' + dateTxt + ' • ' + statusTxt;
+                if (idEl) idEl.value = logId;
+                if (pwEl) pwEl.value = '';
+                openModal('modal-attendance-delete');
+            } catch (e) { }
+        };
+
+        var markBtn = document.getElementById('attendance-mark-btn');
+        if (markBtn) {
+            markBtn.addEventListener('click', async function () {
+                try {
+                    var dateV = (document.getElementById('att-mark-date').value || '').trim();
+                    var userNameV = (document.getElementById('att-mark-user-name') ? document.getElementById('att-mark-user-name').value : '').trim();
+                    var statusV = (document.getElementById('att-mark-status').value || '').trim();
+                    var inV = (document.getElementById('att-mark-in').value || '').trim();
+                    var outV = (document.getElementById('att-mark-out').value || '').trim();
+                    var notesV = (document.getElementById('att-mark-notes').value || '').trim();
+                    var pwV = (document.getElementById('att-mark-password') ? document.getElementById('att-mark-password').value : '').trim();
+                    if (!dateV || !statusV) return showToast('Date and status are required', 'error');
+                    if (!userNameV) return showToast('Member name is required', 'error');
+                    if (!pwV) return showToast('Password is required', 'error');
+
+                    var fd = new FormData();
+                    fd.append('csrfmiddlewaretoken', csrf);
+                    fd.append('date', dateV);
+                    fd.append('person_name', userNameV);
+                    fd.append('status', statusV);
+                    fd.append('check_in_time', inV);
+                    fd.append('check_out_time', outV);
+                    fd.append('notes', notesV);
+                    fd.append('password', pwV);
+
+                    var res = await fetch('{% url "member-attendance-mark" %}', { method: 'POST', body: fd });
+                    if (!res.ok) {
+                        var t = await res.text();
+                        return showToast(t || 'Unable to save', 'error');
+                    }
+                    closeModal('modal-attendance-mark');
+                    showToast('Saved', 'success');
+                    window.location.reload();
+                } catch (e) {
+                    showToast('Unable to save', 'error');
+                }
+            });
+        }
+
+        var deleteBtn = document.getElementById('attendance-delete-btn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', async function () {
+                try {
+                    var logId = (document.getElementById('att-del-log-id') ? document.getElementById('att-del-log-id').value : '').trim();
+                    var pw = (document.getElementById('att-del-password') ? document.getElementById('att-del-password').value : '').trim();
+                    if (!logId) return showToast('Invalid record', 'error');
+                    if (!pw) return showToast('Password is required', 'error');
+                    var fd = new FormData();
+                    fd.append('csrfmiddlewaretoken', csrf);
+                    fd.append('log_id', logId);
+                    fd.append('password', pw);
+                    var res = await fetch('{% url "member-attendance-delete" %}', { method: 'POST', body: fd });
+                    if (!res.ok) {
+                        var t = await res.text();
+                        return showToast(t || 'Unable to delete', 'error');
+                    }
+                    closeModal('modal-attendance-delete');
+                    showToast('Deleted', 'success');
+                    window.location.reload();
+                } catch (e) {
+                    showToast('Unable to delete', 'error');
+                }
+            });
+        }
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,44 @@
+<table class="hotels-data-table">
+    <thead>
+        <tr>
+            <th>City</th>
+            <th>Role</th>
+            <th>Contact name</th>
+            <th>Phone number</th>
+            <th>Notes</th>
+            <th class="hotels-col-actions">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in contacts %}
+        <tr class="hotels-row"
+            data-id="{{ c.id }}"
+            data-city="{{ c.city|escape }}"
+            data-role="{{ c.role|escape }}"
+            data-contact-name="{{ c.contact_name|escape }}"
+            data-phone-number="{{ c.phone_number|escape }}"
+            data-notes="{{ c.notes|default:''|escape }}">
+            <td class="font-medium">{{ c.city }}</td>
+            <td class="text-muted text-sm">{{ c.role }}</td>
+            <td class="text-muted text-sm">{{ c.contact_name }}</td>
+            <td class="text-muted text-sm tabular-nums">{{ c.phone_number }}</td>
+            <td class="text-muted text-sm">{{ c.notes|default:"—" }}</td>
+            <td class="hotels-col-actions">
+                <div style="display:flex;gap:8px;justify-content:flex-end;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="openContactEditFromRow(this)">Edit</button>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="openContactDeleteFromRow(this)">Delete</button>
+                </div>
+            </td>
+        </tr>
+        {% empty %}
+        <tr class="hotels-row">
+            <td colspan="6">
+                <div class="empty-state" style="padding:22px 12px;">
+                    <h3>No contacts found</h3>
+                    <p>Try a different search or filter.</p>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

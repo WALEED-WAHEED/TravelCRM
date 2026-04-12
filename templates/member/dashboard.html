@@ -1,0 +1,348 @@
+{% extends "base.html" %}
+{% load currency_tags %}
+{% block title %}Member Dashboard{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-dashboard">
+    <header class="hotels-hero hotels-reveal" style="--d:0ms">
+        <div class="hotels-hero__copy">
+            <p class="hotels-eyebrow">Overview</p>
+            <h1 class="page-title hotels-hero__title">Dashboard</h1>
+            <p class="page-subtitle hotels-hero__sub">Bookings, vouchers, and team signals in one place—aligned with how the rest of your workspace looks and feels.</p>
+        </div>
+        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms">
+            <a href="{% url 'member-bookings' %}" class="btn btn-primary hotels-cta-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                New booking
+            </a>
+        </div>
+    </header>
+
+    <div class="hotels-stat-grid hotels-stat-grid--4">
+        <div class="hotels-stat-card hotels-reveal" style="--d:80ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                </svg>
+            </div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">Total bookings</span>
+                <span class="hotels-stat-card__value">{{ total_bookings }}</span>
+            </div>
+        </div>
+        <div class="hotels-stat-card hotels-stat-card--accent hotels-reveal" style="--d:100ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+            </div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">Mutamers</span>
+                <span class="hotels-stat-card__value">{{ total_mutamers }}</span>
+            </div>
+        </div>
+        <div class="hotels-stat-card hotels-reveal" style="--d:120ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+            </div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">Pending vouchers</span>
+                <span class="hotels-stat-card__value">{{ pending_vouchers }}</span>
+            </div>
+        </div>
+        <div class="hotels-stat-card hotels-reveal" style="--d:140ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                </svg>
+            </div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">Active agents</span>
+                <span class="hotels-stat-card__value">{{ active_agents }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dash-charts-grid">
+        <section class="card hotels-panel hotels-reveal dash-chart-card" style="--d:180ms">
+            <div class="hotels-panel__head">
+                <div class="flex justify-between items-start gap-4 flex-wrap">
+                    <div>
+                        <h2 class="hotels-panel__title">Booking volume</h2>
+                        <p class="hotels-panel__hint text-muted text-sm">Trailing six months (estimated activity from new bookings).</p>
+                    </div>
+                    <span class="badge badge-primary" style="align-self:center;">6 months</span>
+                </div>
+            </div>
+            <div class="card-content hotels-panel__body">
+                <div class="dash-chart-canvas-wrap">
+                    <canvas id="revenueChart" aria-label="Booking volume chart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <div class="dash-charts-stack">
+            <section class="card hotels-panel hotels-reveal" style="--d:220ms">
+                <div class="hotels-panel__head">
+                    <h2 class="hotels-panel__title">Voucher mix</h2>
+                    <p class="hotels-panel__hint text-muted text-sm">Status distribution</p>
+                </div>
+                <div class="card-content hotels-panel__body">
+                    <div class="dash-chart-canvas-wrap dash-chart-canvas-wrap--compact">
+                        <canvas id="voucherChart" aria-label="Voucher status chart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card hotels-panel hotels-reveal dash-pending-card" style="--d:260ms">
+                <div class="hotels-panel__head">
+                    <h2 class="hotels-panel__title">Needs attention</h2>
+                    <p class="hotels-panel__hint text-muted text-sm">Vouchers waiting on approval</p>
+                </div>
+                <div class="card-content hotels-panel__body" style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+                    <div class="dash-pending-value">{{ pending_vouchers }}</div>
+                    <a href="{% url 'member-approvals' %}" class="btn btn-outline btn-sm">Open queue</a>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="dash-bottom-grid">
+        <section class="card hotels-panel hotels-reveal" style="--d:300ms">
+            <div class="hotels-panel__head">
+                <h2 class="hotels-panel__title">Shortcuts</h2>
+                <p class="hotels-panel__hint text-muted text-sm">Jump to common tasks</p>
+            </div>
+            <div class="card-content hotels-panel__body">
+                <div class="dash-quick-links">
+                    <a href="{% url 'member-ledger' %}" class="quick-action">
+                        <div>
+                            <div class="quick-action-title">Financial ledger</div>
+                            <div class="quick-action-desc">Transactions &amp; balances</div>
+                        </div>
+                    </a>
+                    <a href="{% url 'member-approvals' %}" class="quick-action">
+                        <div>
+                            <div class="quick-action-title">Approvals</div>
+                            <div class="quick-action-desc">Review pending vouchers</div>
+                        </div>
+                    </a>
+                    <a href="{% url 'member-hotels' %}" class="quick-action">
+                        <div>
+                            <div class="quick-action-title">Hotels</div>
+                            <div class="quick-action-desc">Inventory &amp; rates</div>
+                        </div>
+                    </a>
+                    <a href="{% url 'member-vouchers' %}" class="quick-action">
+                        <div>
+                            <div class="quick-action-title">Vouchers</div>
+                            <div class="quick-action-desc">All voucher records</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="card hotels-panel hotels-reveal dash-recent-table" style="--d:320ms">
+            <div class="hotels-panel__head">
+                <div class="flex justify-between items-center gap-4 flex-wrap">
+                    <div>
+                        <h2 class="hotels-panel__title">Recent bookings</h2>
+                        <p class="hotels-panel__hint text-muted text-sm">Latest activity in your agency</p>
+                    </div>
+                    <a href="{% url 'member-bookings' %}" class="btn btn-outline btn-sm">View all</a>
+                </div>
+            </div>
+            <div class="card-content hotels-panel__body" style="padding-top:0;">
+                {% if recent_bookings %}
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Voucher</th>
+                                <th>Client</th>
+                                <th>Status</th>
+                                <th>Total (PKR)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in recent_bookings %}
+                            <tr>
+                                <td>
+                                    <span class="font-medium" style="font-family:ui-monospace,monospace;color:var(--primary);">{{ b.voucher_number }}</span>
+                                    {% if b.package_name %}<br><span class="text-xs text-muted">{{ b.package_name }}</span>{% endif %}
+                                </td>
+                                <td class="text-sm">{{ b.client_company|default:"—" }}</td>
+                                <td>
+                                    <span class="badge {% if b.status == 'confirmed' or b.status == 'completed' %}badge-success{% elif b.status == 'cancelled' %}badge-danger{% elif b.status == 'draft' %}badge-default{% else %}badge-warning{% endif %}">{{ b.get_status_display }}</span>
+                                </td>
+                                <td class="font-medium" style="font-variant-numeric:tabular-nums;">{{ b.total_price|pkr }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state" style="padding:40px 20px;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                    </svg>
+                    <h3>No bookings yet</h3>
+                    <p>Create a booking to see it listed here.</p>
+                    <a href="{% url 'member-bookings' %}" class="btn btn-primary" style="margin-top:16px;">Go to bookings</a>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        var revEl = document.getElementById('revenueChart');
+        var vouchEl = document.getElementById('voucherChart');
+        if (!revEl || !vouchEl || typeof Chart === 'undefined') return;
+
+        var root = getComputedStyle(document.documentElement);
+        var primaryStr = (root.getPropertyValue('--primary').trim()) || 'hsl(202, 100%, 59%)';
+        var textColor = (root.getPropertyValue('--muted-foreground').trim()) || 'rgba(255, 255, 255, 0.7)';
+        var gridColor = (root.getPropertyValue('--border').trim()) || 'rgba(255, 255, 255, 0.08)';
+        var fgSolid = (root.getPropertyValue('--foreground').trim()) || '#fff';
+        var cardBg = document.documentElement.getAttribute('data-theme') === 'light' ? 'rgba(255,255,255,0.96)' : 'rgba(15, 23, 42, 0.92)';
+        var draftSlice = document.documentElement.getAttribute('data-theme') === 'light' ? 'hsla(222, 47%, 11%, 0.08)' : 'rgba(255,255,255,0.12)';
+        var legendLabelColor = fgSolid;
+        var warningColor = (root.getPropertyValue('--warning').trim()) || 'hsl(38, 92%, 55%)';
+        var destructiveColor = (root.getPropertyValue('--destructive').trim()) || 'hsl(0, 84%, 60%)';
+        var pointFill = (root.getPropertyValue('--card').trim()) || '#ffffff';
+
+        Chart.defaults.color = textColor;
+        Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+
+        var revCtx = revEl.getContext('2d');
+        var revGradient = revCtx.createLinearGradient(0, 0, 0, 280);
+        revGradient.addColorStop(0, 'hsla(202, 100%, 59%, 0.35)');
+        revGradient.addColorStop(1, 'hsla(202, 100%, 59%, 0)');
+
+        new Chart(revCtx, {
+            type: 'line',
+            data: {
+                labels: {{ month_labels_json|safe }},
+                datasets: [{
+                    label: 'Volume index',
+                    data: {{ monthly_revenue_json|safe }},
+                    borderColor: primaryStr,
+                    backgroundColor: revGradient,
+                    borderWidth: 2,
+                    tension: 0.35,
+                    fill: true,
+                    pointBackgroundColor: pointFill,
+                    pointBorderColor: primaryStr,
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: cardBg,
+                        titleColor: fgSolid,
+                        bodyColor: fgSolid,
+                        padding: 12,
+                        borderColor: primaryStr,
+                        borderWidth: 1,
+                        displayColors: false,
+                        cornerRadius: 8,
+                        boxPadding: 4
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: gridColor, drawBorder: false },
+                        border: { display: false },
+                        ticks: { color: textColor, padding: 8, maxTicksLimit: 6, font: { weight: 500 } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: { color: textColor, padding: 8, font: { weight: 500 } }
+                    }
+                },
+                interaction: { intersect: false, mode: 'index' }
+            }
+        });
+
+        var vouchCtx = vouchEl.getContext('2d');
+        new Chart(vouchCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Pending', 'Approved', 'Rejected', 'Draft'],
+                datasets: [{
+                    data: [
+                        parseInt('{{ pending_vouchers|default:0 }}', 10),
+                        parseInt('{{ approved_vouchers|default:0 }}', 10),
+                        parseInt('{{ rejected_vouchers|default:0 }}', 10),
+                        parseInt('{{ draft_vouchers|default:0 }}', 10)
+                    ],
+                    backgroundColor: [warningColor, primaryStr, destructiveColor, draftSlice],
+                    borderColor: 'transparent',
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                layout: { padding: 8 },
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: legendLabelColor,
+                            padding: 14,
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            boxWidth: 8,
+                            font: { size: 12, weight: 500 }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: cardBg,
+                        titleColor: fgSolid,
+                        bodyColor: fgSolid,
+                        padding: 12,
+                        borderColor: gridColor,
+                        borderWidth: 1,
+                        cornerRadius: 8
+                    }
+                }
+            }
+        });
+    })();
+</script>
+{% endblock %}

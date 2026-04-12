@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Agent Vouchers{% endblock %}
+{% block content %}
+<div class="page-header flex justify-between items-center">
+    <div>
+        <h1 class="page-title">My Vouchers</h1>
+        <p class="page-subtitle">Vouchers you have submitted</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('modal-agent-voucher')">+ New Voucher</button>
+</div>
+<div class="card">
+    <div class="card-content" style="padding-top:20px;">
+        {% if vouchers %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Voucher #</th>
+                        <th>Mutamer</th>
+                        <th>Services</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in vouchers %}
+                    <tr>
+                        <td class="font-medium" style="color:var(--primary);font-family:monospace;">{{ v.voucher_number
+                            }}</td>
+                        <td>{{ v.mutamer.name }}</td>
+                        <td>{{ v.services.count }} service{{ v.services.count|pluralize }}</td>
+                        <td><span
+                                class="badge {% if v.status == 'approved' %}badge-success{% elif v.status == 'rejected' %}badge-danger{% elif v.status == 'pending' %}badge-warning{% else %}badge-default{% endif %}">{{
+                                v.get_status_display }}</span></td>
+                        <td class="text-muted text-sm">{{ v.created_at|date:"d M Y" }}</td>
+                        <td>
+                            {% if v.public_token %}<a href="{% url 'public-voucher' v.public_token %}"
+                                class="btn btn-outline btn-sm" target="_blank">View</a>{% else %}<button
+                                class="btn btn-outline btn-sm">View</button>{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>No vouchers yet</h3>
+            <p>Submit your first service voucher.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

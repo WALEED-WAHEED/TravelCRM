@@ -1,0 +1,950 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    {% include "partials/theme_init.html" %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In — {{ saas_config.product_name|default:"Nahd Travels CRM" }}</title>
+    <meta name="description" content="Sign in to {{ saas_config.product_name|default:"Nahd Travels CRM" }} — the all-in-one travel management platform for Umrah & Hajj agencies.">
+    {% if saas_config.favicon %}
+    <link rel="icon" href="{{ saas_config.favicon.url }}">
+    {% endif %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <style>
+        /* ============================================================
+           PREMIUM LOGIN PAGE — NAHD TRAVELS
+           A fully standalone, world-class SaaS login experience
+           ============================================================ */
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            height: 100%;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Full-screen Background        /* Base styles */
+        .lp-root {
+            min-height: 100vh;
+            height: 100vh; /* Force exactly viewport height */
+            margin: 0;
+            background-color: hsl(222, 47%, 6%); /* Deep dark blue */
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 0; /* Stay under .theme-toggle-floating (sibling after this block) */
+            overflow: hidden; /* No scrollbars on desktop */
+        }
+        /* Animated mesh gradient blobs */
+        .lp-blob {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            filter: blur(110px);
+            opacity: 0.55;
+        }
+        .lp-blob-1 {
+            width: 700px; height: 700px;
+            background: radial-gradient(circle, hsl(202, 100%, 55%), hsl(220, 90%, 45%));
+            top: -260px; left: -200px;
+            animation: blobDrift 22s ease-in-out infinite alternate;
+        }
+        .lp-blob-2 {
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, hsl(186, 100%, 45%), hsl(202, 100%, 55%));
+            bottom: -180px; right: -150px;
+            animation: blobDrift 28s ease-in-out infinite alternate-reverse;
+            opacity: 0.4;
+        }
+        .lp-blob-3 {
+            width: 350px; height: 350px;
+            background: radial-gradient(circle, hsl(260, 80%, 65%), hsl(220, 90%, 55%));
+            top: 45%; left: 37%;
+            animation: blobDrift 18s ease-in-out infinite alternate;
+            opacity: 0.18;
+        }
+        @keyframes blobDrift {
+            0%   { transform: translate(0, 0) scale(1); }
+            50%  { transform: translate(40px, -40px) scale(1.08); }
+            100% { transform: translate(-30px, 30px) scale(0.92); }
+        }
+
+        @keyframes lpInLeft {
+            from { opacity: 0; transform: translate3d(-20px, 0, 0); }
+            to { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+        @keyframes lpInRight {
+            from { opacity: 0; transform: translate3d(22px, 0, 0); }
+            to { opacity: 1; transform: translate3d(0, 0, 0); }
+        }
+
+        /* Grid noise texture overlay */
+        .lp-root::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.018'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Split layout ───────────────────────────── */
+        .lp-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 100%;
+            height: 100%; /* Take full bounded height */
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Left — Hero Panel ──────────────────────── */
+        .lp-hero {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 44px 52px;
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            animation: lpInLeft 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        /* Subtle vertical grid lines on hero */
+        .lp-hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 79px,
+                hsla(202, 100%, 70%, 0.04) 80px
+            );
+            pointer-events: none;
+        }
+
+        /* Brand */
+        .lp-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .lp-brand-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg, hsl(202,100%,59%), hsl(220,90%,55%));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px hsla(202, 100%, 59%, 0.4);
+            flex-shrink: 0;
+        }
+
+        .lp-brand-name {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.02em;
+        }
+
+        .lp-brand-tagline {
+            font-size: 0.75rem;
+            color: hsla(0,0%,100%,0.5);
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* Hero center content */
+        .lp-hero-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 24px 0; /* Tighter padding for 100vh */
+        }
+
+        .lp-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: hsla(202, 100%, 59%, 0.15);
+            border: 1px solid hsla(202, 100%, 59%, 0.25);
+            border-radius: 999px;
+            padding: 5px 14px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: hsl(202, 100%, 75%);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            width: fit-content;
+            margin-bottom: 20px; /* Tighter margin */
+            backdrop-filter: blur(8px);
+        }
+
+        .lp-eyebrow-dot {
+            width: 6px; height: 6px;
+            background: hsl(142, 71%, 55%);
+            border-radius: 50%;
+            box-shadow: 0 0 6px hsl(142, 71%, 55%);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 6px hsl(142, 71%, 55%); }
+            50% { opacity: 0.6; box-shadow: 0 0 12px hsl(142, 71%, 55%); }
+        }
+
+        .lp-hero-heading {
+            font-size: clamp(1.85rem, 2.8vw, 2.65rem);
+            font-weight: 800;
+            line-height: 1.12;
+            letter-spacing: -0.035em;
+            color: #fff;
+            margin-bottom: 14px;
+        }
+
+        .lp-hero-heading .grad {
+            background: linear-gradient(135deg, hsl(202,100%,75%), hsl(186,100%,65%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .lp-hero-sub {
+            font-size: 0.88rem;
+            line-height: 1.55;
+            color: hsla(0,0%,100%,0.5);
+            max-width: 340px;
+            font-weight: 400;
+        }
+
+        /* Stats strip */
+        .lp-stats {
+            display: flex;
+            gap: 22px;
+            margin-top: 28px;
+        }
+
+        .lp-stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .lp-stat-num {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.03em;
+            line-height: 1;
+        }
+
+        .lp-stat-num span {
+            color: hsl(202, 100%, 70%);
+        }
+
+        .lp-stat-label {
+            font-size: 0.68rem;
+            color: hsla(0,0%,100%,0.42);
+            font-weight: 500;
+        }
+
+        /* Feature cards */
+        .lp-features {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .lp-feature-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: hsla(0,0%,100%,0.04);
+            border: 1px solid hsla(0,0%,100%,0.07);
+            border-radius: 14px;
+            padding: 12px 16px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), background 0.25s, border-color 0.25s, box-shadow 0.35s;
+        }
+
+        .lp-feature-card:hover {
+            background: hsla(0,0%,100%,0.08);
+            border-color: hsla(202,100%,70%,0.28);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px hsla(0,0%,0%,0.2);
+        }
+
+        .lp-feature-icon-wrap {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, hsl(202,100%,59%), hsl(220,90%,55%));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px hsla(202,100%,59%,0.3);
+        }
+
+        .lp-feature-text {
+            flex: 1;
+        }
+
+        .lp-feature-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: hsla(0,0%,100%,0.9);
+        }
+
+        .lp-feature-desc {
+            font-size: 0.75rem;
+            color: hsla(0,0%,100%,0.4);
+            margin-top: 2px;
+        }
+
+        /* ── Right — Form Panel ─────────────────────── */
+        .lp-form-panel {
+            background-color: hsl(222, 47%, 6%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px;
+            position: relative;
+            border-left: 1px solid hsla(0,0%,100%,0.04);
+            height: 100%;
+            animation: lpInRight 0.78s cubic-bezier(0.16, 1, 0.3, 1) 0.07s both;
+        }
+
+        /* Subtle inner glow top right */
+        .lp-form-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 300px; height: 300px;
+            background: radial-gradient(circle at top right, hsla(202,100%,59%,0.08), transparent 70%);
+            pointer-events: none;
+        }
+
+        .lp-form-inner {
+            width: 100%;
+            max-width: 440px;
+            /* Flex to manage exact vertical centering safely */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+        }
+
+        /* Mobile brand shown only on sm */
+        .lp-mobile-brand {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        /* Form header */
+        .lp-form-header {
+            margin-bottom: 28px; /* Tighter bottom margin */
+        }
+
+        .lp-welcome-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: hsla(202, 100%, 59%, 0.1);
+            border: 1px solid hsla(202, 100%, 59%, 0.2);
+            border-radius: 999px;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: hsl(202, 100%, 70%);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 18px;
+        }
+
+        .lp-form-title {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+            margin-bottom: 6px;
+        }
+
+        .lp-form-sub {
+            font-size: 0.84rem;
+            color: hsla(0,0%,100%,0.42);
+            line-height: 1.5;
+            font-weight: 400;
+        }
+
+        /* Error alert */
+        .lp-alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: hsla(0, 84%, 60%, 0.1);
+            border: 1px solid hsla(0, 84%, 60%, 0.25);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 24px;
+            color: hsl(0, 84%, 70%);
+            font-size: 0.875rem;
+            line-height: 1.45;
+        }
+
+        .lp-alert svg { flex-shrink: 0; margin-top: 1px; }
+
+        /* Form fields */
+        .lp-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .lp-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px; /* Tighter gap */
+            margin-bottom: 20px; /* Reduced vertical spacing */
+        }
+
+        .lp-label {
+            font-size: 0.7rem; /* Slightly smaller label */
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: hsla(0,0%,100%,0.5);
+            text-transform: uppercase;
+        }
+
+        .lp-input-wrap {
+            position: relative;
+        }
+
+        .lp-input-wrap--pw .lp-input {
+            padding-right: 44px;
+        }
+
+        .lp-input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: hsla(0,0%,100%,0.25);
+            pointer-events: none;
+            display: flex;
+        }
+
+        .lp-input {
+            width: 100%;
+            background: hsla(0,0%,100%,0.05);
+            border: 1px solid hsla(0,0%,100%,0.08);
+            border-radius: 12px;
+            padding: 13px 14px 13px 44px;
+            font-size: 0.925rem;
+            color: #fff;
+            outline: none;
+            font-family: inherit;
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.25s, transform 0.2s;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .lp-input::placeholder {
+            color: hsla(0,0%,100%,0.22);
+        }
+
+        .lp-input:focus {
+            border-color: hsl(202, 100%, 59%);
+            background: hsla(202, 100%, 59%, 0.06);
+            box-shadow: 0 0 0 3px hsla(202, 100%, 59%, 0.15), 0 0 0 1px hsl(202, 100%, 59%);
+            transform: translateY(-1px);
+        }
+
+        /* Password toggle */
+        .lp-pw-toggle {
+            position: absolute;
+            right: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: hsla(0,0%,100%,0.3);
+            display: flex;
+            padding: 4px;
+            border-radius: 6px;
+            transition: color 0.2s;
+        }
+
+        .lp-pw-toggle:hover { color: hsla(0,0%,100%,0.7); }
+
+
+        /* Remember + forgot row */
+        .lp-form-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            margin-top: -4px;
+        }
+
+        .lp-forgot {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: hsl(202, 100%, 69%);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .lp-forgot:hover { color: #fff; }
+
+        /* Submit button */
+        .lp-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, hsl(202,100%,53%), hsl(220,90%,52%));
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.02em;
+            font-family: inherit;
+            box-shadow: 0 8px 24px hsla(202, 100%, 53%, 0.35), 0 1px 2px rgba(0,0,0,0.4);
+            transition: transform 0.18s, box-shadow 0.18s, opacity 0.18s;
+            position: relative;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .lp-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, hsla(0,0%,100%,0.15), transparent);
+            pointer-events: none;
+        }
+
+        .lp-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0 auto 0 -40%;
+            width: 45%;
+            background: linear-gradient(100deg, transparent, hsla(255,255,255,0.25), transparent);
+            transform: skewX(-16deg) translateX(-100%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.25s ease, transform 0s linear 0.25s;
+        }
+
+        .lp-btn:hover::after {
+            opacity: 1;
+            transform: skewX(-16deg) translateX(320%);
+            transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+        }
+
+        .lp-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 32px hsla(202, 100%, 53%, 0.45), 0 2px 6px rgba(0,0,0,0.4);
+        }
+
+        .lp-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 12px hsla(202, 100%, 53%, 0.3);
+        }
+
+        /* Arrow icon animation */
+        .lp-btn-arrow {
+            transition: transform 0.2s;
+        }
+
+        .lp-btn:hover .lp-btn-arrow {
+            transform: translateX(4px);
+        }
+
+        /* Footer */
+        .lp-form-footer {
+            margin-top: auto; /* Push footer down but constrained */
+            padding-top: 20px;
+            border-top: 1px solid hsla(0,0%,100%,0.07);
+            text-align: center;
+        }
+
+        .lp-footer-trust {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .lp-trust-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            color: hsla(0,0%,100%,0.28);
+            font-weight: 500;
+        }
+
+        .lp-trust-item svg { color: hsla(0,0%,100%,0.22); }
+
+        /* ── Divider line between panels ────────── */
+        .lp-divider {
+            position: absolute;
+            left: 50%;
+            top: 0; bottom: 0;
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, hsla(0,0%,100%,0.08) 20%, hsla(0,0%,100%,0.08) 80%, transparent);
+            pointer-events: none;
+        }
+
+        /* ── Scroll-in animation ─────────────────── */
+        .lp-reveal {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: revealUp 0.48s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .lp-reveal-d1 { animation-delay: 0.04s; }
+        .lp-reveal-d2 { animation-delay: 0.09s; }
+        .lp-reveal-d3 { animation-delay: 0.14s; }
+        .lp-reveal-d4 { animation-delay: 0.19s; }
+        .lp-reveal-d5 { animation-delay: 0.24s; }
+        .lp-reveal-d6 { animation-delay: 0.29s; }
+
+        @keyframes revealUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .lp-blob { animation: none !important; }
+            .lp-hero,
+            .lp-form-panel,
+            .lp-reveal,
+            .lp-eyebrow-dot { animation: none !important; }
+            .lp-reveal,
+            .lp-hero,
+            .lp-form-panel { opacity: 1 !important; transform: none !important; }
+            .lp-feature-card { transition: none !important; transform: none !important; }
+            .lp-btn::after { display: none !important; }
+        }
+
+        /* ── Responsive ───────────────────────────── */
+        /* Height-based scaling for short desktop screens so left panel fits *without* scrolling */
+        @media (max-height: 750px) and (min-width: 901px) {
+            .lp-hero { padding: 32px 48px; }
+            .lp-hero-body { padding: 12px 0; }
+            .lp-eyebrow { margin-bottom: 12px; font-size: 0.65rem; padding: 4px 10px; }
+            .lp-hero-heading { font-size: clamp(1.8rem, 2.5vw, 2.2rem); margin-bottom: 8px; }
+            .lp-hero-sub { font-size: 0.85rem; line-height: 1.4; }
+            .lp-stats { margin-top: 20px; gap: 20px; }
+            .lp-stat-num { font-size: 1.3rem; }
+            .lp-features { gap: 8px; }
+            .lp-feature-card { padding: 8px 14px; }
+            .lp-feature-icon-wrap { width: 30px; height: 30px; }
+            .lp-feature-title { font-size: 0.8rem; }
+            .lp-feature-desc { font-size: 0.7rem; }
+            
+            .lp-form-panel { padding: 32px; }
+            .lp-form-header { margin-bottom: 20px; }
+            .lp-form-group { margin-bottom: 16px; gap: 4px; }
+            .lp-welcome-title { font-size: 1.8rem; }
+            .lp-form-footer { margin-top: 16px; padding-top: 16px; }
+        }
+
+        /* Width-based scaling for generic mobile layout */
+        @media (max-width: 900px) {
+            .lp-root {
+                height: auto;
+                overflow-y: auto; /* Re-enable scrolling on mobile if content overflows */
+            }
+            .lp-split { grid-template-columns: 1fr; height: auto; }
+            .lp-hero { display: none; }
+            .lp-form-panel {
+                padding: 48px 32px;
+                border-left: none;
+                min-height: 100vh;
+                height: auto;
+                background: hsl(222, 47%, 6%);
+            }
+            .lp-mobile-brand { display: flex; }
+        }
+
+        @media (max-width: 480px) {
+            .lp-form-panel { padding: 40px 24px; }
+            .lp-form-title { font-size: 1.5rem; }
+        }
+
+    </style>
+</head>
+
+<body class="lp-page">
+    <div class="lp-root">
+        <!-- Animated background blobs -->
+        <div class="lp-blob lp-blob-1"></div>
+        <div class="lp-blob lp-blob-2"></div>
+        <div class="lp-blob lp-blob-3"></div>
+
+        <div class="lp-split">
+
+            <!-- ════ LEFT HERO PANEL ════ -->
+            <div class="lp-hero">
+
+                <!-- Brand / Logo -->
+                <div class="lp-brand lp-reveal lp-reveal-d1">
+                    {% if saas_config.logo %}
+                    <img src="{{ saas_config.logo.url }}" alt="{{ saas_config.product_name }}" style="max-height: 48px; width: auto; max-width: 200px; object-fit: contain;">
+                    {% endif %}
+                    {% if saas_config.product_name %}
+                    <div>
+                        <div class="lp-brand-name">{{ saas_config.product_name }}</div>
+                        {% if saas_config.slogan %}
+                        <div class="lp-brand-tagline">{{ saas_config.slogan }}</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Main hero copy -->
+                <div class="lp-hero-body">
+                    <div class="lp-eyebrow lp-reveal lp-reveal-d2">
+                        <span class="lp-eyebrow-dot"></span>
+                        Built for modern travel agencies
+                    </div>
+
+                    <h1 class="lp-hero-heading lp-reveal lp-reveal-d3">
+                        Operations,<br>
+                        <span class="grad">streamlined</span>
+                    </h1>
+
+                    <p class="lp-hero-sub lp-reveal lp-reveal-d4">
+                        Bookings, vouchers, and team workspaces in one secure platform—built for Umrah &amp; Hajj agencies that scale.
+                    </p>
+
+                    <div class="lp-stats lp-reveal lp-reveal-d5">
+                        <div class="lp-stat-item">
+                            <div class="lp-stat-num">100<span>K+</span></div>
+                            <div class="lp-stat-label">Travelers coordinated</div>
+                        </div>
+                        <div class="lp-stat-item">
+                            <div class="lp-stat-num">250<span>+</span></div>
+                            <div class="lp-stat-label">Partner agencies</div>
+                        </div>
+                        <div class="lp-stat-item">
+                            <div class="lp-stat-num">99.9<span>%</span></div>
+                            <div class="lp-stat-label">Target uptime</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lp-features lp-reveal lp-reveal-d6">
+                    <div class="lp-feature-card">
+                        <div class="lp-feature-icon-wrap">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                            </svg>
+                        </div>
+                        <div class="lp-feature-text">
+                            <div class="lp-feature-title">Booking &amp; inventory</div>
+                            <div class="lp-feature-desc">Flights, hotels, and transport in one pipeline.</div>
+                        </div>
+                    </div>
+                    <div class="lp-feature-card">
+                        <div class="lp-feature-icon-wrap">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                            </svg>
+                        </div>
+                        <div class="lp-feature-text">
+                            <div class="lp-feature-title">Roles &amp; compliance</div>
+                            <div class="lp-feature-desc">Member and agent access, audit-friendly workflows.</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- ═══ END LEFT PANEL ═══ -->
+
+            <!-- ════ RIGHT FORM PANEL ════ -->
+            <div class="lp-form-panel">
+                <div class="lp-form-inner">
+
+                    <!-- Mobile Top Brand (Hidden on Desktop) -->
+                <div class="lp-mobile-brand">
+                    {% if saas_config.logo %}
+                    <img src="{{ saas_config.logo.url }}" alt="{{ saas_config.product_name }}" style="max-height: 40px; width: auto; object-fit: contain;">
+                    {% endif %}
+                    <div>
+                        <div class="lp-mb-name">{{ saas_config.product_name }}</div>
+                        {% if saas_config.slogan %}
+                        <div class="lp-mb-tagline">{{ saas_config.slogan }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                    <!-- Form header -->
+                    <div class="lp-form-header lp-reveal lp-reveal-d2">
+                        <div class="lp-welcome-badge">
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="hsl(142,71%,55%)">
+                                <circle cx="5" cy="5" r="5"/>
+                            </svg>
+                            Secure session
+                        </div>
+                        <h2 class="lp-form-title">Sign in to continue</h2>
+                        <p class="lp-form-sub">Use your agency credentials. Need help? Contact your administrator.</p>
+                    </div>
+
+                    <!-- Error alert -->
+                    {% if error %}
+                    <div class="lp-alert lp-reveal lp-reveal-d2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        <span>{{ error }}</span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Sign-in form -->
+                    <form method="post" action="{% url 'login' %}" class="lp-form lp-reveal lp-reveal-d3">
+                        {% csrf_token %}
+                        {% if request.GET.next %}<input type="hidden" name="next" value="{{ request.GET.next }}">{% endif %}
+
+                        <!-- Username -->
+                        <div class="lp-field">
+                            <label class="lp-label" for="username">Username</label>
+                            <div class="lp-input-wrap">
+                                <span class="lp-input-icon">
+                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                </span>
+                                <input
+                                    class="lp-input"
+                                    type="text"
+                                    id="username"
+                                    name="username"
+                                    placeholder="Username"
+                                    autocomplete="username"
+                                    required
+                                    value="{{ request.POST.username|default:'' }}"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="lp-form-group">
+                            <label class="lp-label" for="id_password">Password</label>
+                            <div class="lp-input-wrap lp-input-wrap--pw">
+                                <span class="lp-input-icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                    </svg>
+                                </span>
+                                <input type="password" name="password" id="id_password" class="lp-input" placeholder="Password" required>
+                                <button type="button" class="lp-pw-toggle" id="pw-toggle" aria-label="Toggle password visibility">
+                                    <svg id="eye-show" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                    <svg id="eye-hide" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+                                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Submit -->
+                        <button type="submit" class="lp-btn">
+                            Continue
+                            <svg class="lp-btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                            </svg>
+                        </button>
+                    </form>
+
+                    <!-- Footer trust badges -->
+                    <div class="lp-form-footer lp-reveal lp-reveal-d6">
+                        <div class="lp-footer-trust">
+                            <div class="lp-trust-item">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                </svg>
+                                TLS in transit
+                            </div>
+                            <div class="lp-trust-item">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                                SSO-ready
+                            </div>
+                            <div class="lp-trust-item">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                                </svg>
+                                High availability
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <!-- ═══ END RIGHT PANEL ═══ -->
+
+        </div>
+    </div>
+
+    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-floating" aria-label="Toggle light or dark theme">
+        <svg class="icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="5" />
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        </svg>
+        <svg class="icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+    </button>
+
+    <script src="{% static 'js/app.js' %}"></script>
+    <script>
+        (function () {
+            const pwInput = document.getElementById('id_password');
+            const pwToggle = document.getElementById('pw-toggle');
+            const eyeShow = document.getElementById('eye-show');
+            const eyeHide = document.getElementById('eye-hide');
+            if (pwToggle && pwInput && eyeShow && eyeHide) {
+                pwToggle.addEventListener('click', function () {
+                    const isHidden = pwInput.type === 'password';
+                    pwInput.type = isHidden ? 'text' : 'password';
+                    eyeShow.style.display = isHidden ? 'none' : '';
+                    eyeHide.style.display = isHidden ? '' : 'none';
+                });
+            }
+            document.addEventListener('DOMContentLoaded', function () {
+                const user = document.getElementById('username');
+                const pw = document.getElementById('id_password');
+                if (user && pw) {
+                    if (!user.value) user.focus();
+                    else pw.focus();
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>

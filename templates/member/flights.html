@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+{% load currency_tags %}
+{% block title %}Flights{% endblock %}
+{% block content %}
+<div class="page-flights">
+    <header class="hotels-hero hotels-reveal" style="--d:0ms">
+        <div class="hotels-hero__copy">
+            <p class="hotels-eyebrow">Inventory</p>
+            <h1 class="page-title hotels-hero__title">Flights</h1>
+            <p class="page-subtitle hotels-hero__sub">Manage schedules, fares, and seat inventory for your Umrah &amp; Hajj programs.</p>
+        </div>
+        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms">
+            <button type="button" class="btn btn-primary hotels-cta-btn" onclick="openFlightAddModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Add flight
+            </button>
+        </div>
+    </header>
+
+    <div class="hotels-stat-grid">
+        <div class="hotels-stat-card hotels-reveal" style="--d:80ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <path d="M22 2 11 13" />
+                    <path d="M22 2 15 22 11 13 2 9 22 2z" />
+                </svg>
+            </div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">Total flights</span>
+                <span class="hotels-stat-card__value">{{ flight_stats.total }}</span>
+            </div>
+        </div>
+        <div class="hotels-stat-card hotels-stat-card--accent hotels-reveal" style="--d:120ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                </svg>
+            </div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">Scheduled</span>
+                <span class="hotels-stat-card__value">{{ flight_stats.scheduled }}</span>
+            </div>
+        </div>
+        <div class="hotels-stat-card hotels-reveal" style="--d:160ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <line x1="12" y1="1" x2="12" y2="23" />
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+            </div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">Avg. sale fare (PKR)</span>
+                <span class="hotels-stat-card__value">{% if flight_stats.avg_sale %}{{ flight_stats.avg_sale|pkr }}{% else %}—{% endif %}</span>
+            </div>
+        </div>
+    </div>
+
+    <section class="card hotels-panel hotels-reveal" style="--d:200ms">
+        <div class="hotels-panel__head">
+            <div>
+                <h2 class="hotels-panel__title">Schedule</h2>
+                <p class="hotels-panel__hint text-muted text-sm">Search by airline, flight number, cities, or PNR. Updates as you type.</p>
+            </div>
+        </div>
+        <div class="card-content hotels-panel__body">
+            <div class="toolbar hotels-toolbar">
+                <div class="search-bar hotels-search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input type="search"
+                        name="q"
+                        placeholder="Search flights…"
+                        value="{{ search_q }}"
+                        autocomplete="off"
+                        aria-label="Search flights"
+                        hx-get="{% url 'member-flights' %}"
+                        hx-trigger="keyup changed delay:350ms, search"
+                        hx-target="#flight-table"
+                        hx-push-url="false">
+                </div>
+                <span id="flight-count-display" class="text-sm text-muted hotels-toolbar-count">{{ flights|length }} flight{{ flights|length|pluralize }}</span>
+            </div>
+
+            <div class="table-wrapper hotels-table-wrap" id="flight-table">
+                {% include "member/partials/flights_table.html" %}
+            </div>
+        </div>
+    </section>
+</div>
+
+<div id="modal-add-flight" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-add-flight-title" aria-describedby="modal-add-flight-desc">
+    <div class="modal-box hotels-modal">
+        <div class="modal-header hotels-modal__header">
+            <div>
+                <span id="modal-add-flight-title" class="modal-title">Add flight</span>
+                <p id="modal-add-flight-desc" class="hotels-modal-sub">Create a flight record with routing and PKR pricing for packages and vouchers.</p>
+            </div>
+            <button type="button" class="modal-close" onclick="closeModal('modal-add-flight')" aria-label="Close dialog">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+        <form id="flight-add-form" class="hotels-modal-form" method="post" action="#">
+            {% csrf_token %}
+            <div class="modal-body hotels-modal__body">
+                <div class="form-group">
+                    <label class="form-label" for="flight-airline">Airline *</label>
+                    <input id="flight-airline" class="form-input" name="airline" required maxlength="100"
+                        placeholder="Saudia" autocomplete="organization" spellcheck="false">
+                </div>
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="flight-number">Flight number <span class="text-muted">(optional)</span></label>
+                        <input id="flight-number" class="form-input tabular-nums" name="flight_number" maxlength="20"
+                            placeholder="SV456" autocomplete="off" spellcheck="false">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="flight-pnr">PNR <span class="text-muted">(optional)</span></label>
+                        <input id="flight-pnr" class="form-input tabular-nums" name="pnr_number" maxlength="20"
+                            placeholder="Booking reference" autocomplete="off" spellcheck="false">
+                    </div>
+                </div>
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="flight-dep-city">From *</label>
+                        <input id="flight-dep-city" class="form-input" name="departure_city" required maxlength="100"
+                            placeholder="Jeddah" autocomplete="address-level2" aria-label="Departure city, required">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="flight-arr-city">To *</label>
+                        <input id="flight-arr-city" class="form-input" name="arrival_city" required maxlength="100"
+                            placeholder="Islamabad" autocomplete="address-level2" aria-label="Arrival city, required">
+                    </div>
+                </div>
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label class="form-label" for="flight-sale">Sale price (PKR) *</label>
+                        <input id="flight-sale" class="form-input" name="sale_price" type="number" step="0.01" min="0"
+                            required placeholder="0.00" inputmode="decimal">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="flight-purchase">Purchase price (PKR) *</label>
+                        <input id="flight-purchase" class="form-input" name="purchase_price" type="number" step="0.01" min="0"
+                            required placeholder="0.00" inputmode="decimal">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-flight')">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="modal-flight-submit">Save flight</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modal-delete-flight" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-delete-flight-title" aria-describedby="modal-delete-flight-desc">
+    <div class="modal-box hotels-modal">
+        <div class="modal-header hotels-modal__header">
+            <div>
+                <span id="modal-delete-flight-title" class="modal-title">Delete flight?</span>
+                <p id="modal-delete-flight-desc" class="hotels-modal-sub">This removes the flight from your inventory. Links from bookings that used this flight will be removed. This cannot be undone.</p>
+            </div>
+            <button type="button" class="modal-close" onclick="cancelFlightDelete()" aria-label="Close dialog">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="cancelFlightDelete()">Cancel</button>
+            <button type="button" class="btn btn-danger" id="modal-delete-flight-confirm">Delete</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var FLIGHT_MODAL = 'modal-add-flight';
+  var pendingFlightDeleteId = null;
+
+  function flightCsrf() {
+    var el = document.querySelector('#flight-add-form input[name="csrfmiddlewaretoken"]');
+    return el ? el.value : '';
+  }
+
+  window.openFlightAddModal = function () {
+    var form = document.getElementById('flight-add-form');
+    if (!form) return;
+    form.reset();
+    delete form.dataset.flightId;
+    var title = document.getElementById('modal-add-flight-title');
+    var desc = document.getElementById('modal-add-flight-desc');
+    var submit = document.getElementById('modal-flight-submit');
+    if (title) title.textContent = 'Add flight';
+    if (desc) desc.textContent = 'Create a flight record with routing and PKR pricing for packages and vouchers.';
+    if (submit) submit.textContent = 'Save flight';
+    openModal(FLIGHT_MODAL);
+  };
+
+  window.openFlightEditModal = async function (id) {
+    var form = document.getElementById('flight-add-form');
+    if (!form || !id) return;
+    try {
+      var r = await fetch('/api/v1/flights/' + id + '/', {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' },
+      });
+      if (!r.ok) throw new Error('load');
+      var f = await r.json();
+      form.dataset.flightId = String(id);
+      form.elements.namedItem('airline').value = f.airline || '';
+      form.elements.namedItem('flight_number').value = f.flight_number != null ? String(f.flight_number) : '';
+      form.elements.namedItem('pnr_number').value = f.pnr_number != null ? String(f.pnr_number) : '';
+      form.elements.namedItem('departure_city').value = f.departure_city || '';
+      form.elements.namedItem('arrival_city').value = f.arrival_city || '';
+      form.elements.namedItem('sale_price').value = f.sale_price != null ? String(f.sale_price) : '';
+      form.elements.namedItem('purchase_price').value = f.purchase_price != null ? String(f.purchase_price) : '';
+      var title = document.getElementById('modal-add-flight-title');
+      var desc = document.getElementById('modal-add-flight-desc');
+      var submit = document.getElementById('modal-flight-submit');
+      if (title) title.textContent = 'Edit flight';
+      if (desc) desc.textContent = 'Update routing and PKR pricing.';
+      if (submit) submit.textContent = 'Update flight';
+      openModal(FLIGHT_MODAL);
+    } catch (e) {
+      if (typeof showToast === 'function') showToast('Could not load flight.', 'error');
+    }
+  };
+
+  var flightForm = document.getElementById('flight-add-form');
+  if (flightForm) {
+    flightForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var id = flightForm.dataset.flightId;
+      var fd = new FormData(flightForm);
+      var url = id ? '/api/v1/flights/' + id + '/' : '/api/v1/flights/';
+      var method = id ? 'PATCH' : 'POST';
+      var r = await fetch(url, {
+        method: method,
+        body: fd,
+        credentials: 'same-origin',
+        headers: { 'X-CSRFToken': flightCsrf() },
+      });
+      if (r.ok) {
+        closeModal(FLIGHT_MODAL);
+        location.reload();
+        return;
+      }
+      var msg = 'Save failed';
+      try {
+        var data = await r.json();
+        if (typeof data === 'object' && data !== null) {
+          if (data.detail) msg = typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail);
+          else msg = JSON.stringify(data);
+        }
+      } catch (err) { /* ignore */ }
+      if (typeof showToast === 'function') showToast(msg, 'error');
+    });
+  }
+
+  window.cancelFlightDelete = function () {
+    pendingFlightDeleteId = null;
+    closeModal('modal-delete-flight');
+  };
+
+  window.deleteFlight = function (id) {
+    if (!id) return;
+    pendingFlightDeleteId = id;
+    openModal('modal-delete-flight');
+  };
+
+  var flightDeleteConfirm = document.getElementById('modal-delete-flight-confirm');
+  if (flightDeleteConfirm) {
+    flightDeleteConfirm.addEventListener('click', async function () {
+      var id = pendingFlightDeleteId;
+      pendingFlightDeleteId = null;
+      closeModal('modal-delete-flight');
+      if (!id) return;
+      try {
+        var r = await fetch('/api/v1/flights/' + id + '/', {
+          method: 'DELETE',
+          credentials: 'same-origin',
+          headers: { 'X-CSRFToken': flightCsrf(), Accept: 'application/json' },
+        });
+        if (r.ok) {
+          location.reload();
+          return;
+        }
+        var msg = 'Delete failed';
+        try {
+          var data = await r.json();
+          if (typeof data === 'object' && data !== null && data.detail) {
+            msg = typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail);
+          }
+        } catch (err) { /* ignore */ }
+        if (typeof showToast === 'function') showToast(msg, 'error');
+      } catch (e) {
+        if (typeof showToast === 'function') showToast('Delete failed', 'error');
+      }
+    });
+  }
+})();
+</script>
+{% endblock %}

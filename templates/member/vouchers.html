@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Vouchers{% endblock %}
+{% block content %}
+<div class="page-vouchers page-hotels">
+    <header class="hotels-hero hotels-reveal" style="--d:0ms">
+        <div class="hotels-hero__copy">
+            <p class="hotels-eyebrow">Documents</p>
+            <h1 class="page-title hotels-hero__title">Vouchers</h1>
+            <p class="page-subtitle hotels-hero__sub">All issued vouchers in one place — view, print, and export as PDF for partners and clients.</p>
+        </div>
+        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms">
+            <a class="btn btn-primary hotels-cta-btn" href="{% url 'member-bookings' %}">
+                Create voucher
+            </a>
+        </div>
+    </header>
+
+    <div class="hotels-stat-grid">
+        <div class="hotels-stat-card hotels-reveal" style="--d:80ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                </svg>
+            </div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">Total vouchers</span>
+                <span class="hotels-stat-card__value">{{ voucher_stats.total }}</span>
+            </div>
+        </div>
+        <div class="hotels-stat-card hotels-stat-card--accent hotels-reveal" style="--d:120ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 6v6l4 2" />
+                </svg>
+            </div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">Pending</span>
+                <span class="hotels-stat-card__value">{{ voucher_stats.pending }}</span>
+            </div>
+        </div>
+        <div class="hotels-stat-card hotels-reveal" style="--d:160ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+            </div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">Approved</span>
+                <span class="hotels-stat-card__value">{{ voucher_stats.approved }}</span>
+            </div>
+        </div>
+    </div>
+
+    <section class="card hotels-panel hotels-reveal" style="--d:200ms">
+        <div class="hotels-panel__head">
+            <div>
+                <h2 class="hotels-panel__title">Directory</h2>
+                <p class="hotels-panel__hint text-muted text-sm">Search by voucher number, pilgrim, passport, or agent. Filter by status.</p>
+            </div>
+        </div>
+        <div class="card-content hotels-panel__body">
+            <div class="toolbar hotels-toolbar">
+                <div class="search-bar hotels-search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input type="search"
+                        name="q"
+                        placeholder="Search vouchers…"
+                        value="{{ search_q }}"
+                        autocomplete="off"
+                        aria-label="Search vouchers"
+                        hx-get="{% url 'member-vouchers' %}"
+                        hx-trigger="keyup changed delay:350ms, search"
+                        hx-target="#voucher-table"
+                        hx-push-url="false"
+                        hx-include="#voucher-status-filter">
+                </div>
+                <select id="voucher-status-filter" name="status" class="form-select" style="width:auto;min-width:180px;"
+                    hx-get="{% url 'member-vouchers' %}"
+                    hx-trigger="change"
+                    hx-target="#voucher-table"
+                    hx-push-url="false"
+                    hx-include="[name='q']">
+                    <option value="" {% if not status_filter %}selected{% endif %}>All status</option>
+                    <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+                <span id="voucher-count-display" class="text-sm text-muted hotels-toolbar-count">{{ vouchers|length }} voucher{{ vouchers|length|pluralize }}</span>
+            </div>
+
+            <div class="table-wrapper hotels-table-wrap" id="voucher-table">
+                {% include "member/partials/vouchers_table.html" %}
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
