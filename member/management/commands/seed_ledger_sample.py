@@ -179,7 +179,7 @@ class Command(BaseCommand):
 
     def _seed_bookings(self, ag, owner, add, today):
         """A year of bookings, each with its ledger sale + payment(s), plus
-        monthly rent and salaries — so every Reports chart has data."""
+        monthly rent and salaries —."""
         rng = random.Random(42)  # deterministic: same data every run
         staff = list(ag.users.filter(is_active=True).order_by("id")) or [owner]
         count = 0

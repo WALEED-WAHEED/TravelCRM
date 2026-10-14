@@ -1,11 +1,15 @@
 {% load i18n static %}
 <link rel="stylesheet" href="{% static 'vendor/flatpickr/flatpickr.min.css' %}">
 <script src="{% static 'vendor/flatpickr/flatpickr.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/datepicker.css' %}">
+{% trans "Select date" as t_sd %}{% trans "Date & time" as t_dt %}{% trans "Today" as t_td %}{% trans "Clear" as t_cl %}
+<script>window.DATEPICKER_I18N = { lang: '{{ LANGUAGE_CODE|slice:":2"|escapejs }}', date: '{{ t_sd|escapejs }}', dateTime: '{{ t_dt|escapejs }}', today: '{{ t_td|escapejs }}', clear: '{{ t_cl|escapejs }}' };</script>
 <link rel="stylesheet" href="{% static 'css/select-menu.css' %}">
 <script src="{% static 'js/select-menu.js' %}"></script>
 {% trans "Search…" as t_se %}{% trans "No match" as t_nm2 %}
 <script>window.SELECT_MENU_I18N = { search: '{{ t_se|escapejs }}', none: '{{ t_nm2|escapejs }}' };</script>
 {% if LANGUAGE_CODE == 'ar' %}<script src="{% static 'vendor/flatpickr/l10n/ar.js' %}"></script>{% endif %}
+<script src="{% static 'js/datepicker.js' %}"></script>
 {# The voucher form, laid out like the printed voucher. booking may be None (new voucher). #}
 <style>
   .vw { --vw-line: color-mix(in srgb, var(--border) 85%, transparent); }
@@ -90,46 +94,6 @@
   .vw-combo__none { padding: 12px; font-size: 0.82rem; color: var(--muted-foreground); }
   .vw-combo__none a { color: var(--primary); }
 
-  /* ── Date & time picker (flatpickr), themed to the app ── */
-  .fp-alt { cursor: pointer; padding-inline-end: 30px !important; background: no-repeat right 9px center / 15px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E"); }
-  [dir="rtl"] .fp-alt { background-position: left 9px center; }
-  .flatpickr-calendar { width: 316px; padding: 8px; font-family: inherit; border: 1px solid var(--border); border-radius: 16px; background: var(--card); box-shadow: 0 20px 48px rgba(15, 23, 42, .2); animation: fpIn .14s ease-out; }
-  @keyframes fpIn { from { opacity: 0; transform: translateY(-4px); } }
-  .flatpickr-calendar:before, .flatpickr-calendar:after { display: none; }
-  .flatpickr-months { align-items: center; padding: 4px 2px 8px; }
-  .flatpickr-months .flatpickr-month { height: 40px; color: var(--foreground); fill: var(--foreground); }
-  .flatpickr-current-month { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0; height: 40px; font-size: 0.95rem; font-weight: 700; }
-  .flatpickr-current-month .flatpickr-monthDropdown-months, .flatpickr-current-month input.cur-year { height: 32px; font-weight: 700; color: var(--foreground); background: transparent; border-radius: 8px; }
-  .flatpickr-current-month .flatpickr-monthDropdown-months { padding: 0 6px; cursor: pointer; }
-  .flatpickr-current-month .flatpickr-monthDropdown-months:hover, .flatpickr-current-month input.cur-year:hover { background: var(--muted); }
-  .flatpickr-current-month .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month { background: var(--card); color: var(--foreground); }
-  .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month { position: relative; top: 0; width: 34px; height: 34px; padding: 0; display: grid; place-items: center; border-radius: 10px; color: var(--muted-foreground); fill: var(--muted-foreground); }
-  .flatpickr-months .flatpickr-prev-month:hover, .flatpickr-months .flatpickr-next-month:hover { background: var(--muted); color: var(--foreground); }
-  .flatpickr-months .flatpickr-prev-month:hover svg, .flatpickr-months .flatpickr-next-month:hover svg { fill: var(--foreground); }
-  .flatpickr-months .flatpickr-prev-month svg, .flatpickr-months .flatpickr-next-month svg { width: 13px; height: 13px; }
-  .flatpickr-weekdays { height: 28px; }
-  span.flatpickr-weekday { font-size: 0.7rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-foreground); background: transparent; }
-  .flatpickr-days, .dayContainer { width: 300px; min-width: 300px; max-width: 300px; }
-  .flatpickr-day { max-width: 40px; height: 38px; line-height: 38px; margin: 1px 0; border: 0; border-radius: 10px; color: var(--foreground); font-weight: 500; }
-  .flatpickr-day:hover, .flatpickr-day:focus { background: var(--muted); }
-  .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay { color: var(--muted-foreground); opacity: .5; }
-  .flatpickr-day.flatpickr-disabled, .flatpickr-day.flatpickr-disabled:hover { color: var(--muted-foreground); opacity: .28; background: transparent; cursor: not-allowed; }
-  .flatpickr-day.today { background: transparent; box-shadow: inset 0 0 0 1.5px var(--primary); color: var(--primary); font-weight: 700; }
-  .flatpickr-day.today:hover { background: color-mix(in srgb, var(--primary) 10%, transparent); }
-  .flatpickr-day.selected, .flatpickr-day.selected:hover { color: #fff; background: var(--primary); box-shadow: 0 6px 14px color-mix(in srgb, var(--primary) 35%, transparent); font-weight: 700; }
-  .flatpickr-time { margin-top: 6px; border-top: 1px solid var(--border) !important; height: 50px; max-height: 50px; }
-  .flatpickr-time input, .flatpickr-time .flatpickr-am-pm { height: 50px; line-height: 50px; font-size: 1.05rem; font-weight: 700; color: var(--foreground); background: transparent; }
-  .flatpickr-time input:hover, .flatpickr-time .flatpickr-am-pm:hover, .flatpickr-time input:focus, .flatpickr-time .flatpickr-am-pm:focus { background: var(--muted); }
-  .flatpickr-time .flatpickr-time-separator { color: var(--muted-foreground); font-weight: 700; line-height: 50px; }
-  .numInputWrapper span { border: 0; opacity: 0; }
-  .numInputWrapper:hover span { opacity: 1; background: transparent; }
-  .numInputWrapper span:after { border-inline: 4px solid transparent; }
-  .numInputWrapper span.arrowUp:after { border-bottom-color: var(--muted-foreground); }
-  .numInputWrapper span.arrowDown:after { border-top-color: var(--muted-foreground); }
-  .fp-foot { display: flex; justify-content: space-between; margin-top: 6px; padding: 8px 4px 2px; border-top: 1px solid var(--border); }
-  .fp-foot button { padding: 5px 12px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
-  .fp-foot [data-fp="today"] { color: var(--primary); } .fp-foot [data-fp="clear"] { color: var(--muted-foreground); }
-  .fp-foot button:hover { background: var(--muted); }
 
   .vw-field .vs-btn { height: 38px; font-size: 0.9rem; }
   .vw-table .vs-btn { height: 34px; font-size: 0.84rem; padding-inline: 10px 8px; }
@@ -325,13 +289,6 @@
   function initSelects(root) { SelectMenu.init(root); }
 
   // ── Date & time pickers ──
-  var UR = { weekdays: { shorthand: ['اتوار', 'پیر', 'منگل', 'بدھ', 'جمعرات', 'جمعہ', 'ہفتہ'], longhand: ['اتوار', 'پیر', 'منگل', 'بدھ', 'جمعرات', 'جمعہ', 'ہفتہ'] },
-    months: { shorthand: ['جنوری', 'فروری', 'مارچ', 'اپریل', 'مئی', 'جون', 'جولائی', 'اگست', 'ستمبر', 'اکتوبر', 'نومبر', 'دسمبر'], longhand: ['جنوری', 'فروری', 'مارچ', 'اپریل', 'مئی', 'جون', 'جولائی', 'اگست', 'ستمبر', 'اکتوبر', 'نومبر', 'دسمبر'] },
-    firstDayOfWeek: 1, rangeSeparator: ' تا ', amPM: ['AM', 'PM'], rtl: true };
-  var LANG = '{{ LANGUAGE_CODE|slice:":2" }}';
-  var LOCALE = LANG === 'ur' ? UR : (flatpickr.l10ns[LANG] || Object.assign({}, flatpickr.l10ns.default, { firstDayOfWeek: 1 }));
-  var T_DATE = '{% trans "Select date" as t_sd %}{{ t_sd|escapejs }}', T_DT = '{% trans "Date & time" as t_dt %}{{ t_dt|escapejs }}';
-  var T_TODAY = '{% trans "Today" as t_td %}{{ t_td|escapejs }}', T_CLEAR = '{% trans "Clear" as t_cl %}{{ t_cl|escapejs }}';
   function linkPickers(tr) {
     [['.js-ci', '.js-co'], ['.js-dep', '.js-arr']].forEach(function (pair) {
       var a = tr.querySelector(pair[0]), b = tr.querySelector(pair[1]);
@@ -345,28 +302,7 @@
     root.querySelectorAll('.js-ci, .js-co, .js-date, .js-dep, .js-arr').forEach(function (el) {
       if (el._flatpickr) return;
       var withTime = el.matches('.js-dep, .js-arr'), width = (el.className.match(/\bw-(?:xs|sm|md|lg)\b/) || [''])[0];
-      flatpickr(el, {
-        locale: LOCALE, disableMobile: true, altInput: true, altInputClass: 'form-input fp-alt ' + width,
-        altFormat: withTime ? 'j M Y, h:i K' : 'j M Y', dateFormat: withTime ? 'Y-m-d\\TH:i' : 'Y-m-d',
-        enableTime: withTime, time_24hr: false, minuteIncrement: 5, monthSelectorType: 'dropdown',
-        prevArrow: '<svg viewBox="0 0 24 24"><path d="M15.4 5.4 14 4l-8 8 8 8 1.4-1.4L8.8 12z"/></svg>',
-        nextArrow: '<svg viewBox="0 0 24 24"><path d="M8.6 5.4 10 4l8 8-8 8-1.4-1.4 6.6-6.6z"/></svg>',
-        onReady: function (sel, str, fp) {
-          fp.altInput.placeholder = withTime ? T_DT : T_DATE;
-          var foot = document.createElement('div');
-          foot.className = 'fp-foot';
-          foot.innerHTML = '<button type="button" data-fp="today"></button><button type="button" data-fp="clear"></button>';
-          foot.querySelector('[data-fp=today]').textContent = T_TODAY;
-          foot.querySelector('[data-fp=clear]').textContent = T_CLEAR;
-          foot.addEventListener('click', function (e) {
-            var b = e.target.closest('button'); if (!b) return;
-            if (b.dataset.fp === 'clear') fp.clear();
-            else { fp.setDate(new Date(), true); fp.close(); }
-          });
-          fp.calendarContainer.appendChild(foot);
-        },
-        onChange: function () { linkPickers(el.closest('tr')); }
-      });
+      AppDatePicker.create(el, { time: withTime, altClass: width, onChange: function () { linkPickers(el.closest('tr')); } });
     });
     root.querySelectorAll('tr').forEach(linkPickers);
     if (root.tagName === 'TR') linkPickers(root);

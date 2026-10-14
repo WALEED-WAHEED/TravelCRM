@@ -63,11 +63,15 @@ class tenant_context:
     def __enter__(self):
         self._tenant_token = _current_tenant_id.set(self.agency_id)
         self._bypass_token = _platform_admin_bypass.set(self.bypass)
+        # Mirror onto the DB session so RLS also holds when the app connects
+        # as the scoped (non-owner) role; harmless for owner/superuser roles.
+        apply_db_session_context(self.bypass, self.agency_id)
         return self
 
     def __exit__(self, *exc_info):
         _current_tenant_id.reset(self._tenant_token)
         _platform_admin_bypass.reset(self._bypass_token)
+        apply_db_session_context(_platform_admin_bypass.get(), _current_tenant_id.get())
 
 
 class TenantManager(models.Manager):
@@ -132,11 +136,13 @@ def apply_db_session_context(bypass, tenant_id):
 
     if connection.vendor != "postgresql":
         return
+    if connection.in_atomic_block and connection.needs_rollback:
+        # Transaction already aborted; Postgres reverts its session settings on rollback.
+        return
     with connection.cursor() as cursor:
-        cursor.execute("SELECT set_config('app.is_platform_admin', %s, false)", ["true" if bypass else "false"])
         cursor.execute(
-            "SELECT set_config('app.current_tenant_id', %s, false)",
-            [str(tenant_id) if tenant_id is not None else ""],
+            "SELECT set_config('app.is_platform_admin', %s, false), set_config('app.current_tenant_id', %s, false)",
+            ["true" if bypass else "false", str(tenant_id) if tenant_id is not None else ""],
         )
 
 

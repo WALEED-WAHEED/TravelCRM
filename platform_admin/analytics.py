@@ -22,7 +22,7 @@ def agency_growth(months=6):
     )
     by_month = {(m['month'].year, m['month'].month): m['count'] for m in qs if m['month']}
 
-    from reports.services import _last_n_months_labels
+    from member.summaries import _last_n_months_labels
     labels, values = [], []
     for year, month in _last_n_months_labels(months):
         labels.append(f"{year:04d}-{month:02d}")

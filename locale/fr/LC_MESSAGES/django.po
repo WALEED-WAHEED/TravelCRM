@@ -64,9 +64,6 @@ msgstr "Comptes fournisseurs"
 msgid "Profile"
 msgstr "Profil"
 
-msgid "Reports"
-msgstr "Rapports"
-
 msgid "Return to Super Admin"
 msgstr "Retour au super administrateur"
 

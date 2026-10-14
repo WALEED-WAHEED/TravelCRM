@@ -6,9 +6,9 @@ import openpyxl
 import pytest
 from django.utils import timezone
 
+from member import analytics
 from member import inventory_insights as ii
 from member.models import Booking, BookingFlight, BookingHotel, BookingTransport, Flight, Hotel, Package, Transport
-from reports import analytics
 from utils.tenancy import tenant_context
 
 

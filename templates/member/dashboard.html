@@ -88,8 +88,6 @@
     .panel__link { flex: none; font-size: 0.8rem; font-weight: 600; color: var(--primary); text-decoration: none; white-space: nowrap; }
     .panel__link:hover { text-decoration: underline; }
     .panel__body { padding: 10px 18px 16px; flex: 1; }
-    .dash-sec-link { margin-inline-start: 10px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--primary); text-decoration: none; }
-    .dash-sec-link:hover { text-decoration: underline; }
     .flow-dot { flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-weight: 800; }
     .text-success { color: var(--success); }
     .text-out { color: #eb6834; }
@@ -325,8 +323,8 @@
     {% endif %}
 
     {% if k %}
-    {# ── Today at a glance (week / month / year are in Reports) ── #}
-    <p class="dash-sec-label">{% trans "Today" %} <a class="dash-sec-link" href="{% url 'reports-home' %}">{% trans "Week, month & year in Reports" %} ›</a></p>
+    {# ── Today at a glance ── #}
+    <p class="dash-sec-label">{% trans "Today" %}</p>
     {% trans "in" as t_in %}{% trans "out" as t_out %}
     <div class="dash-kpis">
         <div class="dash-kpi">
@@ -392,7 +390,6 @@
         <a class="qa" href="{% url 'member-approvals' %}">{% if pending_vouchers %}<span class="qa__badge">{{ pending_vouchers }}</span>{% endif %}<span class="qa__icon tone-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>{% trans "Approvals" %}</a>
         <a class="qa" href="{% url 'member-contacts' %}"><span class="qa__icon tone-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></span>{% trans "Contacts" %}</a>
         <a class="qa" href="{% url 'member-attendance' %}"><span class="qa__icon tone-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>{% trans "Attendance" %}</a>
-        <a class="qa" href="{% url 'reports-home' %}"><span class="qa__icon tone-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>{% trans "Reports" %}</a>
     </div>
 
     {# ── Today's activity + what needs attention ── #}

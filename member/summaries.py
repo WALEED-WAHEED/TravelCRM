@@ -1,5 +1,5 @@
 """
-Aggregation functions behind the Reports pages — no new models, this is
+Aggregation functions behind the assistant and platform analytics — no new models, this is
 read-only analysis of data that already exists (BookingPayment,
 LedgerEntry, Booking, Installment, SupplierPayment). Every function takes
 an `agency` and queries through the default (tenant-scoped) manager, so

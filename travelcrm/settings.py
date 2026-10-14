@@ -73,7 +73,6 @@ INSTALLED_APPS = [
     "notifications",
     "billing",
     "payments",
-    "reports",
     "assistant",
 ]
 

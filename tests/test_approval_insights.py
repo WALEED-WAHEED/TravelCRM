@@ -6,9 +6,9 @@ import pytest
 from django.test import Client
 from django.utils import timezone
 
+from member import analytics
 from member import approval_insights as ai
 from member.models import Booking, BookingHotel, BookingMutamer
-from reports import analytics
 from utils.tenancy import tenant_context
 
 

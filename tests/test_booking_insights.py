@@ -4,9 +4,9 @@ import io
 import openpyxl
 from django.http import QueryDict
 
+from member import analytics
 from member import booking_insights as bi
 from member.models import Booking, BookingHotel
-from reports import analytics
 from utils.tenancy import tenant_context
 
 

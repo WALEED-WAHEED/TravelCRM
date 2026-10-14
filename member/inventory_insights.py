@@ -4,7 +4,7 @@ Every page answers the same two questions: what was used / sold in the chosen pe
 and what in the catalogue is not being used. A page is described declaratively — key numbers, then sections of chart
 and table cards — so one template and one Excel export serve all four.
 
-Period handling (presets, automatic grouping, previous-period comparison) is shared with Reports.
+Period handling (presets, automatic grouping, previous-period comparison).
 """
 import datetime
 from collections import defaultdict
@@ -12,7 +12,7 @@ from collections import defaultdict
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from reports import analytics
+from member import analytics
 
 from .booking_insights import visible_vouchers
 from .models import BookingFlight, BookingHotel, BookingTransport, Flight, Hotel, Package, Transport
@@ -608,7 +608,7 @@ def build_xlsx(agency, period, data, rtl=False):
 
     from openpyxl import Workbook
 
-    from reports.export import BOLD, TITLE_FONT, _autosize, _header, _rows, _sheet
+    from member.xlsx import BOLD, TITLE_FONT, _autosize, _header, _rows, _sheet
 
     wb = Workbook()
     wb.remove(wb.active)

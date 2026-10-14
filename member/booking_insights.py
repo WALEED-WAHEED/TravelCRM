@@ -5,7 +5,7 @@ travellers, hotels, room types and meals, flights, transport, staff and status. 
 
 All numbers are for the vouchers created in the chosen period (totals, trends, mix, packages, hotels, staff).
 
-Period handling (presets, automatic day/week/month grouping, previous period) is shared with Reports.
+Period handling (presets, automatic day/week/month grouping, previous period).
 """
 from collections import defaultdict
 
@@ -13,7 +13,7 @@ from django.db.models import Max, Min
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from reports import analytics
+from member import analytics
 
 from .models import Booking, BookingFlight, BookingHotel, BookingMutamer, BookingTransport
 
@@ -222,7 +222,7 @@ def build_xlsx(agency, period, f, data, rtl=False):
 
     from openpyxl import Workbook
 
-    from reports.export import BOLD, TITLE_FONT, _autosize, _header, _rows, _sheet
+    from member.xlsx import BOLD, TITLE_FONT, _autosize, _header, _rows, _sheet
 
     k, c, t = data["kpis"], data["charts"], data["full"]
     wb = Workbook()

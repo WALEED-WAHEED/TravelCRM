@@ -64,9 +64,6 @@ msgstr "देय राशि"
 msgid "Profile"
 msgstr "प्रोफ़ाइल"
 
-msgid "Reports"
-msgstr "रिपोर्ट"
-
 msgid "Return to Super Admin"
 msgstr "सुपर एडमिन पर वापस जाएं"
 

@@ -137,9 +137,9 @@ def _role_redirect(user):
 def dashboard(request):
     """Quick daily overview: this month's numbers, what needs attention today,
     shortcuts, and an AI box that hands off to the full assistant page.
-    Money figures come from the same helpers as Reports so the two always agree."""
+    Money figures come from the shared analytics helpers."""
     from billing.usage import get_subscription
-    from reports import analytics
+    from member import analytics
 
     agency = request.user.agency
     today = timezone.localdate()
@@ -152,7 +152,7 @@ def dashboard(request):
     if not agency:
         return render(request, "member/dashboard.html", ctx)
 
-    # --- Today vs yesterday (week / month / year live in Reports) -----------
+    # --- Today vs yesterday ------------------------------------------------
     yesterday = today - datetime.timedelta(days=1)
     k = analytics.kpis(agency, today, today)
     kp = analytics.kpis(agency, yesterday, yesterday)
@@ -168,7 +168,7 @@ def dashboard(request):
     balances = ledger_helpers.party_balances(agency, date_to=today)
     ctx["receivable_total"] = sum((r["balance"] for r in balances if r["balance"] > 0), Decimal("0"))
     ctx["receivable_count"] = sum(1 for r in balances if r["balance"] > 0)
-    # Same ledger figure as Reports -> Balances ("You owe parties": Cr balances).
+    # "You owe parties": Cr balances, same figure as the Ledger page.
     ctx["payable_total"] = sum((-r["balance"] for r in balances if r["balance"] < 0), Decimal("0"))
     ctx["payable_count"] = sum(1 for r in balances if r["balance"] < 0)
 
@@ -228,7 +228,7 @@ def dashboard(request):
                         .annotate(starts=Min("hotels__check_in"))
                         .filter(starts__gte=today, starts__lte=week_end).count())
     subscription = get_subscription(agency)
-    balances_url = reverse("reports-home") + "?open=balances"
+    balances_url = reverse("member-ledger")
     attention = []
     if pending_vouchers:
         attention.append({"tone": "warning", "count": pending_vouchers, "href": reverse("member-approvals"),
@@ -289,7 +289,7 @@ def dashboard(request):
 @member_required
 def booking_insights(request):
     """Every booking statistic and chart, with its own filters and Excel / PDF download."""
-    from reports import analytics
+    from member import analytics
 
     from . import booking_insights as bi
 
@@ -1420,7 +1420,7 @@ INVENTORY_INSIGHTS = {
 @member_required
 def inventory_insights(request, kind):
     """Insights for Hotels, Flights, Transports or Packages — own date range, Excel and PDF download."""
-    from reports import analytics
+    from member import analytics
 
     from . import inventory_insights as ii
 
@@ -1447,7 +1447,7 @@ def inventory_insights(request, kind):
 @member_required
 def approval_insights(request):
     """How vouchers agents submit move through approval, with its own date range and Excel / PDF download."""
-    from reports import analytics
+    from member import analytics
 
     from . import approval_insights as ai
 
@@ -1525,7 +1525,7 @@ def _ledger_dashboard_stats(agency):
 def _ledger_results_context(request, agency):
     f = ledger_helpers.read_filters(request.GET)
     ctx = {"f": f}
-    qs = ledger_helpers.filtered_entries(agency, f)
+    qs = ledger_helpers.filtered_entries(agency, f).select_related("created_by", "booking")
     ctx["totals"] = ledger_helpers.debit_credit_totals(qs)
     # A running balance only makes sense for one party's complete statement:
     # narrowing by type or search would make the carried balance wrong.
@@ -1958,7 +1958,7 @@ def profile_update_branding(request):
     branding.shirka_company_whatsapp = shirka_whatsapp
     branding.save()
 
-    # Keep core Agency record aligned for reports / legacy lookups
+    # Keep core Agency record aligned for legacy lookups
     agency.name = company_name or agency.name
     if phone:
         agency.phone = phone

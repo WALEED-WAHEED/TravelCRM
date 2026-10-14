@@ -64,9 +64,6 @@ msgstr "Verbindlichkeiten"
 msgid "Profile"
 msgstr "Profil"
 
-msgid "Reports"
-msgstr "Berichte"
-
 msgid "Return to Super Admin"
 msgstr "Zurück zum Super-Administrator"
 

@@ -47,7 +47,14 @@
             data-desc="{{ e.description }}"
             data-type-label="{{ e.get_transaction_type_display }}"
             data-method-label="{{ e.get_payment_method_display }}"
-            data-currency="{{ e.currency }}">
+            data-currency="{{ e.currency }}"
+            data-account="{% if e.bucket == 'company_expense' %}{% trans 'Company expense' %}{% else %}{% trans 'Party accounts' %}{% endif %}"
+            data-created-by="{% if e.created_by %}{{ e.created_by.full_name|default:e.created_by.username }}{% endif %}"
+            data-created="{{ e.created_at|date:'d M Y, H:i' }}"
+            data-updated="{{ e.updated_at|date:'d M Y, H:i' }}"
+            data-booking-no="{% if e.booking %}{{ e.booking.voucher_number }}{% endif %}"
+            data-booking-url="{% if e.booking %}{% url 'member-booking-detail' e.booking.id %}{% endif %}"
+            data-running="{% if show_running %}{{ e.running }}{% endif %}">
             <td class="text-muted text-sm ledger-nowrap">{{ e.transaction_date|date:"d M Y" }}</td>
             <td>
                 <span class="ledger-code ledger-code--{{ e.direction }}" title="{{ e.get_transaction_type_display }}">{{ e.type_code }}</span>

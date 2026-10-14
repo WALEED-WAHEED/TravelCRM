@@ -9,7 +9,7 @@ from decimal import Decimal
 
 from django.utils import formats, timezone
 
-from reports import analytics
+from member import analytics
 
 from .models import Booking, LedgerEntry
 

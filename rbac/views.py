@@ -218,7 +218,7 @@ def role_detail(request, role_id):
     })
 
 
-@permission_required('reports', 'view')
+@permission_required('activity_log', 'view')
 def activity_log(request):
     """Every create / edit / delete in the agency, recorded automatically by utils/audit.py."""
     if (guard := _require_agency(request)) is not None:

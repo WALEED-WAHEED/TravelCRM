@@ -41,7 +41,6 @@ urlpatterns = [
     path('member/notifications/', include('notifications.urls')),
     path('', include('billing.urls')),
     path('', include('payments.urls')),
-    path('', include('reports.urls')),
     path('', include('assistant.urls')),
 
     # === REST API (JWT — for external/API use) ===

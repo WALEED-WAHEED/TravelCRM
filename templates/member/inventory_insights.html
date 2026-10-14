@@ -4,7 +4,7 @@
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  /* Same validated chart palette as Reports. */
+  /* Validated chart palette. */
   .viz-root { --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500; }
   html[data-theme="light"] .viz-root { --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100; }
   .page-bi [hidden] { display: none !important; }
@@ -87,7 +87,7 @@
   .bi-due { color: var(--destructive); font-weight: 600; }
   .bi-noresult { padding: 22px; text-align: center; font-size: 0.85rem; color: var(--muted-foreground); }
 
-  /* Download menu (same as Reports) */
+  /* Download menu */
   .dl-menu { position: relative; }
   .dl-menu > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
   .dl-menu > summary::-webkit-details-marker { display: none; }

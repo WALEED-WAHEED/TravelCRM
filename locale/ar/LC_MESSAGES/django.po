@@ -2448,9 +2448,6 @@ msgstr "إزالة الصف"
 msgid "Remove this installment?"
 msgstr "إزالة هذا القسط؟"
 
-msgid "Reports"
-msgstr "التقارير"
-
 msgid "Required to delete"
 msgstr "مطلوب للحذف"
 
@@ -3746,9 +3743,6 @@ msgstr "'%(agency)s' الآن على خطة %(plan)s (%(status)s)."
 msgid "'%(username)s' added to your team as %(role)s."
 msgstr "تمت إضافة '%(username)s' إلى فريقك بصفة %(role)s."
 
-msgid "+ Add Trans.#, Inv/Ref or bank reference (optional)"
-msgstr "+ أضف رقم المعاملة أو الفاتورة/المرجع أو المرجع البنكي (اختياري)"
-
 msgid "+ Add a note"
 msgstr "+ أضف ملاحظة"
 
@@ -3929,9 +3923,6 @@ msgstr "كل المستأجرين"
 
 msgid "All time"
 msgstr "كل الأوقات"
-
-msgid "Amount in SAR or another currency?"
-msgstr "المبلغ بالريال أو بعملة أخرى؟"
 
 msgid "Amount must be positive"
 msgstr "يجب أن يكون المبلغ موجبًا"
@@ -4217,10 +4208,6 @@ msgstr ""
 "اضغط على اسم الطرف لرؤية رصيده الجاري، ثم اطبع الكشف للحصول على نفس تنسيق "
 "دفتر الحساب المطبوع — جاهز للحفظ كـ PDF أو المشاركة عبر WhatsApp."
 
-msgid ""
-"Click a party name to see their running balance, then print their statement."
-msgstr "اضغط على اسم الطرف لرؤية رصيده الجاري، ثم اطبع كشف حسابه."
-
 msgid "Click again to delete"
 msgstr "اضغط مرة أخرى للحذف"
 
@@ -4469,9 +4456,6 @@ msgstr "ينتهي في (فارغ = غير محدد)"
 
 msgid "Enter a valid amount."
 msgstr "أدخل مبلغًا صالحًا."
-
-msgid "Enter amount directly in Rs."
-msgstr "أدخل المبلغ مباشرة بالروبية"
 
 msgid "Enter an amount, or a foreign amount and rate."
 msgstr "أدخل مبلغًا، أو مبلغًا بعملة أجنبية وسعر الصرف."
@@ -6923,9 +6907,6 @@ msgstr "معاملات اليوم"
 msgid "Trips starting today"
 msgstr "رحلات تبدأ اليوم"
 
-msgid "Week, month & year in Reports"
-msgstr "الأسبوع والشهر والسنة في التقارير"
-
 msgid "as of now"
 msgstr "حتى الآن"
 
@@ -7148,9 +7129,6 @@ msgstr "أرصدة الأطراف"
 
 msgid "Previous period"
 msgstr "الفترة السابقة"
-
-msgid "Report"
-msgstr "تقرير"
 
 msgid "Sales by staff"
 msgstr "المبيعات حسب الموظف"
@@ -9190,3 +9168,63 @@ msgstr "كيف سُجّل الحضور"
 
 msgid "Self check-in, manual entry, automatic and corrected."
 msgstr "تسجيل ذاتي ويدوي وتلقائي ومصحح."
+
+msgid "Fill in the foreign amount and rate to calculate the rupee amount."
+msgstr "أدخل المبلغ الأجنبي وسعر الصرف لاحتساب مبلغ الروبية."
+
+msgid "Calculated from the foreign amount × rate"
+msgstr "محسوب من المبلغ الأجنبي × السعر"
+
+msgid "Who & when"
+msgstr "من ومتى"
+
+msgid "Amount in"
+msgstr "المبلغ بعملة"
+
+msgid "Rupees (Rs.)"
+msgstr "الروبية (Rs.)"
+
+msgid ""
+"Enter the foreign amount and the rate. The rupee amount below is calculated "
+"for you."
+msgstr ""
+"أدخل المبلغ الأجنبي وسعر الصرف. يتم احتساب مبلغ الروبية أدناه تلقائيًا."
+
+msgid "Download ledger"
+msgstr "تنزيل دفتر الأستاذ"
+
+msgid "Choose what to include, then pick a format."
+msgstr "اختر ما تريد تضمينه، ثم اختر الصيغة."
+
+msgid "Include"
+msgstr "تضمين"
+
+msgid "Only entries matching my current search"
+msgstr "الإدخالات المطابقة لبحثي الحالي فقط"
+
+msgid "The statement uses the period and party only."
+msgstr "يستخدم الكشف الفترة والطرف فقط."
+
+msgid "Click a party name to see only their entries."
+msgstr "انقر على اسم الطرف لعرض إدخالاته فقط."
+
+msgid "References (optional)"
+msgstr "المراجع (اختياري)"
+
+msgid "Party balance now"
+msgstr "رصيد الطرف الآن"
+
+msgid "Balance after this entry"
+msgstr "الرصيد بعد هذا الإدخال"
+
+msgid "In rupees"
+msgstr "بالروبية"
+
+msgid "Linked voucher"
+msgstr "القسيمة المرتبطة"
+
+msgid "Created on"
+msgstr "تاريخ الإنشاء"
+
+msgid "Last updated"
+msgstr "آخر تحديث"

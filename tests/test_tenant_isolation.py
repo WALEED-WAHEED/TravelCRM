@@ -205,3 +205,34 @@ def test_rls_blocks_cross_tenant_ledger_entries(agency_a, agency_b, booking_a, b
     cur.execute("SELECT amount FROM member_ledgerentry")
     amounts = [row[0] for row in cur.fetchall()]
     assert amounts == [500]
+
+
+# ---------------------------------------------------------------------------
+# tenant_context mirrors onto the DB session (needed when the app runs as the
+# scoped role, where RLS - not just the ORM - decides which rows are visible)
+# ---------------------------------------------------------------------------
+
+
+def _guc():
+    from django.db import connection
+
+    with connection.cursor() as cur:
+        cur.execute("SELECT current_setting('app.current_tenant_id', true), current_setting('app.is_platform_admin', true)")
+        return cur.fetchone()
+
+
+def test_tenant_context_sets_and_restores_db_session(agency_a, agency_b):
+    from utils.tenancy import tenant_context
+
+    before = _guc()
+    with tenant_context(agency_id=agency_a.id):
+        assert _guc() == (str(agency_a.id), "false")
+        with tenant_context(agency_id=agency_b.id):
+            assert _guc() == (str(agency_b.id), "false")
+        assert _guc() == (str(agency_a.id), "false")
+        with tenant_context(bypass=True):
+            assert _guc() == ("", "true")
+        assert _guc() == (str(agency_a.id), "false")
+    after = _guc()
+    assert after[1] == "false"
+    assert after[0] in ("", None, before[0])

@@ -16,9 +16,9 @@ from decimal import Decimal, InvalidOperation
 from django.shortcuts import get_object_or_404
 
 from member.models import Booking, BookingPayment, Contact
+from member.summaries import bookings_by_status, installments_due, ledger_summary, revenue_over_time
 from payments.models import Installment, PaymentPlan, SupplierPayment
 from payments.payables import get_supplier_payables
-from reports.services import bookings_by_status, installments_due, ledger_summary, revenue_over_time
 
 from .llm import ToolSpec
 

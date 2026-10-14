@@ -21,3 +21,4 @@
 .vs-opt.is-selected::after { content: "✓"; font-weight: 800; }
 .vs-opt.is-empty { color: var(--muted-foreground); }
 .vs-none { padding: 12px; font-size: 0.82rem; color: var(--muted-foreground); }
+.vs-opt__sub { flex: none; font-size: 0.76rem; color: var(--muted-foreground); }

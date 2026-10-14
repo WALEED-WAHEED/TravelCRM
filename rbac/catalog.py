@@ -24,7 +24,7 @@ CAPABILITIES = [
     ("contacts", gettext_lazy("Contacts")),
     ("ledger", gettext_lazy("Ledger / accounting")),
     ("attendance", gettext_lazy("Attendance")),
-    ("reports", gettext_lazy("Reports")),
+    ("activity_log", gettext_lazy("Activity Log")),
     ("team", gettext_lazy("Team & roles")),
     ("agency_settings", gettext_lazy("Agency settings")),
 ]
@@ -43,7 +43,7 @@ TEMPLATES = {
     "Manager": {
         **{cap: {"view", "manage"} for cap in [
             "bookings", "vouchers", "hotels", "flights",
-            "transports", "contacts", "ledger", "attendance", "reports",
+            "transports", "contacts", "ledger", "attendance", "activity_log",
         ]},
         "team": {"view"},
         "agency_settings": set(),
@@ -51,7 +51,7 @@ TEMPLATES = {
     "Agent": {
         **{cap: {"view", "manage"} for cap in ["bookings", "vouchers"]},
         **{cap: {"view"} for cap in ["hotels", "flights", "transports", "contacts", "attendance"]},
-        "ledger": set(), "reports": set(), "team": set(), "agency_settings": set(),
+        "ledger": set(), "activity_log": set(), "team": set(), "agency_settings": set(),
     },
     "Read-only": _ALL_VIEW,
 }

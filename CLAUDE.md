@@ -48,8 +48,12 @@ Python 3.12 in `.venv/`. UI in English, Urdu and Arabic (RTL).
   when data can grow; paginate lists; never load whole tables into memory for display.
 - **Migrations** must be reversible where practical; data migrations use `apps.get_model` + `_base_manager`.
 - Known state (audit 2026-10-14): 66 tables, every FK indexed, 28 tables with RLS. RLS is **inert for the
-  role the app runs as** (`postgres` in dev; in Docker the app user owns the tables and `FORCE RLS` is off), so
+  role the app runs as** (`postgres` superuser in dev `.env`; a table owner in the production example), so
   isolation in the running app relies on `TenantManager`; only the `scoped` test connection proves RLS.
+  To get real RLS at runtime run the app as the non-owner `travelcrm_app` role (set `DB_USER`/`DB_PASSWORD` to the
+  `SCOPED_DB_*` values) and run `migrate` with the owner: `DB_USER=postgres DB_PASSWORD=… manage.py migrate`.
+  Verified 2026-10-14: every member page returns 200 as `travelcrm_app`. `tenant_context()` mirrors tenant/bypass
+  onto the DB session GUCs (and restores them on exit), so commands/tasks work under that role too.
   Unused legacy tables: `member_hotelroom`, `member_hotelimage`, `member_flightsegment`,
   `member_bookingteamcontact` (0 rows). `member_voucher`/`member_voucherservice` belong to the **old** agent
   voucher flow (see §6) — do not build new features on them.
@@ -60,18 +64,18 @@ Python 3.12 in `.venv/`. UI in English, Urdu and Arabic (RTL).
 - Prefer extending an existing module over adding a file. Before creating a file/dir, check whether it belongs
   in an existing one. No dead code, duplicate helpers, commented-out blocks, stray scripts or temp files in the
   repo (scratch work goes in the session scratchpad). Remove what you replace.
-- Don't add dependencies without need; check `requirements.txt` first (note: `pandas` is pinned but unused).
-- **Git**: much of the project is currently *untracked* (tests/, rbac/, billing/, payments/, many migrations,
-  utils/tenancy.py …). Don't assume `git status` reflects reality; don't commit unless asked.
+- Don't add dependencies without need; check `requirements.txt` first.
+- **Git**: the project is pushed to `github.com/WALEED-WAHEED/TravelCRM` (`master`). Don't commit or push unless
+  asked; keep `.claude/settings.json` (machine-specific paths) out of commits.
 
 ## 5. UI: responsive, consistent, accessible
 
 - Every page, table, form, modal and drawer must work at **≥1280px, ~768px and ~390px**. No page may scroll
   sideways; wide tables scroll inside their own `overflow-x:auto` wrapper. Use relative units, `minmax(0,1fr)`
   grids and `min-width:0` on flex/grid children. Test in a real browser at phone width before reporting done.
-- **Known defect (audit 2026-10-14):** the app shell has no mobile breakpoint — `.sidebar` stays fixed open
-  and `.main-content` keeps `margin-inline-start: var(--sidebar-width)` with `min-width:auto`, so nearly every
-  page scrolls sideways at 390px and most at 768px. Fix this before claiming any page is responsive.
+- The shell is responsive: below 1023px the sidebar is an off-canvas menu (`initSidebar()` in `app.js`,
+  `.sidebar.mobile-open` + backdrop) and `.main-content` has `min-width:0`. Verified 2026-10-14 with no sideways
+  page scroll on 17 pages at 390px and 768px — keep it that way.
 - Reuse the existing components instead of inventing new ones:
   - Page header: `hotels-hero` (eyebrow + title, **no subtitle line**), actions in `hotels-hero__actions` with a gap.
   - Stat cards: `hotels-stat-grid` / `hotels-stat-card`; tables: `hotels-data-table` inside a scroll wrapper.
@@ -82,6 +86,8 @@ Python 3.12 in `.venv/`. UI in English, Urdu and Arabic (RTL).
   - Dropdowns: `SelectMenu.init(root)` (`static/js/select-menu.js`); dates: vendored flatpickr.
   - Insights pages: `member/inventory_insights.py` (declarative KPIs/sections) + `templates/member/inventory_insights.html`;
     voucher/approval insights have their own modules. Charts via Chart.js 4.4.0.
+    Shared period/KPI helpers live in `member/analytics.py` (xlsx styling: `member/xlsx.py`). There is no standalone
+    Reports page — each section has its own insights; the `activity_log` capability guards the Activity Log.
 - RTL: use logical properties (`inset-inline-*`, `margin-inline-*`), test `dir="rtl"`.
 
 ## 6. Domain map & invariants
@@ -90,7 +96,7 @@ Python 3.12 in `.venv/`. UI in English, Urdu and Arabic (RTL).
   new focused modules like `note_views.py`, `instruction_views.py`, `*_insights.py`), `agent/` (agent portal,
   reuses member views/forms), `agencies/` (Agency = tenant), `accounts/` (custom `User`: `role`, `agency`,
   `custom_role`), `rbac/` (`engine.has_capability(user, cap, 'view'|'manage')` = single authz source; Activity Log),
-  `system_config/` (branding, AuditLog …), `billing/`, `payments/`, `notifications/`, `reports/`,
+  `system_config/` (branding, AuditLog …), `billing/`, `payments/`, `notifications/`,
   `platform_admin/`, `assistant/` (Gemini chat; write tools only create a PendingAction), `utils/`.
 - **Tenant isolation**: context from `utils.middleware.TenantMiddleware` (session) / `utils.api.TenantScopedAPIMixin`
   (JWT DRF — must be mixed in). Outside requests: `with tenant_context(agency_id=…)` / `tenant_context(bypass=True)`.
@@ -112,8 +118,8 @@ Python 3.12 in `.venv/`. UI in English, Urdu and Arabic (RTL).
 - Keep the request path fast. Slow or external work (email, notifications, exports of large data, LLM calls,
   PDF rendering) should run in Celery or be bounded with explicit timeouts and user-visible loading/error states.
 - Current state (audit 2026-10-14): only one Celery task exists (`notifications.send_notification_task`, falls
-  back to inline). **Blocking in-request work**: Gemini calls (`assistant/engine.run_turn`, up to 5 tool rounds,
-  no explicit HTTP timeout), Chrome PDF (`subprocess`, 60s timeout), Excel exports. Don't add more without a reason.
+  back to inline). **Blocking in-request work**: Gemini calls (`assistant/engine.run_turn`, up to 5 tool rounds;
+  bounded by `GEMINI_TIMEOUT_MS`, default 30s, errors become `AssistantProviderError`), Chrome PDF (`subprocess`, 60s timeout), Excel exports. Don't add more without a reason.
 - Frontend: debounce search inputs (HTMX `keyup changed delay:350ms`), disable submit buttons after the submit
   starts (use `setTimeout` — disabling inside the click handler cancels the submit in Chrome), avoid duplicate
   requests, never poll the server without need (current `setInterval`s are client-only clocks).
@@ -125,7 +131,7 @@ Python 3.12 in `.venv/`. UI in English, Urdu and Arabic (RTL).
   CPU, email sending. Never trade correctness, security or tenant isolation for fewer calls.
 - Baseline (audit): ~9 queries of per-request overhead (session, user, 2×`set_config`, subscription, role,
   agency, SaaS config, announcements, branding) — candidates for caching. Pages are 13–40 queries.
-  Known N+1: `/member/attendance/` (attendance logs + roles per staff member), Package insights (`agent` per voucher).
+  The attendance and package-insights N+1s were fixed (2026-10-14).
 - No caching backend is configured (`CACHES` defaults to per-process LocMem) and `CONN_MAX_AGE` is 0.
 - External assets load from CDNs without SRI (`unpkg` HTMX, `jsdelivr` Chart.js, Google Fonts).
 
@@ -136,7 +142,7 @@ Python 3.12 in `.venv/`. UI in English, Urdu and Arabic (RTL).
 - After changes: `manage.py check`, `ruff check .`, relevant pytest files, then the full suite for shared code.
 - UI: verify in headless Chrome (CDP scripts in the scratchpad; log in as `member` / `012345678` on the dev
   server) at desktop and phone widths; kill only your own headless Chrome processes.
-- Report exact results; list anything not tested. Current lint debt: 12 ruff findings (pre-existing).
+- Report exact results; list anything not tested. `ruff check .` is clean — keep it that way.
 
 ## 10. Data you create while testing
 

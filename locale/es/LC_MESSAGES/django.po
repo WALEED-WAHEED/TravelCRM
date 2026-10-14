@@ -64,9 +64,6 @@ msgstr "Cuentas por pagar"
 msgid "Profile"
 msgstr "Perfil"
 
-msgid "Reports"
-msgstr "Informes"
-
 msgid "Return to Super Admin"
 msgstr "Volver al superadministrador"
 

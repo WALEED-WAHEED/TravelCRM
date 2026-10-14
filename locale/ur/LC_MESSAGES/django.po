@@ -64,9 +64,6 @@ msgstr "قابل ادائیگی"
 msgid "Profile"
 msgstr "پروفائل"
 
-msgid "Reports"
-msgstr "رپورٹس"
-
 msgid "Return to Super Admin"
 msgstr "سپر ایڈمن پر واپس جائیں"
 
@@ -3697,9 +3694,6 @@ msgstr "'%(agency)s' اب %(plan)s پلان پر ہے (%(status)s)۔"
 msgid "'%(username)s' added to your team as %(role)s."
 msgstr "'%(username)s' کو آپ کی ٹیم میں بطور %(role)s شامل کر دیا گیا۔"
 
-msgid "+ Add Trans.#, Inv/Ref or bank reference (optional)"
-msgstr "+ ٹرانس نمبر، انوائس/ریف یا بینک ریفرنس شامل کریں (اختیاری)"
-
 msgid "+ Add a note"
 msgstr "+ نوٹ شامل کریں"
 
@@ -3882,9 +3876,6 @@ msgstr "تمام ٹیننٹس"
 
 msgid "All time"
 msgstr "تمام وقت"
-
-msgid "Amount in SAR or another currency?"
-msgstr "رقم SAR یا کسی اور کرنسی میں ہے؟"
 
 msgid "Amount must be positive"
 msgstr "رقم مثبت ہونی چاہیے"
@@ -4175,12 +4166,6 @@ msgstr ""
 " کریں — چھپے ہوئے اکاؤنٹ لیجر جیسا، PDF میں محفوظ کرنے یا WhatsApp پر بھیجنے"
 " کے لیے تیار۔"
 
-msgid ""
-"Click a party name to see their running balance, then print their statement."
-msgstr ""
-"کسی پارٹی کے نام پر کلک کر کے اس کا چلتا ہوا بیلنس دیکھیں، پھر اس کا "
-"اسٹیٹمنٹ پرنٹ کریں۔"
-
 msgid "Click again to delete"
 msgstr "حذف کرنے کے لیے دوبارہ کلک کریں"
 
@@ -4432,9 +4417,6 @@ msgstr "ختم ہونے کا وقت (خالی = غیر معینہ)"
 
 msgid "Enter a valid amount."
 msgstr "درست رقم درج کریں۔"
-
-msgid "Enter amount directly in Rs."
-msgstr "رقم براہ راست روپے میں درج کریں"
 
 msgid "Enter an amount, or a foreign amount and rate."
 msgstr "رقم درج کریں، یا غیر ملکی رقم اور ریٹ۔"
@@ -6890,9 +6872,6 @@ msgstr "آج کے لین دین"
 msgid "Trips starting today"
 msgstr "آج شروع ہونے والے سفر"
 
-msgid "Week, month & year in Reports"
-msgstr "ہفتہ، مہینہ اور سال رپورٹس میں"
-
 msgid "as of now"
 msgstr "ابھی تک"
 
@@ -7087,9 +7066,6 @@ msgstr "پارٹیوں کے بیلنس"
 
 msgid "Previous period"
 msgstr "پچھلی مدت"
-
-msgid "Report"
-msgstr "رپورٹ"
 
 msgid "Sales by staff"
 msgstr "اسٹاف کے لحاظ سے سیلز"
@@ -9110,3 +9086,63 @@ msgstr "حاضری کیسے لگی"
 
 msgid "Self check-in, manual entry, automatic and corrected."
 msgstr "خود حاضری، دستی اندراج، خودکار اور تصحیح شدہ۔"
+
+msgid "Fill in the foreign amount and rate to calculate the rupee amount."
+msgstr "روپوں کی رقم حساب کرنے کے لیے غیر ملکی رقم اور ریٹ درج کریں۔"
+
+msgid "Calculated from the foreign amount × rate"
+msgstr "غیر ملکی رقم × ریٹ سے حساب شدہ"
+
+msgid "Who & when"
+msgstr "کون اور کب"
+
+msgid "Amount in"
+msgstr "رقم کی کرنسی"
+
+msgid "Rupees (Rs.)"
+msgstr "روپے (Rs.)"
+
+msgid ""
+"Enter the foreign amount and the rate. The rupee amount below is calculated "
+"for you."
+msgstr ""
+"غیر ملکی رقم اور ریٹ درج کریں۔ نیچے روپوں کی رقم خود بخود حساب ہو جائے گی۔"
+
+msgid "Download ledger"
+msgstr "لیجر ڈاؤن لوڈ کریں"
+
+msgid "Choose what to include, then pick a format."
+msgstr "منتخب کریں کیا شامل کرنا ہے، پھر فارمیٹ چنیں۔"
+
+msgid "Include"
+msgstr "شامل کریں"
+
+msgid "Only entries matching my current search"
+msgstr "صرف میری موجودہ تلاش سے ملنے والی اندراجات"
+
+msgid "The statement uses the period and party only."
+msgstr "اسٹیٹمنٹ صرف مدت اور پارٹی استعمال کرتی ہے۔"
+
+msgid "Click a party name to see only their entries."
+msgstr "صرف کسی پارٹی کی اندراجات دیکھنے کے لیے اس کے نام پر کلک کریں۔"
+
+msgid "References (optional)"
+msgstr "حوالہ جات (اختیاری)"
+
+msgid "Party balance now"
+msgstr "پارٹی کا موجودہ بیلنس"
+
+msgid "Balance after this entry"
+msgstr "اس اندراج کے بعد بیلنس"
+
+msgid "In rupees"
+msgstr "روپوں میں"
+
+msgid "Linked voucher"
+msgstr "منسلک واؤچر"
+
+msgid "Created on"
+msgstr "بنانے کی تاریخ"
+
+msgid "Last updated"
+msgstr "آخری تبدیلی"

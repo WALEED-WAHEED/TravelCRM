@@ -180,3 +180,31 @@ def test_seed_sample_matches_pdf_and_is_idempotent(agency_a, user_a):
     # ledger rows: PDF statement + client rows + (sale + payment) per active booking + 11 months x 2 fixed costs
     assert total_bookings == 30
     assert count == 36 + active * 2 + 22
+
+
+def test_download_filters_narrow_the_export(client_a, agency_a, user_a):
+    """The Download pop-up's filters (period, party, account, type) each narrow the Excel export."""
+    import csv
+    import io
+
+    _entry(agency_a, user_a, counterparty_name="Alpha Co", transaction_date=datetime.date(2025, 7, 10),
+           transaction_type="receipt", direction="credit", amount=Decimal("100"))
+    _entry(agency_a, user_a, counterparty_name="Alpha Co", transaction_date=datetime.date(2025, 9, 5),
+           transaction_type="visa", direction="debit", amount=Decimal("200"))
+    _entry(agency_a, user_a, counterparty_name="Beta Co", transaction_date=datetime.date(2025, 9, 6),
+           transaction_type="receipt", direction="credit", amount=Decimal("300"))
+    _entry(agency_a, user_a, counterparty_name="", bucket="company_expense", transaction_date=datetime.date(2025, 9, 7),
+           transaction_type="expense", direction="debit", amount=Decimal("50"), category="Rent")
+
+    def rows(**params):
+        r = client_a.get("/member/ledger/export/", params)
+        assert r.status_code == 200
+        return list(csv.DictReader(io.StringIO(r.content.decode("utf-8-sig"))))
+
+    assert len(rows(preset="all")) == 4
+    assert {x["Party"] for x in rows(party="Alpha Co")} == {"Alpha Co"}
+    assert len(rows(**{"from": "2025-09-01", "to": "2025-09-30"})) == 3
+    assert len(rows(party="Alpha Co", **{"from": "2025-09-01", "to": "2025-09-30"})) == 1
+    assert {x["Account"] for x in rows(bucket="company_expense")} == {"Company expense"}
+    assert len(rows(type="receipt")) == 2
+    assert len(rows(party="Beta Co", type="receipt", **{"from": "2025-09-01"})) == 1

@@ -1,7 +1,7 @@
 """Approval insights: how vouchers agents submit move through approval — volumes, outcomes, decision speed,
 who submits and who decides, why vouchers are sent back — and the Excel export of it.
 
-Range = vouchers submitted in the chosen period (the same presets and previous-period comparison as Reports).
+Range = vouchers submitted in the chosen period.
 Outcomes are each voucher's current state: approved, sent back (waiting for its agent to fix it) or still pending.
 """
 from collections import defaultdict
@@ -10,7 +10,7 @@ from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from reports import analytics
+from member import analytics
 
 from .models import Booking, BookingHotel, BookingMutamer
 
@@ -188,7 +188,7 @@ def build_xlsx(agency, period, data, rtl=False):
 
     from openpyxl import Workbook
 
-    from reports.export import BOLD, TITLE_FONT, _autosize, _header, _rows, _sheet
+    from member.xlsx import BOLD, TITLE_FONT, _autosize, _header, _rows, _sheet
 
     k, c, t = data["kpis"], data["charts"], data["full"]
     wb = Workbook()
