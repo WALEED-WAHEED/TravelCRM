@@ -11,39 +11,38 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
-from pathlib import Path
 from datetime import timedelta
+from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
+
 load_dotenv()
+
+from .languages import ENABLED_LANGUAGES  # noqa: E402 — needs the .env values loaded above
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-nofsc(6nlum(#64+0eaosdfnnmbkkhv(nz$$ykx(%2d+ay)ys*-"
-)
-DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
+# Fails closed: DEBUG defaults to False. In that mode a real
+# DJANGO_SECRET_KEY is required instead of falling back to a value
+# committed in this file.
+DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ["*"]
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = "django-insecure-local-dev-only-do-not-deploy"
+    else:
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY environment variable must be set when DJANGO_DEBUG is False."
+        )
 
-# MEDIA_URL = "/media/"
-# MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-
-# # Frontend base URL (for QR code links)
-# FRONTEND_URL = "http://localhost:5173"
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = 'django-insecure-nofsc(6nlum(#64+0eaosdfnnmbkkhv(nz$ykx(%2d+ay)ys*-'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True
-
-# ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    if host.strip()
+]
 
 
 # Application definition
@@ -55,7 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
     # Third-party
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
@@ -66,9 +65,16 @@ INSTALLED_APPS = [
     # Local apps
     "accounts",
     "agencies",
+    "rbac",
     "system_config",
     "member",
     "agent",
+    "platform_admin",
+    "notifications",
+    "billing",
+    "payments",
+    "reports",
+    "assistant",
 ]
 
 # AUTH_USER_MODEL = "accounts.User"
@@ -89,9 +95,12 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware", # Enable static file serving
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'utils.middleware.TenantMiddleware',
+    'billing.middleware.SubscriptionGateMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -109,7 +118,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.i18n',
                 'system_config.context_processors.saas_config',
+                'platform_admin.context_processors.active_announcements',
             ],
         },
     },
@@ -121,18 +132,41 @@ ASGI_APPLICATION = 'travelcrm.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+#
+# Postgres is the system of record — this matches the `db` service in
+# docker-compose.yml. The defaults below match docker-compose's own
+# fallback values for local development; override via .env (DB_NAME,
+# DB_USER, DB_PASSWORD, DB_HOST, DB_PORT) for anything else, e.g. a
+# local Postgres install with different credentials.
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db_data' / 'db.sqlite3',
-        # "ENGINE": "django.db.backends.postgresql",
-        # "NAME": os.getenv("POSTGRES_DB"),
-        # "USER": os.getenv("POSTGRES_USER"),
-        # "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        # "HOST": os.getenv("POSTGRES_HOST"),
-        # "PORT": os.getenv("POSTGRES_PORT"),
-    }
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'travelcrm'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
+    },
+    # Second connection, same database, but authenticated as the scoped
+    # `travelcrm_app` role instead of whatever 'default' is running as.
+    # Row-Level Security (member/migrations/0009_row_level_security.py and
+    # siblings) is inert for a table owner or superuser — the only way to
+    # prove RLS actually blocks cross-tenant reads is to query through a
+    # connection that isn't one. `TEST: {MIRROR: 'default'}` tells Django's
+    # test runner not to create a second test database for this alias; it
+    # reuses the one 'default' already created and migrated.
+    'scoped': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'travelcrm'),
+        'USER': os.getenv('SCOPED_DB_USER', 'travelcrm_app'),
+        'PASSWORD': os.getenv('SCOPED_DB_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
+        'TEST': {
+            'MIRROR': 'default',
+        },
+    },
 }
 
 # Custom user
@@ -154,6 +188,17 @@ REST_FRAMEWORK = {
         "rest_framework.filters.OrderingFilter",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    # Flat, generous limits for now — per-plan-tier limits are a Phase 06
+    # (billing) concern once subscription plans actually exist to key off.
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": os.getenv("THROTTLE_RATE_ANON", "60/min"),
+        "user": os.getenv("THROTTLE_RATE_USER", "300/min"),
+        "login": os.getenv("THROTTLE_RATE_LOGIN", "10/min"),
+    },
 }
 
 # JWT Config
@@ -177,6 +222,34 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
+# Celery (background jobs — notifications, etc.). Referenced in
+# env.production.example since the project's start but never actually
+# wired up until now. If no worker is consuming the queue (e.g. no
+# Redis running locally), utils/tasks.py's dispatch() helper falls back
+# to running the task inline rather than losing the notification.
+# Attendance "office network" check: how many reverse proxies sit in front of
+# the app (nginx in docker-compose = 1). 0 = use REMOTE_ADDR and ignore
+# X-Forwarded-For, which a client could otherwise forge to fake being in the office.
+ATTENDANCE_TRUSTED_PROXIES = int(os.getenv("ATTENDANCE_TRUSTED_PROXIES", "0"))
+
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_ALWAYS_EAGER = os.getenv("CELERY_TASK_ALWAYS_EAGER", "False") == "True"
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_TASK_IGNORE_RESULT = True
+# Fail fast rather than retrying for tens of seconds when the broker is
+# unreachable — notifications/tasks.py's dispatch() relies on the
+# connection attempt failing quickly so it can fall back to sending
+# inline instead of hanging the request that triggered it.
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = False
+CELERY_BROKER_CONNECTION_RETRY = False
+CELERY_BROKER_CONNECTION_TIMEOUT = 2
+CELERY_TASK_PUBLISH_RETRY = False
+CELERY_RESULT_BACKEND_TRANSPORT_OPTIONS = {"retry_policy": {"max_retries": 1}}
+
 # Email Configuration (for password reset)
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
 EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
@@ -195,7 +268,15 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # CORS
-CORS_ALLOW_ALL_ORIGINS = True
+# Explicit allowlist by default. Only falls back to allow-all when running
+# locally with DEBUG on and no allowlist has been configured — production
+# must set CORS_ALLOWED_ORIGINS.
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+CORS_ALLOW_ALL_ORIGINS = DEBUG and not CORS_ALLOWED_ORIGINS
 
 # Session auth settings
 LOGIN_URL = '/login/'
@@ -204,6 +285,94 @@ LOGOUT_REDIRECT_URL = '/login/'
 
 # Frontend base URL (used for QR code links in vouchers)
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:8000")
+
+# AI Assistant (Phase 09) — provider-agnostic; assistant/llm.py picks the
+# client based on AI_PROVIDER. GEMINI_API_KEY starts as a dummy placeholder
+# in .env until a real key from https://aistudio.google.com is dropped in.
+AI_PROVIDER = os.getenv("AI_PROVIDER", "gemini")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_TIMEOUT_MS = int(os.getenv("GEMINI_TIMEOUT_MS", "30000"))   # per Gemini request
+
+# Voice (Phase 10) — 'web-speech' uses the browser's built-in
+# SpeechRecognition/SpeechSynthesis APIs (free, no server round-trip for
+# audio). Swapping to a server-side provider later (e.g. Gemini audio
+# input) is a matter of adding a JS provider implementing the same
+# interface (static/js/voice/) and changing this one value.
+VOICE_PROVIDER = os.getenv("VOICE_PROVIDER", "web-speech")
+
+# Security hardening (production)
+# These names match env.production.example. Previously that file documented
+# them but settings.py never read them, so setting them in .env did nothing.
+SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "False") == "True"
+SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "0"))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv("SECURE_HSTS_INCLUDE_SUBDOMAINS", "False") == "True"
+SECURE_HSTS_PRELOAD = os.getenv("SECURE_HSTS_PRELOAD", "False") == "True"
+SECURE_CONTENT_TYPE_NOSNIFF = os.getenv("SECURE_CONTENT_TYPE_NOSNIFF", "True") == "True"
+SECURE_BROWSER_XSS_FILTER = os.getenv("SECURE_BROWSER_XSS_FILTER", "True") == "True"
+X_FRAME_OPTIONS = os.getenv("X_FRAME_OPTIONS", "DENY")
+SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False") == "True"
+CSRF_COOKIE_SECURE = os.getenv("CSRF_COOKIE_SECURE", "False") == "True"
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
+# Logging
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+LOG_FILE = os.getenv("LOG_FILE")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{asctime} {levelname} {name}: {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": LOG_LEVEL,
+    },
+}
+if LOG_FILE:
+    LOGGING["handlers"]["file"] = {
+        "class": "logging.handlers.RotatingFileHandler",
+        "filename": LOG_FILE,
+        "maxBytes": 10 * 1024 * 1024,
+        "backupCount": 5,
+        "formatter": "verbose",
+    }
+    LOGGING["root"]["handlers"].append("file")
+
+# Error monitoring (Phase 11) — inert until SENTRY_DSN is set to a real
+# project DSN from https://sentry.io (or a self-hosted instance); no
+# account needed for this code path to exist, only to make it do
+# anything. Traces/profiles sampled lightly by default since this is a
+# request-per-tenant CRUD app, not a latency-sensitive service — tune via
+# env if actual usage patterns warrant it.
+SENTRY_DSN = os.getenv("SENTRY_DSN")
+if SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.celery import CeleryIntegration
+    from sentry_sdk.integrations.django import DjangoIntegration
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        environment=os.getenv("SENTRY_ENVIRONMENT", "production" if not DEBUG else "development"),
+        integrations=[DjangoIntegration(), CeleryIntegration()],
+        traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
+        profiles_sample_rate=float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "0.0")),
+        send_default_pii=False,
+    )
 
 
 # Password validation
@@ -228,7 +397,20 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
+
+# The product-wide language list (Phase 10.5) — see travelcrm/languages.py
+# for the single source of truth this is drawn from.
+LANGUAGES = ENABLED_LANGUAGES
+
+LOCALE_PATHS = [BASE_DIR / 'locale']
+
+# Persist the language cookie for a year rather than Django's default
+# session-only cookie — User.preferred_language (the DB field) is the
+# real source of truth and re-seeds this cookie on every login anyway,
+# but a longer-lived cookie means the choice survives a browser restart
+# even between logins.
+LANGUAGE_COOKIE_AGE = 60 * 60 * 24 * 365
 
 TIME_ZONE = 'UTC'
 

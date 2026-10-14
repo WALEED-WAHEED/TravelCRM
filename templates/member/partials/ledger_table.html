@@ -1,64 +1,85 @@
+{% load i18n %}
 {% load currency_tags %}
 {% if entries %}
-<table class="hotels-data-table">
+<table class="hotels-data-table ledger-table">
     <thead>
         <tr>
-            <th>Date</th>
-            <th>Bucket</th>
-            <th>Party</th>
-            <th>Description</th>
-            <th>Type</th>
-            <th>Method</th>
-            <th>Amount (PKR)</th>
-            <th>Reference</th>
+            <th>{% trans "Date" %}</th>
+            <th>{% trans "Type" %}</th>
+            {% if not show_running %}<th>{% trans "Party" %}</th>{% endif %}
+            <th>{% trans "Particulars" %}</th>
+            <th class="ledger-num">{% trans "Debit" %}</th>
+            <th class="ledger-num">{% trans "Credit" %}</th>
+            {% if show_running %}<th class="ledger-num">{% trans "Balance" %}</th>{% endif %}
+            <th class="ledger-actions-col"><span class="sr-only">{% trans "Actions" %}</span></th>
         </tr>
     </thead>
     <tbody>
+        {% if show_running %}
+        <tr class="ledger-opening-row">
+            <td class="text-muted text-sm">{% if f.date_from %}{{ f.date_from|date:"d M Y" }}{% else %}—{% endif %}</td>
+            <td></td>
+            <td class="font-medium">{% trans "Previous balance" %}</td>
+            <td class="ledger-num">0</td>
+            <td class="ledger-num">0</td>
+            <td class="ledger-num font-semibold">{{ opening|drcr }}</td>
+            <td></td>
+        </tr>
+        {% endif %}
         {% for e in entries %}
-        <tr class="hotels-row" style="--row-i: {{ forloop.counter0 }}">
-            <td class="text-muted text-sm">{{ e.transaction_date|date:"d M Y" }}</td>
+        <tr class="hotels-row" style="--row-i: {{ forloop.counter0 }}"
+            data-id="{{ e.id }}"
+            data-date="{{ e.transaction_date|date:'Y-m-d' }}"
+            data-bucket="{{ e.bucket }}"
+            data-direction="{{ e.direction }}"
+            data-type="{{ e.transaction_type }}"
+            data-party="{{ e.counterparty_name }}"
+            data-amount="{{ e.amount }}"
+            data-fx-currency="{{ e.fx_currency }}"
+            data-fx-amount="{{ e.fx_amount|default_if_none:'' }}"
+            data-rate="{{ e.rate|default_if_none:'' }}"
+            data-pax="{{ e.pax|default_if_none:'' }}"
+            data-method="{{ e.payment_method }}"
+            data-trans="{{ e.trans_no }}"
+            data-inv="{{ e.inv_ref }}"
+            data-ref="{{ e.reference_number }}"
+            data-category="{{ e.category }}"
+            data-desc="{{ e.description }}"
+            data-type-label="{{ e.get_transaction_type_display }}"
+            data-method-label="{{ e.get_payment_method_display }}"
+            data-currency="{{ e.currency }}">
+            <td class="text-muted text-sm ledger-nowrap">{{ e.transaction_date|date:"d M Y" }}</td>
             <td>
-                <span class="badge badge-default">
-                    {% if e.bucket == 'lein_dein' %}Party{% else %}Expense{% endif %}
-                </span>
-                <span class="text-xs text-muted" style="display:block;margin-top:2px;">
-                    {{ e.direction|title }}
-                </span>
+                <span class="ledger-code ledger-code--{{ e.direction }}" title="{{ e.get_transaction_type_display }}">{{ e.type_code }}</span>
             </td>
+            {% if not show_running %}
             <td>
-                {% if e.counterparty_name %}
-                <div class="hotels-cell-name">
-                    <span class="hotels-cell-name__title font-medium">{{ e.counterparty_name }}</span>
-                    {% if e.counterparty_type %}
-                    <span class="hotels-cell-name__code text-xs text-muted">{{ e.counterparty_type|title }}</span>
-                    {% endif %}
+                {% if e.bucket == 'company_expense' %}
+                <span class="text-muted text-sm">{% trans "Company expense" %}</span>
+                {% elif e.counterparty_name %}
+                <button type="button" class="ledger-party-link" data-party-filter="{{ e.counterparty_name }}">{{ e.counterparty_name }}</button>
+                {% else %}<span class="text-muted">—</span>{% endif %}
+            </td>
+            {% endif %}
+            <td>
+                <div class="ledger-particulars">{{ e.description }}{% if e.pax %} <span class="text-muted">× {{ e.pax }}</span>{% endif %}</div>
+            </td>
+            <td class="ledger-num">{% if e.direction == 'debit' %}{{ e.amount|amt }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+            <td class="ledger-num">{% if e.direction == 'credit' %}{{ e.amount|amt }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+            {% if show_running %}<td class="ledger-num font-medium">{{ e.running|drcr }}</td>{% endif %}
+            <td class="ledger-actions-col">
+                <div class="vx-actions">
+                    <button type="button" class="vx vx--view" data-ledger-view aria-label="{% trans 'View entry' %}" title="{% trans 'View' %}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button type="button" class="vx vx--edit" data-ledger-edit aria-label="{% trans 'Edit entry' %}" title="{% trans 'Edit' %}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>
+                    <button type="button" class="vx vx--del" data-ledger-delete aria-label="{% trans 'Delete entry' %}" title="{% trans 'Delete' %}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
                 </div>
-                {% else %}
-                <span class="text-muted">—</span>
-                {% endif %}
             </td>
-            <td>
-                <div class="hotels-cell-name">
-                    <span class="hotels-cell-name__title font-medium">{{ e.description }}</span>
-                    {% if e.category %}
-                    <span class="hotels-cell-name__code text-xs text-muted">{{ e.category }}</span>
-                    {% endif %}
-                </div>
-            </td>
-            <td>
-                <span class="badge {% if e.transaction_type == 'income' or e.transaction_type == 'refund' or e.transaction_type == 'commission' %}badge-success{% elif e.transaction_type == 'expense' %}badge-danger{% else %}badge-default{% endif %}">
-                    {{ e.get_transaction_type_display }}
-                </span>
-            </td>
-            <td class="text-sm text-muted">{{ e.get_payment_method_display }}</td>
-            <td class="font-semibold" style="color:var(--{% if e.transaction_type == 'income' or e.transaction_type == 'refund' or e.transaction_type == 'commission' %}success{% elif e.transaction_type == 'expense' %}destructive{% else %}foreground{% endif %});">
-                {{ e.amount|pkr }}
-            </td>
-            <td class="text-muted text-sm">{{ e.reference_number|default:"—" }}</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+{% if show_running %}{% with net=closing %}{% include "member/partials/ledger_totals.html" %}{% endwith %}
+{% else %}{% with net=totals.net %}{% include "member/partials/ledger_totals.html" %}{% endwith %}{% endif %}
 {% else %}
 <div class="hotels-empty">
     <div class="hotels-empty__glow" aria-hidden="true"></div>
@@ -68,11 +89,14 @@
             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
         </svg>
     </div>
-    <h3 class="hotels-empty__title">{% if search_q or type_filter %}No matches{% else %}No ledger entries{% endif %}</h3>
-    <p class="hotels-empty__text">{% if search_q or type_filter %}Try another search or change the type filter.{% else %}Financial records and transactions will appear here.{% endif %}</p>
-    {% if search_q or type_filter %}
-    <a href="{% url 'member-ledger' %}" class="btn btn-outline hotels-empty__btn">View all entries</a>
+    {% if f.q or f.party or f.type or f.bucket or f.date_from or f.date_to %}
+    <h3 class="hotels-empty__title">{% trans "No matching entries" %}</h3>
+    <p class="hotels-empty__text">{% trans "Try a different search, party or period." %}</p>
+    <a href="{% url 'member-ledger' %}" class="btn btn-outline hotels-empty__btn">{% trans "Clear filters" %}</a>
+    {% else %}
+    <h3 class="hotels-empty__title">{% trans "No ledger entries yet" %}</h3>
+    <p class="hotels-empty__text">{% trans "Record money received, payments, sales and expenses — balances are worked out for you." %}</p>
+    <button type="button" class="btn btn-primary hotels-empty__btn" onclick="openLedgerAddModal()">{% trans "Add first entry" %}</button>
     {% endif %}
 </div>
 {% endif %}
-

@@ -1,0 +1,3578 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"Language: hi\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Activity Log"
+msgstr "गतिविधि लॉग"
+
+msgid "Agent Tools"
+msgstr "एजेंट टूल्स"
+
+msgid "Approvals"
+msgstr "स्वीकृतियाँ"
+
+msgid "Assistant"
+msgstr "सहायक"
+
+msgid "Attendance"
+msgstr "उपस्थिति"
+
+msgid "Billing"
+msgstr "बिलिंग"
+
+msgid "Bookings"
+msgstr "बुकिंग"
+
+msgid "Contacts"
+msgstr "संपर्क"
+
+msgid "Dashboard"
+msgstr "डैशबोर्ड"
+
+msgid "Flights"
+msgstr "उड़ानें"
+
+msgid "Hotels"
+msgstr "होटल"
+
+msgid "Language"
+msgstr "भाषा"
+
+msgid "Ledger"
+msgstr "खाता बही"
+
+msgid "Log Out"
+msgstr "लॉग आउट"
+
+msgid "Member Portal"
+msgstr "सदस्य पोर्टल"
+
+msgid "Mutamers"
+msgstr "तीर्थयात्री"
+
+msgid "Notifications"
+msgstr "सूचनाएं"
+
+msgid "Payables"
+msgstr "देय राशि"
+
+msgid "Profile"
+msgstr "प्रोफ़ाइल"
+
+msgid "Reports"
+msgstr "रिपोर्ट"
+
+msgid "Return to Super Admin"
+msgstr "सुपर एडमिन पर वापस जाएं"
+
+msgid "Team & Roles"
+msgstr "टीम और भूमिकाएं"
+
+msgid "Transports"
+msgstr "परिवहन"
+
+msgid "Vouchers"
+msgstr "वाउचर"
+
+msgid "Toggle light or dark theme"
+msgstr "लाइट या डार्क थीम बदलें"
+
+msgid "Toggle sidebar"
+msgstr "साइडबार टॉगल करें"
+
+msgid "Booking & inventory"
+msgstr "बुकिंग और इन्वेंटरी"
+
+msgid "Built for modern travel agencies"
+msgstr "आधुनिक ट्रैवल एजेंसियों के लिए बनाया गया"
+
+msgid "Continue"
+msgstr "जारी रखें"
+
+msgid "Flights, hotels, and transport in one pipeline."
+msgstr "उड़ानें, होटल, और परिवहन एक ही जगह।"
+
+msgid "Forgot password?"
+msgstr "पासवर्ड भूल गए?"
+
+msgid "High availability"
+msgstr "उच्च उपलब्धता"
+
+msgid "New agency?"
+msgstr "नई एजेंसी?"
+
+msgid "Operations,"
+msgstr "संचालन,"
+
+msgid "Partner agencies"
+msgstr "साझेदार एजेंसियां"
+
+msgid "Password"
+msgstr "पासवर्ड"
+
+msgid "Roles & permissions"
+msgstr "भूमिकाएं और अनुमतियां"
+
+msgid "SSO-ready"
+msgstr "SSO के लिए तैयार"
+
+msgid "Secure session"
+msgstr "सुरक्षित सत्र"
+
+msgid "Sign In"
+msgstr "साइन इन"
+
+msgid "Sign in to continue"
+msgstr "जारी रखने के लिए साइन इन करें"
+
+msgid "Start your free trial"
+msgstr "अपना मुफ़्त ट्रायल शुरू करें"
+
+msgid "TLS in transit"
+msgstr "ट्रांज़िट में TLS"
+
+msgid "Target uptime"
+msgstr "लक्षित अपटाइम"
+
+msgid "Team access scoped to exactly what each role needs."
+msgstr "टीम की पहुंच हर भूमिका की ज़रूरत तक सीमित।"
+
+msgid "Travelers coordinated"
+msgstr "समन्वित यात्री"
+
+msgid "Use your agency credentials. Need help? Contact your administrator."
+msgstr ""
+"अपनी एजेंसी क्रेडेंशियल्स का उपयोग करें। मदद चाहिए? अपने व्यवस्थापक से "
+"संपर्क करें।"
+
+msgid "Username"
+msgstr "उपयोगकर्ता नाम"
+
+msgid "streamlined"
+msgstr "सुव्यवस्थित"
+
+msgid "Toggle password visibility"
+msgstr "पासवर्ड दृश्यता बदलें"
+
+msgid "Application language"
+msgstr "एप्लिकेशन भाषा"
+
+msgid "Arabic and Urdu switch the entire layout to right-to-left."
+msgstr "अरबी और उर्दू पूरे लेआउट को दाएं-से-बाएं में बदल देती हैं।"
+
+msgid "Auto-detect from browser"
+msgstr "ब्राउज़र से स्वतः पहचानें"
+
+msgid ""
+"Choose the language the whole application is shown in. This is saved to your"
+" account and follows you across devices."
+msgstr ""
+"वह भाषा चुनें जिसमें पूरा एप्लिकेशन दिखाया जाए। यह आपके खाते में सहेजी जाती "
+"है और सभी डिवाइस पर लागू रहती है।"
+
+msgid "Save language"
+msgstr "भाषा सहेजें"
+
+msgid "Settings"
+msgstr "सेटिंग्स"
+
+msgid "Too many login attempts. Please wait a few minutes and try again."
+msgstr ""
+"बहुत अधिक लॉगिन प्रयास। कृपया कुछ मिनट प्रतीक्षा करें और फिर कोशिश करें।"
+
+msgid "Invalid username or password."
+msgstr "अमान्य उपयोगकर्ता नाम या पासवर्ड।"
+
+msgid ""
+"Viewing as %(username)s (%(agency_name)s) — Super Admin impersonation "
+"session."
+msgstr ""
+"%(username)s (%(agency_name)s) के रूप में देख रहे हैं — सुपर एडमिन प्रतिरूपण"
+" सत्र।"
+
+msgid ""
+"Bookings, vouchers, and team workspaces in one secure platform — built for "
+"Umrah & Hajj agencies that scale."
+msgstr ""
+"बुकिंग, वाउचर, और टीम वर्कस्पेस एक सुरक्षित प्लेटफ़ॉर्म में — उन उमराह और हज"
+" एजेंसियों के लिए जो आगे बढ़ना चाहती हैं।"
+
+msgid "6 months"
+msgstr "6 महीने"
+
+msgid "Account Ledger"
+msgstr "खाता बही"
+
+msgid "Actions"
+msgstr "कार्रवाइयाँ"
+
+msgid "Active agents"
+msgstr "सक्रिय एजेंट"
+
+msgid "Active fleet"
+msgstr "सक्रिय बेड़ा"
+
+msgid "Add coaches, vans, or cars for ground services and packages."
+msgstr "ग्राउंड सेवाओं और पैकेजों के लिए कोच, वैन, या कारें जोड़ें।"
+
+msgid "Add entry"
+msgstr "प्रविष्टि जोड़ें"
+
+msgid "Add flight"
+msgstr "उड़ान जोड़ें"
+
+msgid "Add hotel"
+msgstr "होटल जोड़ें"
+
+msgid "Add ledger entry"
+msgstr "लेजर प्रविष्टि जोड़ें"
+
+msgid "Add transport"
+msgstr "परिवहन जोड़ें"
+
+msgid "Add your first flight to build packages and vouchers."
+msgstr "पैकेज और वाउचर बनाने के लिए अपनी पहली उड़ान जोड़ें।"
+
+msgid "Add your first property to start building packages and vouchers."
+msgstr "पैकेज और वाउचर बनाना शुरू करने के लिए अपनी पहली संपत्ति जोड़ें।"
+
+msgid "Address"
+msgstr "पता"
+
+msgid "Adults"
+msgstr "वयस्क"
+
+msgid "Agency"
+msgstr "एजेंसी"
+
+msgid "Airline"
+msgstr "एयरलाइन"
+
+msgid "Airline *"
+msgstr "एयरलाइन *"
+
+msgid "Al Noor Hotel"
+msgstr "अल नूर होटल"
+
+msgid "All bookings"
+msgstr "सभी बुकिंग"
+
+msgid "All buckets"
+msgstr "सभी बकेट"
+
+msgid "All status"
+msgstr "सभी स्थिति"
+
+msgid "All types"
+msgstr "सभी प्रकार"
+
+msgid "All voucher records"
+msgstr "सभी वाउचर रिकॉर्ड"
+
+msgid "Amount"
+msgstr "राशि"
+
+msgid "Amount (PKR)"
+msgstr "राशि (PKR)"
+
+msgid "Amount (PKR) *"
+msgstr "राशि (PKR) *"
+
+msgid "Approved"
+msgstr "स्वीकृत"
+
+msgid "Arrival city, required"
+msgstr "आगमन शहर, आवश्यक"
+
+msgid "Avg. nightly sale (PKR)"
+msgstr "औसत रात्रि बिक्री (PKR)"
+
+msgid "Avg. sale (PKR)"
+msgstr "औसत बिक्री (PKR)"
+
+msgid "Avg. sale fare (PKR)"
+msgstr "औसत बिक्री किराया (PKR)"
+
+msgid "Back"
+msgstr "वापस"
+
+msgid "Back to Login"
+msgstr "लॉगिन पर वापस जाएं"
+
+msgid "Balance"
+msgstr "शेष राशि"
+
+msgid "Balance:"
+msgstr "शेष राशि:"
+
+msgid "Bank transfer"
+msgstr "बैंक ट्रांसफर"
+
+msgid "Booking"
+msgstr "बुकिंग"
+
+msgid "Booking reference"
+msgstr "बुकिंग संदर्भ"
+
+msgid ""
+"Bookings, vouchers, and team signals in one place—aligned with how the rest "
+"of your workspace looks and feels."
+msgstr ""
+"बुकिंग, वाउचर, और टीम सिग्नल एक ही जगह — आपके बाकी वर्कस्पेस के अनुरूप।"
+
+msgid "Bucket"
+msgstr "बकेट"
+
+msgid "Bucket *"
+msgstr "बकेट *"
+
+msgid ""
+"Build each trip on the voucher below: your profile supplies the header "
+"(agency, logo, Shirka). Choose hotels, flights, transport, mutamers, and "
+"contacts from your saved lists, and type anything that changes per booking."
+msgstr ""
+"नीचे दिए गए वाउचर पर हर यात्रा बनाएं: आपकी प्रोफ़ाइल हेडर (एजेंसी, लोगो, "
+"शिरका) प्रदान करती है। अपनी सहेजी गई सूचियों से होटल, उड़ानें, परिवहन, "
+"मुतमिर, और संपर्क चुनें, और जो कुछ प्रति बुकिंग बदलता है उसे टाइप करें।"
+
+msgid "Builder"
+msgstr "बिल्डर"
+
+msgid "Bus"
+msgstr "बस"
+
+msgid "Cancel"
+msgstr "रद्द करें"
+
+msgid "Cancelled"
+msgstr "रद्द"
+
+msgid "Capacity"
+msgstr "क्षमता"
+
+msgid "Capacity (pax) *"
+msgstr "क्षमता (यात्री) *"
+
+msgid "Car"
+msgstr "कार"
+
+msgid "Card"
+msgstr "कार्ड"
+
+msgid "Cash"
+msgstr "नकद"
+
+msgid "Category"
+msgstr "श्रेणी"
+
+msgid "Cheque"
+msgstr "चेक"
+
+msgid "Children"
+msgstr "बच्चे"
+
+msgid "City *"
+msgstr "शहर *"
+
+msgid "Class"
+msgstr "श्रेणी"
+
+msgid "Client"
+msgstr "ग्राहक"
+
+msgid "Client WhatsApp"
+msgstr "ग्राहक व्हाट्सएप"
+
+msgid "Client company"
+msgstr "ग्राहक कंपनी"
+
+msgid "Client country"
+msgstr "ग्राहक देश"
+
+msgid "Client or group name"
+msgstr "ग्राहक या समूह का नाम"
+
+msgid "Close"
+msgstr "बंद करें"
+
+msgid "Close dialog"
+msgstr "संवाद बंद करें"
+
+msgid "Coach"
+msgstr "कोच"
+
+msgid "Collect payment"
+msgstr "भुगतान एकत्र करें"
+
+msgid "Commission"
+msgstr "कमीशन"
+
+msgid "Company"
+msgstr "कंपनी"
+
+msgid "Company expense"
+msgstr "कंपनी व्यय"
+
+msgid "Company expenses"
+msgstr "कंपनी व्यय"
+
+msgid "Completed"
+msgstr "पूर्ण"
+
+msgid ""
+"Compose this voucher: profile header (logo / agency / Shirka) prints on the "
+"PDF. Link hotels, flights, transport, mutamers, and contact instructions "
+"from your saved data, then add dates and notes unique to this trip."
+msgstr ""
+"इस वाउचर को तैयार करें: प्रोफ़ाइल हेडर (लोगो / एजेंसी / शिरका) पीडीएफ पर "
+"प्रिंट होता है। अपने सहेजे गए डेटा से होटल, उड़ानें, परिवहन, मुतमिर, और "
+"संपर्क निर्देश लिंक करें, फिर इस यात्रा के लिए विशिष्ट तारीखें और नोट्स "
+"जोड़ें।"
+
+msgid "Confirmed"
+msgstr "पुष्ट"
+
+msgid "Contact number"
+msgstr "संपर्क नंबर"
+
+msgid "Cost (PKR)"
+msgstr "लागत (PKR)"
+
+msgid "Cost / night (PKR)"
+msgstr "लागत / रात (PKR)"
+
+msgid "Could not load flight."
+msgstr "उड़ान लोड नहीं हो सकी।"
+
+msgid "Could not load hotel."
+msgstr "होटल लोड नहीं हो सका।"
+
+msgid "Could not load transport."
+msgstr "परिवहन लोड नहीं हो सका।"
+
+msgid "Country *"
+msgstr "देश *"
+
+msgid ""
+"Create a booking to assign a voucher number and build packages for your "
+"clients."
+msgstr ""
+"वाउचर नंबर असाइन करने और अपने ग्राहकों के लिए पैकेज बनाने के लिए एक बुकिंग "
+"बनाएं।"
+
+msgid "Create a booking to see it listed here."
+msgstr "यहां सूचीबद्ध देखने के लिए एक बुकिंग बनाएं।"
+
+msgid ""
+"Create a flight record with routing and PKR pricing for packages and "
+"vouchers."
+msgstr ""
+"पैकेज और वाउचर के लिए रूटिंग और PKR मूल्य निर्धारण के साथ एक उड़ान रिकॉर्ड "
+"बनाएं।"
+
+msgid "Create a property record for rates, packages, and vouchers."
+msgstr "दरों, पैकेजों, और वाउचर के लिए एक संपत्ति रिकॉर्ड बनाएं।"
+
+msgid "Create booking"
+msgstr "बुकिंग बनाएं"
+
+msgid "Credit"
+msgstr "क्रेडिट"
+
+msgid "Credit (Received / Taken)"
+msgstr "क्रेडिट (प्राप्त / लिया गया)"
+
+msgid "Credit:"
+msgstr "क्रेडिट:"
+
+msgid ""
+"Curate properties, rates, and availability for your Umrah & Hajj programs."
+msgstr ""
+"अपने उमराह और हज कार्यक्रमों के लिए संपत्तियों, दरों, और उपलब्धता को क्यूरेट"
+" करें।"
+
+msgid "Date"
+msgstr "तारीख"
+
+msgid "Date *"
+msgstr "तारीख *"
+
+msgid "Debit"
+msgstr "डेबिट"
+
+msgid "Debit (Paid / Given)"
+msgstr "डेबिट (भुगतान / दिया गया)"
+
+msgid "Debit / Credit *"
+msgstr "डेबिट / क्रेडिट *"
+
+msgid "Debit:"
+msgstr "डेबिट:"
+
+msgid "Delete"
+msgstr "हटाएं"
+
+msgid "Delete failed"
+msgstr "हटाना विफल"
+
+msgid "Delete flight?"
+msgstr "उड़ान हटाएं?"
+
+msgid "Delete hotel?"
+msgstr "होटल हटाएं?"
+
+msgid "Delete transport?"
+msgstr "परिवहन हटाएं?"
+
+msgid "Departure city, required"
+msgstr "प्रस्थान शहर, आवश्यक"
+
+msgid "Description"
+msgstr "विवरण"
+
+msgid "Description *"
+msgstr "विवरण *"
+
+msgid "Directory"
+msgstr "निर्देशिका"
+
+msgid "Download PDF"
+msgstr "पीडीएफ डाउनलोड करें"
+
+msgid "Draft"
+msgstr "मसौदा"
+
+msgid "Edit"
+msgstr "संपादित करें"
+
+msgid "Edit flight"
+msgstr "उड़ान संपादित करें"
+
+msgid "Edit hotel"
+msgstr "होटल संपादित करें"
+
+msgid "Edit transport"
+msgstr "परिवहन संपादित करें"
+
+msgid "Edit voucher"
+msgstr "वाउचर संपादित करें"
+
+msgid "Email Address"
+msgstr "ईमेल पता"
+
+msgid "Enter your email to receive reset instructions"
+msgstr "रीसेट निर्देश प्राप्त करने के लिए अपना ईमेल दर्ज करें"
+
+msgid "Entries"
+msgstr "प्रविष्टियाँ"
+
+msgid "Expense"
+msgstr "व्यय"
+
+msgid "Expenses (PKR)"
+msgstr "व्यय (PKR)"
+
+msgid "Fill voucher"
+msgstr "वाउचर भरें"
+
+msgid "Filter by month"
+msgstr "महीने के अनुसार फ़िल्टर करें"
+
+msgid "Finance"
+msgstr "वित्त"
+
+msgid "Financial ledger"
+msgstr "वित्तीय लेजर"
+
+msgid "Financial records and transactions will appear here."
+msgstr "वित्तीय रिकॉर्ड और लेनदेन यहां दिखाई देंगे।"
+
+msgid "Fleet directory"
+msgstr "बेड़ा निर्देशिका"
+
+msgid "Flight number"
+msgstr "उड़ान संख्या"
+
+msgid ""
+"For party accounts, debit/credit tracks party balance. For expenses, use "
+"debit."
+msgstr ""
+"पार्टी खातों के लिए, डेबिट/क्रेडिट पार्टी बैलेंस को ट्रैक करता है। खर्चों के"
+" लिए, डेबिट का उपयोग करें।"
+
+msgid "Forgot Password"
+msgstr "पासवर्ड भूल गए"
+
+msgid "From *"
+msgstr "से *"
+
+msgid "Full report"
+msgstr "पूर्ण रिपोर्ट"
+
+msgid "Go to bookings"
+msgstr "बुकिंग पर जाएं"
+
+msgid ""
+"Ground fleet for airport transfers, Ziyarah, and group movements on your "
+"Umrah & Hajj programs."
+msgstr ""
+"आपके उमराह और हज कार्यक्रमों पर हवाई अड्डे स्थानांतरण, ज़ियारह, और समूह "
+"आंदोलनों के लिए ग्राउंड बेड़ा।"
+
+msgid "Hotel name *"
+msgstr "होटल का नाम *"
+
+msgid "Inactive"
+msgstr "निष्क्रिय"
+
+msgid "Income"
+msgstr "आय"
+
+msgid "Income (PKR)"
+msgstr "आय (PKR)"
+
+msgid "Infants"
+msgstr "शिशु"
+
+msgid "Internal notes"
+msgstr "आंतरिक नोट्स"
+
+msgid "Inv/Ref"
+msgstr "इनवॉइस/संदर्भ"
+
+msgid "Inventory"
+msgstr "इन्वेंटरी"
+
+msgid "Inventory & rates"
+msgstr "इन्वेंटरी और दरें"
+
+msgid "Islamabad"
+msgstr "इस्लामाबाद"
+
+msgid "Jeddah"
+msgstr "जेद्दा"
+
+msgid "Jump to common tasks"
+msgstr "सामान्य कार्यों पर जाएं"
+
+msgid "Latest activity in your agency"
+msgstr "आपकी एजेंसी में नवीनतम गतिविधि"
+
+msgid "Ledger Report"
+msgstr "लेजर रिपोर्ट"
+
+msgid "Location"
+msgstr "स्थान"
+
+msgid "Makkah"
+msgstr "मक्का"
+
+msgid ""
+"Manage schedules, fares, and seat inventory for your Umrah & Hajj programs."
+msgstr ""
+"अपने उमराह और हज कार्यक्रमों के लिए शेड्यूल, किराया, और सीट इन्वेंटरी "
+"प्रबंधित करें।"
+
+msgid "Manual voucher #"
+msgstr "मैन्युअल वाउचर #"
+
+msgid "Member Dashboard"
+msgstr "सदस्य डैशबोर्ड"
+
+msgid "Method"
+msgstr "तरीका"
+
+msgid "Month total expense:"
+msgstr "मासिक कुल व्यय:"
+
+msgid "Monthly report"
+msgstr "मासिक रिपोर्ट"
+
+msgid "Name *"
+msgstr "नाम *"
+
+msgid "Needs attention"
+msgstr "ध्यान देने की आवश्यकता है"
+
+msgid "New booking"
+msgstr "नई बुकिंग"
+
+msgid "No bookings yet"
+msgstr "अभी तक कोई बुकिंग नहीं"
+
+msgid "No company expenses in this period."
+msgstr "इस अवधि में कोई कंपनी व्यय नहीं।"
+
+msgid "No flight #"
+msgstr "कोई उड़ान संख्या नहीं"
+
+msgid "No flights yet"
+msgstr "अभी तक कोई उड़ान नहीं"
+
+msgid "No hotels yet"
+msgstr "अभी तक कोई होटल नहीं"
+
+msgid "No ledger entries"
+msgstr "कोई लेजर प्रविष्टि नहीं"
+
+msgid "No matches"
+msgstr "कोई मेल नहीं"
+
+msgid "No party entries in this period."
+msgstr "इस अवधि में कोई पार्टी प्रविष्टि नहीं।"
+
+msgid "No transports yet"
+msgstr "अभी तक कोई परिवहन नहीं"
+
+msgid "Notes"
+msgstr "नोट्स"
+
+msgid "Online"
+msgstr "ऑनलाइन"
+
+msgid "Open queue"
+msgstr "कतार खोलें"
+
+msgid "Optional"
+msgstr "वैकल्पिक"
+
+msgid "Optional internal reference"
+msgstr "वैकल्पिक आंतरिक संदर्भ"
+
+msgid "Other"
+msgstr "अन्य"
+
+msgid "Overview"
+msgstr "अवलोकन"
+
+msgid "PAX"
+msgstr "पैक्स"
+
+msgid "PDF"
+msgstr "पीडीएफ"
+
+msgid "PNR"
+msgstr "पीएनआर"
+
+msgid "Package name"
+msgstr "पैकेज नाम"
+
+msgid "Packages & clients"
+msgstr "पैकेज और ग्राहक"
+
+msgid "Particulars / Inv-Ref"
+msgstr "विवरण / इनवॉइस-संदर्भ"
+
+msgid "Party"
+msgstr "पार्टी"
+
+msgid "Party accounts (Debit / Credit)"
+msgstr "पार्टी खाते (डेबिट / क्रेडिट)"
+
+msgid "Party accounts (people/companies)"
+msgstr "पार्टी खाते (लोग/कंपनियां)"
+
+msgid "Party name"
+msgstr "पार्टी का नाम"
+
+msgid "Party type"
+msgstr "पार्टी प्रकार"
+
+msgid "Payment method *"
+msgstr "भुगतान विधि *"
+
+msgid "Payment plan"
+msgstr "भुगतान योजना"
+
+msgid "Payments collected, trailing six months."
+msgstr "एकत्रित भुगतान, पिछले छह महीने।"
+
+msgid "Pending"
+msgstr "लंबित"
+
+msgid "Pending vouchers"
+msgstr "लंबित वाउचर"
+
+msgid "Period:"
+msgstr "अवधि:"
+
+msgid "Person"
+msgstr "व्यक्ति"
+
+msgid "Previous Balance"
+msgstr "पिछला शेष"
+
+msgid "Print"
+msgstr "प्रिंट करें"
+
+msgid "Print / Save PDF"
+msgstr "प्रिंट / पीडीएफ सहेजें"
+
+msgid "Print Date:"
+msgstr "प्रिंट तिथि:"
+
+msgid "Print view"
+msgstr "प्रिंट दृश्य"
+
+msgid "Property"
+msgstr "संपत्ति"
+
+msgid "Purchase price (PKR / night) *"
+msgstr "खरीद मूल्य (PKR / रात) *"
+
+msgid "Purchase price (PKR)"
+msgstr "खरीद मूल्य (PKR)"
+
+msgid "Purchase price (PKR) *"
+msgstr "खरीद मूल्य (PKR) *"
+
+msgid "Quick add"
+msgstr "त्वरित जोड़ें"
+
+msgid "Rate"
+msgstr "दर"
+
+msgid "Rating"
+msgstr "रेटिंग"
+
+msgid "Recent bookings"
+msgstr "हाल की बुकिंग"
+
+msgid "Record party debit/credit or company expenses."
+msgstr "पार्टी डेबिट/क्रेडिट या कंपनी व्यय रिकॉर्ड करें।"
+
+msgid "Ref"
+msgstr "संदर्भ"
+
+msgid "Reference"
+msgstr "संदर्भ"
+
+msgid "Refund"
+msgstr "धनवापसी"
+
+msgid ""
+"Register a vehicle with capacity and PKR rates for quotes and vouchers."
+msgstr "कोट्स और वाउचर के लिए क्षमता और PKR दरों के साथ एक वाहन पंजीकृत करें।"
+
+msgid "Rejected"
+msgstr "अस्वीकृत"
+
+msgid "Reset instructions sent! Check your email inbox."
+msgstr "रीसेट निर्देश भेजे गए! अपना ईमेल इनबॉक्स जांचें।"
+
+msgid "Revenue"
+msgstr "राजस्व"
+
+msgid "Revenue chart"
+msgstr "राजस्व चार्ट"
+
+msgid "Review pending vouchers"
+msgstr "लंबित वाउचर की समीक्षा करें"
+
+msgid "Route"
+msgstr "मार्ग"
+
+msgid "Sale (PKR)"
+msgstr "बिक्री (PKR)"
+
+msgid "Sale / night (PKR)"
+msgstr "बिक्री / रात (PKR)"
+
+msgid "Sale price (PKR / night) *"
+msgstr "बिक्री मूल्य (PKR / रात) *"
+
+msgid "Sale price (PKR)"
+msgstr "बिक्री मूल्य (PKR)"
+
+msgid "Sale price (PKR) *"
+msgstr "बिक्री मूल्य (PKR) *"
+
+msgid "Saudi Arabia"
+msgstr "सऊदी अरब"
+
+msgid "Saudia"
+msgstr "सऊदिया"
+
+msgid "Save entry"
+msgstr "प्रविष्टि सहेजें"
+
+msgid "Save failed"
+msgstr "सहेजना विफल"
+
+msgid "Save flight"
+msgstr "उड़ान सहेजें"
+
+msgid "Save hotel"
+msgstr "होटल सहेजें"
+
+msgid "Save transport"
+msgstr "परिवहन सहेजें"
+
+msgid "Schedule"
+msgstr "अनुसूची"
+
+msgid "Scheduled"
+msgstr "निर्धारित"
+
+msgid "Search bookings"
+msgstr "बुकिंग खोजें"
+
+msgid "Search bookings…"
+msgstr "बुकिंग खोजें…"
+
+msgid "Search by airline, flight number, cities, or PNR. Updates as you type."
+msgstr ""
+"एयरलाइन, उड़ान संख्या, शहरों, या PNR द्वारा खोजें। टाइप करते ही अपडेट होता "
+"है।"
+
+msgid "Search by name, code, or location. Updates as you type."
+msgstr "नाम, कोड, या स्थान द्वारा खोजें। टाइप करते ही अपडेट होता है।"
+
+msgid "Search by name, type code, or notes. Updates as you type."
+msgstr "नाम, प्रकार कोड, या नोट्स द्वारा खोजें। टाइप करते ही अपडेट होता है।"
+
+msgid ""
+"Search by reference, description, category, or payment method. Filter by "
+"type."
+msgstr ""
+"संदर्भ, विवरण, श्रेणी, या भुगतान विधि द्वारा खोजें। प्रकार के अनुसार फ़िल्टर"
+" करें।"
+
+msgid "Search by voucher number, client, or package. Filter by status."
+msgstr ""
+"वाउचर संख्या, ग्राहक, या पैकेज द्वारा खोजें। स्थिति के अनुसार फ़िल्टर करें।"
+
+msgid "Search flights"
+msgstr "उड़ानें खोजें"
+
+msgid "Search flights…"
+msgstr "उड़ानें खोजें…"
+
+msgid "Search hotels"
+msgstr "होटल खोजें"
+
+msgid "Search hotels…"
+msgstr "होटल खोजें…"
+
+msgid "Search ledger"
+msgstr "लेजर खोजें"
+
+msgid "Search ledger…"
+msgstr "लेजर खोजें…"
+
+msgid "Search transports"
+msgstr "परिवहन खोजें"
+
+msgid "Search transports…"
+msgstr "परिवहन खोजें…"
+
+msgid "Send Reset Link"
+msgstr "रीसेट लिंक भेजें"
+
+msgid "Shortcuts"
+msgstr "शॉर्टकट"
+
+msgid "Star rating"
+msgstr "स्टार रेटिंग"
+
+msgid "Status"
+msgstr "स्थिति"
+
+msgid "Status distribution"
+msgstr "स्थिति वितरण"
+
+msgid "Street, area"
+msgstr "सड़क, क्षेत्र"
+
+msgid ""
+"This removes the flight from your inventory. Links from bookings that used "
+"this flight will be removed. This cannot be undone."
+msgstr ""
+"यह उड़ान को आपकी इन्वेंटरी से हटा देता है। इस उड़ान का उपयोग करने वाली "
+"बुकिंग से लिंक हटा दिए जाएंगे। इसे पूर्ववत नहीं किया जा सकता।"
+
+msgid ""
+"This removes the property and related rooms and images. Links from bookings "
+"that used this hotel will be removed. This cannot be undone."
+msgstr ""
+"यह संपत्ति और संबंधित कमरों और छवियों को हटा देता है। इस होटल का उपयोग करने "
+"वाली बुकिंग से लिंक हटा दिए जाएंगे। इसे पूर्ववत नहीं किया जा सकता।"
+
+msgid ""
+"This removes the vehicle from your fleet. Links from bookings that used this"
+" transport will be removed. This cannot be undone."
+msgstr ""
+"यह वाहन को आपके बेड़े से हटा देता है। इस परिवहन का उपयोग करने वाली बुकिंग से"
+" लिंक हटा दिए जाएंगे। इसे पूर्ववत नहीं किया जा सकता।"
+
+msgid "To *"
+msgstr "तक *"
+
+msgid "To:"
+msgstr "तक:"
+
+msgid "Total (PKR)"
+msgstr "कुल (PKR)"
+
+msgid "Total bookings"
+msgstr "कुल बुकिंग"
+
+msgid "Total expenses:"
+msgstr "कुल व्यय:"
+
+msgid "Total flights"
+msgstr "कुल उड़ानें"
+
+msgid "Total properties"
+msgstr "कुल संपत्तियां"
+
+msgid "Total units"
+msgstr "कुल इकाइयां"
+
+msgid ""
+"Track income, expenses, and voucher-related movements across your agency — "
+"searchable and filterable."
+msgstr ""
+"अपनी एजेंसी में आय, व्यय, और वाउचर-संबंधित गतिविधियों को ट्रैक करें — खोजने "
+"योग्य और फ़िल्टर करने योग्य।"
+
+msgid "Train"
+msgstr "ट्रेन"
+
+msgid "Trans.#"
+msgstr "ट्रांस.#"
+
+msgid "Transaction type *"
+msgstr "लेनदेन प्रकार *"
+
+msgid "Transactions"
+msgstr "लेनदेन"
+
+msgid "Transactions & balances"
+msgstr "लेनदेन और शेष"
+
+msgid "Try another search or change the status filter."
+msgstr "दूसरी खोज आज़माएं या स्थिति फ़िल्टर बदलें।"
+
+msgid "Try another search or change the type filter."
+msgstr "दूसरी खोज आज़माएं या प्रकार फ़िल्टर बदलें।"
+
+msgid "Try another search or clear the filter to see all flights."
+msgstr "दूसरी खोज आज़माएं या सभी उड़ानें देखने के लिए फ़िल्टर साफ़ करें।"
+
+msgid "Try another search or clear the filter to see all properties."
+msgstr "दूसरी खोज आज़माएं या सभी संपत्तियां देखने के लिए फ़िल्टर साफ़ करें।"
+
+msgid "Try another search or clear the filter to see all vehicles."
+msgstr "दूसरी खोज आज़माएं या सभी वाहन देखने के लिए फ़िल्टर साफ़ करें।"
+
+msgid "Type"
+msgstr "प्रकार"
+
+msgid "Type *"
+msgstr "प्रकार *"
+
+msgid "Update flight"
+msgstr "उड़ान अपडेट करें"
+
+msgid "Update hotel"
+msgstr "होटल अपडेट करें"
+
+msgid "Update rates and property details."
+msgstr "दरें और संपत्ति विवरण अपडेट करें।"
+
+msgid "Update routing and PKR pricing."
+msgstr "रूटिंग और PKR मूल्य निर्धारण अपडेट करें।"
+
+msgid "Update transport"
+msgstr "परिवहन अपडेट करें"
+
+msgid "Update vehicle details and PKR rates."
+msgstr "वाहन विवरण और PKR दरें अपडेट करें।"
+
+msgid "VIP Coach 1"
+msgstr "VIP कोच 1"
+
+msgid "Van"
+msgstr "वैन"
+
+msgid "Vehicle / unit"
+msgstr "वाहन / इकाई"
+
+msgid "View all"
+msgstr "सभी देखें"
+
+msgid "View all bookings"
+msgstr "सभी बुकिंग देखें"
+
+msgid "View all entries"
+msgstr "सभी प्रविष्टियां देखें"
+
+msgid "View all flights"
+msgstr "सभी उड़ानें देखें"
+
+msgid "View all hotels"
+msgstr "सभी होटल देखें"
+
+msgid "View all transports"
+msgstr "सभी परिवहन देखें"
+
+msgid "Voucher"
+msgstr "वाउचर"
+
+msgid "Voucher #"
+msgstr "वाउचर #"
+
+msgid "Voucher mix"
+msgstr "वाउचर मिश्रण"
+
+msgid "Voucher status chart"
+msgstr "वाउचर स्थिति चार्ट"
+
+msgid "Vouchers waiting on approval"
+msgstr "अनुमोदन की प्रतीक्षा में वाउचर"
+
+msgid "Write details (kis khaya, kya piya, etc.)"
+msgstr "विवरण लिखें (किसने खाया, क्या पिया, आदि)"
+
+msgid "e.g. Ali / Al Noor Hotel"
+msgstr "उदा. अली / अल नूर होटल"
+
+msgid "e.g. Office, Fuel, Food"
+msgstr "उदा. कार्यालय, ईंधन, भोजन"
+
+msgid "e.g., Pakistan"
+msgstr "उदा., पाकिस्तान"
+
+msgid "e.g., Umrah Economy 10N"
+msgstr "उदा., उमराह इकॉनमी 10N"
+
+msgid "optional"
+msgstr "वैकल्पिक"
+
+msgid "pax"
+msgstr "पैक्स"
+
+msgid "— Select —"
+msgstr "— चुनें —"
+
+msgid "← Back to Login"
+msgstr "← लॉगिन पर वापस जाएं"
+
+msgid "%(rating)s out of 5 stars"
+msgstr "5 में से %(rating)s सितारे"
+
+msgid "%(counter)s hotel"
+msgid_plural "%(counter)s hotels"
+msgstr[0] "%(counter)s होटल"
+msgstr[1] "%(counter)s होटल"
+
+msgid "%(counter)s flight"
+msgid_plural "%(counter)s flights"
+msgstr[0] "%(counter)s उड़ान"
+msgstr[1] "%(counter)s उड़ानें"
+
+msgid "%(counter)s unit"
+msgid_plural "%(counter)s units"
+msgstr[0] "%(counter)s इकाई"
+msgstr[1] "%(counter)s इकाइयां"
+
+msgid "%(counter)s booking"
+msgid_plural "%(counter)s bookings"
+msgstr[0] "%(counter)s बुकिंग"
+msgstr[1] "%(counter)s बुकिंग"
+
+msgid "%(counter)s entry"
+msgid_plural "%(counter)s entrys"
+msgstr[0] "%(counter)s प्रविष्टि"
+msgstr[1] "%(counter)s प्रविष्टियां"
+
+msgid "%(counter)s star"
+msgid_plural "%(counter)s stars"
+msgstr[0] "%(counter)s सितारा"
+msgstr[1] "%(counter)s सितारे"
+
+msgid "At least one passenger is required."
+msgstr "कम से कम एक यात्री आवश्यक है।"
+
+msgid "Booking not found."
+msgstr "बुकिंग नहीं मिली।"
+
+msgid "Language updated."
+msgstr "भाषा अपडेट हो गई।"
+
+msgid "Please enter a valid email address."
+msgstr "कृपया एक मान्य ईमेल पता दर्ज करें।"
+
+msgid "Too many requests. Please wait a few minutes and try again."
+msgstr "बहुत अधिक अनुरोध। कृपया कुछ मिनट प्रतीक्षा करें और फिर कोशिश करें।"
+
+msgid "Unknown language."
+msgstr "अज्ञात भाषा।"
+
+msgid "Voucher and itinerary saved."
+msgstr "वाउचर और यात्रा कार्यक्रम सहेजा गया।"
+
+msgid "Voucher saved. You can print or download PDF from the links below."
+msgstr ""
+"वाउचर सहेजा गया। आप नीचे दिए गए लिंक से प्रिंट या पीडीएफ डाउनलोड कर सकते "
+"हैं।"
+
+msgid "Accounting"
+msgstr "लेखांकन"
+
+msgid "Action"
+msgstr "कार्रवाई"
+
+msgid "Active"
+msgstr "सक्रिय"
+
+msgid "Active & trialing subscriptions by plan."
+msgstr "योजना के अनुसार सक्रिय और परीक्षण सदस्यताएं।"
+
+msgid "Active staff seats"
+msgstr "सक्रिय स्टाफ सीटें"
+
+msgid "Add"
+msgstr "जोड़ें"
+
+msgid "Add a teammate"
+msgstr "टीम सदस्य जोड़ें"
+
+msgid "Add an installment"
+msgstr "किस्त जोड़ें"
+
+msgid ""
+"Add city contacts used on vouchers (helplines, management, drivers, etc.)."
+msgstr ""
+"वाउचर पर उपयोग किए जाने वाले शहर संपर्क जोड़ें (हेल्पलाइन, प्रबंधन, ड्राइवर,"
+" आदि)।"
+
+msgid "Add contact"
+msgstr "संपर्क जोड़ें"
+
+msgid "Add teammate"
+msgstr "टीम सदस्य जोड़ें"
+
+msgid "Add your first team member to get started."
+msgstr "शुरू करने के लिए अपना पहला टीम सदस्य जोड़ें।"
+
+msgid "Against installment (optional)"
+msgstr "किस्त के विरुद्ध (वैकल्पिक)"
+
+msgid "Agency attendance"
+msgstr "एजेंसी उपस्थिति"
+
+msgid "Agency code"
+msgstr "एजेंसी कोड"
+
+msgid "Agency email"
+msgstr "एजेंसी ईमेल"
+
+msgid "Agency growth"
+msgstr "एजेंसी वृद्धि"
+
+msgid "Agency growth by month"
+msgstr "माह के अनुसार एजेंसी वृद्धि"
+
+msgid "Agency name"
+msgstr "एजेंसी नाम"
+
+msgid "Agency phone"
+msgstr "एजेंसी फ़ोन"
+
+msgid "All actions"
+msgstr "सभी कार्रवाइयां"
+
+msgid "All bookings broken down by status."
+msgstr "स्थिति के अनुसार विभाजित सभी बुकिंग।"
+
+msgid "All cities"
+msgstr "सभी शहर"
+
+msgid "All statuses"
+msgstr "सभी स्थितियां"
+
+msgid "Already have an account?"
+msgstr "पहले से खाता है?"
+
+msgid "Analytics"
+msgstr "विश्लेषण"
+
+msgid "Apply"
+msgstr "लागू करें"
+
+msgid "Assign"
+msgstr "असाइन करें"
+
+msgid "At least 8 characters"
+msgstr "कम से कम 8 वर्ण"
+
+msgid "Attendance admin:"
+msgstr "उपस्थिति व्यवस्थापक:"
+
+msgid "Attendance password"
+msgstr "उपस्थिति पासवर्ड"
+
+msgid "Audit Log"
+msgstr "ऑडिट लॉग"
+
+msgid "Audit log"
+msgstr "ऑडिट लॉग"
+
+msgid "Back to billing"
+msgstr "बिलिंग पर वापस जाएं"
+
+msgid "Back to roles"
+msgstr "भूमिकाओं पर वापस जाएं"
+
+msgid "Billing interval"
+msgstr "बिलिंग अंतराल"
+
+msgid "Blank = unlimited"
+msgstr "खाली = असीमित"
+
+msgid "Bookings Report"
+msgstr "बुकिंग रिपोर्ट"
+
+msgid "Bookings by status"
+msgstr "स्थिति के अनुसार बुकिंग"
+
+msgid "Bookings this month"
+msgstr "इस महीने की बुकिंग"
+
+msgid "Bookings/mo"
+msgstr "बुकिंग/माह"
+
+msgid "Breakdown by status"
+msgstr "स्थिति के अनुसार विभाजन"
+
+msgid "Built-in template — read-only. Clone it to customize."
+msgstr ""
+"बिल्ट-इन टेम्प्लेट — केवल पढ़ने के लिए। अनुकूलित करने के लिए क्लोन करें।"
+
+msgid "By"
+msgstr "द्वारा"
+
+msgid "By status"
+msgstr "स्थिति के अनुसार"
+
+msgid "CRM"
+msgstr "सीआरएम"
+
+msgid "Capability"
+msgstr "क्षमता"
+
+msgid "Changes"
+msgstr "परिवर्तन"
+
+msgid "Channel"
+msgstr "चैनल"
+
+msgid "Check"
+msgstr "चेक"
+
+msgid "Check in"
+msgstr "चेक इन"
+
+msgid "Check out"
+msgstr "चेक आउट"
+
+msgid ""
+"Choose which events automatically notify your customers, and on which "
+"channel."
+msgstr ""
+"चुनें कि कौन से इवेंट स्वचालित रूप से आपके ग्राहकों को सूचित करें, और किस "
+"चैनल पर।"
+
+msgid "City"
+msgstr "शहर"
+
+msgid "City / country"
+msgstr "शहर / देश"
+
+msgid "Clone & customize"
+msgstr "क्लोन और अनुकूलित करें"
+
+msgid "Clone a template above to build your own."
+msgstr "अपना बनाने के लिए ऊपर दिए गए टेम्प्लेट को क्लोन करें।"
+
+msgid "Cloned from"
+msgstr "से क्लोन किया गया"
+
+msgid "Code"
+msgstr "कोड"
+
+msgid "Collect Payment"
+msgstr "भुगतान एकत्र करें"
+
+msgid "Confirm"
+msgstr "पुष्टि करें"
+
+msgid "Confirm once you've verified the money actually arrived."
+msgstr "पुष्टि करें कि पैसा वास्तव में पहुंचा है, उसके बाद ही पुष्टि करें।"
+
+msgid "Contact name"
+msgstr "संपर्क नाम"
+
+msgid "Count"
+msgstr "गणना"
+
+msgid "Country"
+msgstr "देश"
+
+msgid "Create"
+msgstr "बनाएं"
+
+msgid "Create a custom role"
+msgstr "कस्टम भूमिका बनाएं"
+
+msgid "Create agency"
+msgstr "एजेंसी बनाएं"
+
+msgid "Create my workspace"
+msgstr "मेरा वर्कस्पेस बनाएं"
+
+msgid "Create one to enable signups."
+msgstr "साइनअप सक्षम करने के लिए एक बनाएं।"
+
+msgid "Create the first one"
+msgstr "पहला बनाएं"
+
+msgid "Created"
+msgstr "बनाया गया"
+
+msgid "Creates the agency workspace and its first owner account."
+msgstr "एजेंसी वर्कस्पेस और उसका पहला मालिक खाता बनाता है।"
+
+msgid "Credits"
+msgstr "क्रेडिट"
+
+msgid "Credits (in)"
+msgstr "क्रेडिट (अंदर)"
+
+msgid "Credits vs debits by month"
+msgstr "माह के अनुसार क्रेडिट बनाम डेबिट"
+
+msgid "Credits vs. debits by month"
+msgstr "माह के अनुसार क्रेडिट बनाम डेबिट"
+
+msgid "Cross-tenant growth and revenue, computed live across every agency."
+msgstr "क्रॉस-टेनेंट वृद्धि और राजस्व, हर एजेंसी में लाइव गणना की गई।"
+
+msgid "Currency"
+msgstr "मुद्रा"
+
+msgid "Current"
+msgstr "वर्तमान"
+
+msgid "Deactivate"
+msgstr "निष्क्रिय करें"
+
+msgid "Deactivated"
+msgstr "निष्क्रिय"
+
+msgid "Debits"
+msgstr "डेबिट"
+
+msgid "Debits (out)"
+msgstr "डेबिट (बाहर)"
+
+msgid "Default trial"
+msgstr "डिफ़ॉल्ट परीक्षण"
+
+msgid "Default trial plan"
+msgstr "डिफ़ॉल्ट परीक्षण योजना"
+
+msgid "Delivery log"
+msgstr "डिलीवरी लॉग"
+
+msgid "Detail"
+msgstr "विवरण"
+
+msgid "Django admin"
+msgstr "जैंगो एडमिन"
+
+msgid "Due"
+msgstr "देय"
+
+msgid "Due date"
+msgstr "नियत तारीख"
+
+msgid "EasyPaisa"
+msgstr "ईज़ीपैसा"
+
+msgid "Edit Plan"
+msgstr "योजना संपादित करें"
+
+msgid "Edit permissions"
+msgstr "अनुमतियां संपादित करें"
+
+msgid "Email"
+msgstr "ईमेल"
+
+msgid "Enabled"
+msgstr "सक्षम"
+
+msgid "Event"
+msgstr "इवेंट"
+
+msgid "Every notification attempt — sent, failed, or skipped and why."
+msgstr "हर सूचना प्रयास — भेजा गया, विफल, या छोड़ा गया और क्यों।"
+
+msgid "Every travel agency running on this platform."
+msgstr "इस प्लेटफ़ॉर्म पर चलने वाली हर ट्रैवल एजेंसी।"
+
+msgid "Expired"
+msgstr "समाप्त"
+
+msgid "Export CSV"
+msgstr "CSV निर्यात करें"
+
+msgid "Failed"
+msgstr "विफल"
+
+msgid "Filter by model (e.g. Booking)"
+msgstr "मॉडल के अनुसार फ़िल्टर करें (उदा. बुकिंग)"
+
+msgid ""
+"Filter by month. Mark attendance entries with date, status, and optional "
+"check-in/out times."
+msgstr ""
+"महीने के अनुसार फ़िल्टर करें। तारीख, स्थिति, और वैकल्पिक चेक-इन/आउट समय के "
+"साथ उपस्थिति प्रविष्टियां चिह्नित करें।"
+
+msgid "Filter by month. Your attendance remains visible only to your account."
+msgstr ""
+"महीने के अनुसार फ़िल्टर करें। आपकी उपस्थिति केवल आपके खाते को दिखाई देती है।"
+
+msgid "HR"
+msgstr "एचआर"
+
+msgid "Hidden"
+msgstr "छिपा हुआ"
+
+msgid "How to pay"
+msgstr "भुगतान कैसे करें"
+
+msgid "I've paid"
+msgstr "मैंने भुगतान कर दिया है"
+
+msgid "Installment"
+msgstr "किस्त"
+
+msgid "Installments due (14 days)"
+msgstr "देय किस्तें (14 दिन)"
+
+msgid "Installments due soon"
+msgstr "जल्द देय किस्तें"
+
+msgid "JazzCash"
+msgstr "जैज़कैश"
+
+msgid "Label"
+msgstr "लेबल"
+
+msgid "Ledger Summary"
+msgstr "लेजर सारांश"
+
+msgid "Ledger summary"
+msgstr "लेजर सारांश"
+
+msgid "Level"
+msgstr "स्तर"
+
+msgid ""
+"Link a hotel, flight, or transport to a supplier contact, then confirm a "
+"booking using it."
+msgstr ""
+"होटल, उड़ान, या परिवहन को आपूर्तिकर्ता संपर्क से लिंक करें, फिर इसका उपयोग "
+"करके एक बुकिंग की पुष्टि करें।"
+
+msgid "Log in as this user"
+msgstr "इस उपयोगकर्ता के रूप में लॉगिन करें"
+
+msgid "MRR (PKR)"
+msgstr "MRR (PKR)"
+
+msgid "MRR by plan"
+msgstr "योजना के अनुसार MRR"
+
+msgid "Madina"
+msgstr "मदीना"
+
+msgid "Manage"
+msgstr "प्रबंधित करें"
+
+msgid "Manage roles"
+msgstr "भूमिकाएं प्रबंधित करें"
+
+msgid "Mark attendance"
+msgstr "उपस्थिति चिह्नित करें"
+
+msgid ""
+"Mark daily attendance for every member in your agency — safely locked behind"
+" an admin password."
+msgstr ""
+"अपनी एजेंसी में हर सदस्य के लिए दैनिक उपस्थिति चिह्नित करें — व्यवस्थापक "
+"पासवर्ड के पीछे सुरक्षित रूप से लॉक।"
+
+msgid "Max bookings / month"
+msgstr "अधिकतम बुकिंग / माह"
+
+msgid "Max staff seats"
+msgstr "अधिकतम स्टाफ सीटें"
+
+msgid "Member"
+msgstr "सदस्य"
+
+msgid "Model"
+msgstr "मॉडल"
+
+msgid "Money in vs. money out, by month"
+msgstr "माह के अनुसार आने वाला बनाम जाने वाला पैसा"
+
+msgid ""
+"Money in vs. money out, by month — across party accounts and company "
+"expenses."
+msgstr ""
+"माह के अनुसार आने वाला बनाम जाने वाला पैसा — पार्टी खातों और कंपनी व्यय में।"
+
+msgid "Month"
+msgstr "महीना"
+
+msgid "Monthly"
+msgstr "मासिक"
+
+msgid "Monthly recurring revenue"
+msgstr "मासिक आवर्ती राजस्व"
+
+msgid "Monthly recurring revenue from active subscriptions."
+msgstr "सक्रिय सदस्यताओं से मासिक आवर्ती राजस्व।"
+
+msgid "Monthly revenue from collected payments"
+msgstr "एकत्रित भुगतानों से मासिक राजस्व"
+
+msgid "Monthly totals from payments actually collected against bookings."
+msgstr "बुकिंग के विरुद्ध वास्तव में एकत्रित भुगतानों से मासिक कुल।"
+
+msgid "Most recent 200 entries, across every tenant."
+msgstr "हर टेनेंट में नवीनतम 200 प्रविष्टियां।"
+
+msgid "My attendance"
+msgstr "मेरी उपस्थिति"
+
+msgid "Name"
+msgstr "नाम"
+
+msgid "Need something different?"
+msgstr "कुछ अलग चाहिए?"
+
+msgid "Net"
+msgstr "शुद्ध"
+
+msgid "New Plan"
+msgstr "नई योजना"
+
+msgid "New Tenant"
+msgstr "नया टेनेंट"
+
+msgid "New agencies"
+msgstr "नई एजेंसियां"
+
+msgid "New agencies signed up, trailing six months."
+msgstr "नई एजेंसियों ने साइन अप किया, पिछले छह महीने।"
+
+msgid "New plan"
+msgstr "नई योजना"
+
+msgid "New tenant"
+msgstr "नया टेनेंट"
+
+msgid "No active plan yet."
+msgstr "अभी तक कोई सक्रिय योजना नहीं।"
+
+msgid "No active subscriptions yet."
+msgstr "अभी तक कोई सक्रिय सदस्यता नहीं।"
+
+msgid "No activity recorded yet"
+msgstr "अभी तक कोई गतिविधि दर्ज नहीं हुई"
+
+msgid "No agencies yet"
+msgstr "अभी तक कोई एजेंसी नहीं"
+
+msgid "No attendance records"
+msgstr "कोई उपस्थिति रिकॉर्ड नहीं"
+
+msgid "No card required. Set up your agency workspace in under a minute."
+msgstr ""
+"कोई कार्ड आवश्यक नहीं। एक मिनट से कम में अपना एजेंसी वर्कस्पेस सेट करें।"
+
+msgid "No contacts found"
+msgstr "कोई संपर्क नहीं मिला"
+
+msgid "No custom roles yet"
+msgstr "अभी तक कोई कस्टम भूमिका नहीं"
+
+msgid "No installments pending or overdue in the next 14 days."
+msgstr "अगले 14 दिनों में कोई लंबित या देय किस्तें नहीं।"
+
+msgid "No installments yet"
+msgstr "अभी तक कोई किस्त नहीं"
+
+msgid "No payments yet"
+msgstr "अभी तक कोई भुगतान नहीं"
+
+msgid "No plans yet"
+msgstr "अभी तक कोई योजना नहीं"
+
+msgid "No recorded activity yet"
+msgstr "अभी तक कोई दर्ज गतिविधि नहीं"
+
+msgid "No subscription on record."
+msgstr "कोई सदस्यता दर्ज नहीं।"
+
+msgid "No subscriptions yet."
+msgstr "अभी तक कोई सदस्यता नहीं।"
+
+msgid "No teammates yet"
+msgstr "अभी तक कोई टीम सदस्य नहीं"
+
+msgid "No users yet"
+msgstr "अभी तक कोई उपयोगकर्ता नहीं"
+
+msgid "Nothing due"
+msgstr "कुछ देय नहीं"
+
+msgid "Nothing owed yet"
+msgstr "अभी तक कुछ बकाया नहीं"
+
+msgid "Nothing pending"
+msgstr "कुछ लंबित नहीं"
+
+msgid "Nothing sent yet"
+msgstr "अभी तक कुछ नहीं भेजा गया"
+
+msgid "Notification Delivery Log"
+msgstr "सूचना डिलीवरी लॉग"
+
+msgid "Notification preferences"
+msgstr "सूचना प्राथमिकताएं"
+
+msgid "Notifications will appear here as bookings and payments happen."
+msgstr "जैसे-जैसे बुकिंग और भुगतान होंगे, सूचनाएं यहां दिखाई देंगी।"
+
+msgid "Object"
+msgstr "ऑब्जेक्ट"
+
+msgid "On trial"
+msgstr "परीक्षण पर"
+
+msgid "Onboard a new agency"
+msgstr "नई एजेंसी ऑनबोर्ड करें"
+
+msgid "Only an Owner or Manager can change these settings."
+msgstr "केवल मालिक या प्रबंधक ही इन सेटिंग्स को बदल सकता है।"
+
+msgid "Outstanding balance"
+msgstr "बकाया शेष"
+
+msgid "Overdue"
+msgstr "अतिदेय"
+
+msgid "Owed"
+msgstr "बकाया"
+
+msgid "Owing"
+msgstr "देय"
+
+msgid "Owner account"
+msgstr "मालिक खाता"
+
+msgid "Owner email"
+msgstr "मालिक ईमेल"
+
+msgid "Owner username"
+msgstr "मालिक उपयोगकर्ता नाम"
+
+msgid "Paid"
+msgstr "भुगतान किया गया"
+
+msgid "Paid so far"
+msgstr "अब तक भुगतान किया गया"
+
+msgid "Password required for every edit"
+msgstr "हर संपादन के लिए पासवर्ड आवश्यक"
+
+msgid "Past due"
+msgstr "अतिदेय"
+
+msgid "Paying agencies"
+msgstr "भुगतान करने वाली एजेंसियां"
+
+msgid "Payment"
+msgstr "भुगतान"
+
+msgid "Payment Plan"
+msgstr "भुगतान योजना"
+
+msgid "Payment history"
+msgstr "भुगतान इतिहास"
+
+msgid "Payment method"
+msgstr "भुगतान विधि"
+
+msgid "Pending Payments"
+msgstr "लंबित भुगतान"
+
+msgid "Pending or overdue, next 14 days"
+msgstr "लंबित या अतिदेय, अगले 14 दिन"
+
+msgid "Pending payments"
+msgstr "लंबित भुगतान"
+
+msgid "Pending payments →"
+msgstr "लंबित भुगतान →"
+
+msgid "Phone number"
+msgstr "फ़ोन नंबर"
+
+msgid "Pick a plan and send payment — we'll confirm and activate it shortly."
+msgstr ""
+"एक योजना चुनें और भुगतान भेजें — हम इसे जल्द ही पुष्टि और सक्रिय करेंगे।"
+
+msgid "Plan"
+msgstr "योजना"
+
+msgid "Plan & billing"
+msgstr "योजना और बिलिंग"
+
+msgid "Plan mix"
+msgstr "योजना मिश्रण"
+
+msgid "Plans"
+msgstr "योजनाएं"
+
+msgid "Plans will appear here once configured."
+msgstr "कॉन्फ़िगर होने के बाद योजनाएं यहां दिखाई देंगी।"
+
+msgid "Platform"
+msgstr "प्लेटफ़ॉर्म"
+
+msgid "Platform audit log"
+msgstr "प्लेटफ़ॉर्म ऑडिट लॉग"
+
+msgid "Platform-wide users"
+msgstr "प्लेटफ़ॉर्म-व्यापी उपयोगकर्ता"
+
+msgid "Postal code"
+msgstr "डाक कोड"
+
+msgid "Preferences"
+msgstr "प्राथमिकताएं"
+
+msgid "Price"
+msgstr "मूल्य"
+
+msgid "Reactivate agency"
+msgstr "एजेंसी पुनः सक्रिय करें"
+
+msgid "Recent platform activity on this agency"
+msgstr "इस एजेंसी पर हाल की प्लेटफ़ॉर्म गतिविधि"
+
+msgid "Recipient"
+msgstr "प्राप्तकर्ता"
+
+msgid "Record a payment"
+msgstr "भुगतान रिकॉर्ड करें"
+
+msgid "Record payment"
+msgstr "भुगतान रिकॉर्ड करें"
+
+msgid "Recorded by"
+msgstr "द्वारा दर्ज किया गया"
+
+msgid ""
+"Recording a payment here automatically updates the ledger — no separate "
+"entry needed."
+msgstr ""
+"यहां भुगतान रिकॉर्ड करने से लेजर स्वचालित रूप से अपडेट होता है — अलग "
+"प्रविष्टि की आवश्यकता नहीं।"
+
+msgid "Reference / transaction ID"
+msgstr "संदर्भ / लेनदेन आईडी"
+
+msgid "Reject"
+msgstr "अस्वीकार करें"
+
+msgid "Reject this payment claim?"
+msgstr "इस भुगतान दावे को अस्वीकार करें?"
+
+msgid "Remove"
+msgstr "हटाएं"
+
+msgid "Remove this installment?"
+msgstr "इस किस्त को हटाएं?"
+
+msgid "Revenue & Payments"
+msgstr "राजस्व और भुगतान"
+
+msgid "Revenue & payments"
+msgstr "राजस्व और भुगतान"
+
+msgid "Revenue by month"
+msgstr "माह के अनुसार राजस्व"
+
+msgid ""
+"Revenue, bookings, ledger, and supplier payables — all computed live from "
+"your data."
+msgstr ""
+"राजस्व, बुकिंग, लेजर, और आपूर्तिकर्ता देय — सभी आपके डेटा से लाइव गणना किए "
+"गए।"
+
+msgid "Revenue, last 6 months"
+msgstr "राजस्व, पिछले 6 महीने"
+
+msgid "Riyadh"
+msgstr "रियाद"
+
+msgid "Role"
+msgstr "भूमिका"
+
+msgid "Roles"
+msgstr "भूमिकाएं"
+
+msgid ""
+"SMS channels are shown for when a provider is connected — messages aren't "
+"sent yet even if enabled here (no SMS provider is configured)."
+msgstr ""
+"SMS चैनल तब के लिए दिखाए जाते हैं जब कोई प्रदाता जुड़ा हो — यहां सक्षम होने "
+"पर भी संदेश अभी नहीं भेजे जाते (कोई SMS प्रदाता कॉन्फ़िगर नहीं है)।"
+
+msgid "Save permissions"
+msgstr "अनुमतियां सहेजें"
+
+msgid "Save plan"
+msgstr "योजना सहेजें"
+
+msgid "Save preferences"
+msgstr "प्राथमिकताएं सहेजें"
+
+msgid "Search by role, contact name, phone, or notes. Filter by city."
+msgstr ""
+"भूमिका, संपर्क नाम, फ़ोन, या नोट्स द्वारा खोजें। शहर के अनुसार फ़िल्टर करें।"
+
+msgid "Search contacts"
+msgstr "संपर्क खोजें"
+
+msgid "Search contacts…"
+msgstr "संपर्क खोजें…"
+
+msgid "Seats"
+msgstr "सीटें"
+
+msgid "Security"
+msgstr "सुरक्षा"
+
+msgid "Select city"
+msgstr "शहर चुनें"
+
+msgid "Sent"
+msgstr "भेजा गया"
+
+msgid "Set attendance password"
+msgstr "उपस्थिति पासवर्ड सेट करें"
+
+msgid "Settled"
+msgstr "निपटाया गया"
+
+msgid ""
+"Shared across every agency on the platform, read-only — clone to adjust."
+msgstr ""
+"प्लेटफ़ॉर्म पर हर एजेंसी में साझा, केवल पढ़ने के लिए — समायोजित करने के लिए "
+"क्लोन करें।"
+
+msgid "Sign in"
+msgstr "साइन इन"
+
+msgid "Sign out"
+msgstr "साइन आउट"
+
+msgid "Skipped"
+msgstr "छोड़ा गया"
+
+msgid "Slug"
+msgstr "स्लग"
+
+msgid "Sort order"
+msgstr "क्रम क्रम"
+
+msgid ""
+"Split this booking into a deposit/balance schedule instead of one lump sum. "
+"Reminders go out automatically as due dates approach."
+msgstr ""
+"इस बुकिंग को एक बार की राशि के बजाय जमा/शेष अनुसूची में विभाजित करें। नियत "
+"तारीखें नज़दीक आने पर स्वचालित रूप से अनुस्मारक भेजे जाते हैं।"
+
+msgid "Start by marking attendance for today."
+msgstr "आज के लिए उपस्थिति चिह्नित करके शुरू करें।"
+
+msgid "State"
+msgstr "राज्य"
+
+msgid ""
+"Store city helplines and operational contacts — used inside vouchers for "
+"quick access."
+msgstr ""
+"शहर हेल्पलाइन और परिचालन संपर्क संग्रहीत करें — त्वरित पहुंच के लिए वाउचर के"
+" अंदर उपयोग किए जाते हैं।"
+
+msgid "Submitted"
+msgstr "प्रस्तुत"
+
+msgid "Subscribe"
+msgstr "सदस्यता लें"
+
+msgid "Subscription"
+msgstr "सदस्यता"
+
+msgid "Subscriptions"
+msgstr "सदस्यताएं"
+
+msgid "Super Admin"
+msgstr "सुपर एडमिन"
+
+msgid "Supplier"
+msgstr "आपूर्तिकर्ता"
+
+msgid "Supplier Payables"
+msgstr "आपूर्तिकर्ता देय"
+
+msgid "Supplier Payables Report"
+msgstr "आपूर्तिकर्ता देय रिपोर्ट"
+
+msgid "Supplier payables"
+msgstr "आपूर्तिकर्ता देय"
+
+msgid "Supplier payables report"
+msgstr "आपूर्तिकर्ता देय रिपोर्ट"
+
+msgid "Suspend agency"
+msgstr "एजेंसी निलंबित करें"
+
+msgid "Suspended"
+msgstr "निलंबित"
+
+msgid "Switch to this plan"
+msgstr "इस योजना पर स्विच करें"
+
+msgid "Team"
+msgstr "टीम"
+
+msgid "Templates"
+msgstr "टेम्प्लेट"
+
+msgid "Temporary password"
+msgstr "अस्थायी पासवर्ड"
+
+msgid "Tenants"
+msgstr "टेनेंट"
+
+msgid "The full amount is due as one payment until you add a schedule."
+msgstr ""
+"जब तक आप एक अनुसूची नहीं जोड़ते, पूरी राशि एक भुगतान के रूप में देय है।"
+
+msgid "Toggle what this role can see and do."
+msgstr "यह भूमिका क्या देख और कर सकती है टॉगल करें।"
+
+msgid "Total agencies"
+msgstr "कुल एजेंसियां"
+
+msgid "Total amount"
+msgstr "कुल राशि"
+
+msgid "Total contacts"
+msgstr "कुल संपर्क"
+
+msgid "Total owed"
+msgstr "कुल बकाया"
+
+msgid "Total paid"
+msgstr "कुल भुगतान"
+
+msgid "Transaction reference / note"
+msgstr "लेनदेन संदर्भ / नोट"
+
+msgid "Trial"
+msgstr "परीक्षण"
+
+msgid "Trial length (days)"
+msgstr "परीक्षण अवधि (दिन)"
+
+msgid "Trialing"
+msgstr "परीक्षण में"
+
+msgid "Try a different search or filter."
+msgstr "अलग खोज या फ़िल्टर आज़माएं।"
+
+msgid "Unlimited"
+msgstr "असीमित"
+
+msgid "Unlimited bookings"
+msgstr "असीमित बुकिंग"
+
+msgid "Unlimited seats"
+msgstr "असीमित सीटें"
+
+msgid "Update"
+msgstr "अपडेट करें"
+
+msgid "Updates the ledger automatically."
+msgstr "लेजर को स्वचालित रूप से अपडेट करता है।"
+
+msgid "User"
+msgstr "उपयोगकर्ता"
+
+msgid "View"
+msgstr "देखें"
+
+msgid "View permissions"
+msgstr "अनुमतियां देखें"
+
+msgid ""
+"View your daily attendance record — secure and private to your account."
+msgstr ""
+"अपना दैनिक उपस्थिति रिकॉर्ड देखें — आपके खाते के लिए सुरक्षित और निजी।"
+
+msgid "Visible for signup/upgrade"
+msgstr "साइनअप/अपग्रेड के लिए दृश्यमान"
+
+msgid "Waived"
+msgstr "माफ किया गया"
+
+msgid "What agencies can subscribe to."
+msgstr "एजेंसियां किसकी सदस्यता ले सकती हैं।"
+
+msgid "What you get"
+msgstr "आपको क्या मिलता है"
+
+msgid ""
+"What you owe each supplier, computed from confirmed bookings — and what's "
+"actually been paid."
+msgstr ""
+"आप हर आपूर्तिकर्ता को क्या बकाया हैं, पुष्ट बुकिंग से गणना की गई — और वास्तव"
+" में क्या भुगतान किया गया है।"
+
+msgid "What's owed to each supplier"
+msgstr "हर आपूर्तिकर्ता को क्या बकाया है"
+
+msgid "When"
+msgstr "कब"
+
+msgid "Who"
+msgstr "कौन"
+
+msgid "Yearly"
+msgstr "वार्षिक"
+
+msgid "You"
+msgstr "आप"
+
+msgid "Your access has lapsed — choose a plan below to reactivate."
+msgstr ""
+"आपकी पहुंच समाप्त हो गई है — पुनः सक्रिय करने के लिए नीचे एक योजना चुनें।"
+
+msgid "Your attendance will appear here."
+msgstr "आपकी उपस्थिति यहां दिखाई देगी।"
+
+msgid "Your email"
+msgstr "आपका ईमेल"
+
+msgid "Your trial plan"
+msgstr "आपकी परीक्षण योजना"
+
+msgid "Your username"
+msgstr "आपका उपयोगकर्ता नाम"
+
+msgid "due"
+msgstr "देय"
+
+msgid "e.g. ACME01"
+msgstr "उदा. ACME01"
+
+msgid "e.g. Deposit"
+msgstr "उदा. जमा"
+
+msgid "e.g. growth"
+msgstr "उदा. ग्रोथ"
+
+msgid "e.g. transaction ID, sender name"
+msgstr "उदा. लेनदेन आईडी, प्रेषक नाम"
+
+msgid "first."
+msgstr "पहले।"
+
+msgid "on"
+msgstr "पर"
+
+msgid "template"
+msgstr "टेम्प्लेट"
+
+msgid "— Not tied to a specific installment —"
+msgstr "— किसी विशिष्ट किस्त से जुड़ा नहीं —"
+
+msgid "%(counter)s record"
+msgid_plural "%(counter)s records"
+msgstr[0] "%(counter)s रिकॉर्ड"
+msgstr[1] "%(counter)s रिकॉर्ड"
+
+msgid "%(counter)s contact"
+msgid_plural "%(counter)s contacts"
+msgstr[0] "%(counter)s संपर्क"
+msgstr[1] "%(counter)s संपर्क"
+
+msgid "%(counter)s day left in your trial of the %(plan_name)s plan."
+msgid_plural "%(counter)s days left in your trial of the %(plan_name)s plan."
+msgstr[0] "आपकी %(plan_name)s योजना के परीक्षण में %(counter)s दिन शेष है।"
+msgstr[1] "आपकी %(plan_name)s योजना के परीक्षण में %(counter)s दिन शेष हैं।"
+
+msgid ""
+"To track a supplier here, open a Contact of type \"Supplier\", then set it "
+"as the supplier on the relevant Hotel/Flight/Transport inventory record."
+msgstr ""
+"यहां आपूर्तिकर्ता को ट्रैक करने के लिए, \"आपूर्तिकर्ता\" प्रकार का संपर्क "
+"खोलें, फिर इसे संबंधित होटल/उड़ान/परिवहन इन्वेंटरी रिकॉर्ड पर आपूर्तिकर्ता "
+"के रूप में सेट करें।"
+
+msgid "%(total)s total bookings"
+msgstr "कुल %(total)s बुकिंग"
+
+msgid ""
+"Owed, paid, and balance per supplier — same figures as the <a "
+"href=\"%(payables_dashboard_url)s\">payables dashboard</a>, exportable here."
+msgstr ""
+"प्रति आपूर्तिकर्ता बकाया, भुगतान किया गया, और शेष — <a "
+"href=\"%(payables_dashboard_url)s\">देय डैशबोर्ड</a> जैसे ही आंकड़े, यहां "
+"निर्यात योग्य।"
+
+msgid "Total, last %(months)s months"
+msgstr "कुल, पिछले %(months)s महीने"
+
+msgid "You're on the %(plan_name)s plan, renews %(renew_date)s."
+msgstr "आप %(plan_name)s योजना पर हैं, नवीनीकरण %(renew_date)s को होगा।"
+
+msgid "%(seats)s seats"
+msgstr "%(seats)s सीटें"
+
+msgid "%(n)s bookings/mo"
+msgstr "%(n)s बुकिंग/माह"
+
+msgid "Subscribe to %(name)s"
+msgstr "%(name)s की सदस्यता लें"
+
+msgid ""
+"Send %(currency)s %(amount)s via bank transfer, JazzCash, or EasyPaisa, then"
+" tell us below — we'll confirm and activate your plan."
+msgstr ""
+"बैंक ट्रांसफर, जैज़कैश, या ईज़ीपैसा के माध्यम से %(currency)s %(amount)s "
+"भेजें, फिर हमें नीचे बताएं — हम आपकी योजना की पुष्टि और सक्रिय करेंगे।"
+
+msgid ""
+"Every create, edit, and delete recorded automatically for %(agency_name)s — "
+"most recent 200."
+msgstr ""
+"%(agency_name)s के लिए हर निर्माण, संपादन, और हटाना स्वचालित रूप से दर्ज "
+"किया गया — नवीनतम 200।"
+
+msgid ""
+"Five built-in templates, ready to use — clone one to customize it for "
+"%(agency_name)s."
+msgstr ""
+"पांच बिल्ट-इन टेम्प्लेट, उपयोग के लिए तैयार — %(agency_name)s के लिए इसे "
+"अनुकूलित करने हेतु एक क्लोन करें।"
+
+msgid "Your custom roles (%(count)s/%(max)s)"
+msgstr "आपकी कस्टम भूमिकाएं (%(count)s/%(max)s)"
+
+msgid "You've reached the limit of %(max)s custom roles."
+msgstr "आप %(max)s कस्टम भूमिकाओं की सीमा तक पहुंच गए हैं।"
+
+msgid "They'll be added to %(agency_name)s with the role you choose below."
+msgstr ""
+"उन्हें नीचे आपकी चुनी गई भूमिका के साथ %(agency_name)s में जोड़ा जाएगा।"
+
+msgid "Everyone with access to %(agency_name)s, and what they can do."
+msgstr ""
+"%(agency_name)s तक पहुंच रखने वाला हर व्यक्ति, और वे क्या कर सकते हैं।"
+
+msgid "Deactivate %(username)s?"
+msgstr "%(username)s को निष्क्रिय करें?"
+
+msgid "%(days)s days"
+msgstr "%(days)s दिन"
+
+msgid "Edit %(name)s"
+msgstr "%(name)s संपादित करें"
+
+msgid "Suspend %(name)s? Its users will be unable to sign in."
+msgstr "%(name)s को निलंबित करें? इसके उपयोगकर्ता साइन इन नहीं कर पाएंगे।"
+
+msgid "trial ends %(d)s"
+msgstr "परीक्षण समाप्त होगा %(d)s"
+
+msgid "renews %(d)s"
+msgstr "नवीनीकरण %(d)s"
+
+msgid "Users (%(count)s)"
+msgstr "उपयोगकर्ता (%(count)s)"
+
+msgid "Present (%(month_filter)s)"
+msgstr "उपस्थित (%(month_filter)s)"
+
+msgid "Absent (%(month_filter)s)"
+msgstr "अनुपस्थित (%(month_filter)s)"
+
+msgid "Late / Leave (%(month_filter)s)"
+msgstr "देर / छुट्टी (%(month_filter)s)"
+
+msgid "Pay %(name)s"
+msgstr "%(name)s को भुगतान करें"
+
+msgid "Record a payment to %(name)s"
+msgstr "%(name)s को भुगतान रिकॉर्ड करें"
+
+msgid "Booking Confirmed — {{ booking.voucher_number }}"
+msgstr "बुकिंग की पुष्टि हो गई — {{ booking.voucher_number }}"
+
+msgid ""
+"<p>Dear {{ recipient_name }},</p><p>Your booking <strong>{{ "
+"booking.voucher_number }}</strong> with {{ agency.name }} has been "
+"confirmed.</p><p>Travelers: {{ mutamer_names }}<br>Total: {{ "
+"booking.total_amount }}</p><p>Thank you for booking with us.</p>"
+msgstr ""
+"<p>प्रिय {{ recipient_name }},</p><p>{{ agency.name }} के साथ आपकी बुकिंग "
+"<strong>{{ booking.voucher_number }}</strong> की पुष्टि हो गई "
+"है।</p><p>यात्री: {{ mutamer_names }}<br>कुल: {{ booking.total_amount "
+"}}</p><p>हमारे साथ बुकिंग करने के लिए धन्यवाद।</p>"
+
+msgid "Payment Received — {{ booking.voucher_number }}"
+msgstr "भुगतान प्राप्त हुआ — {{ booking.voucher_number }}"
+
+msgid ""
+"<p>Dear {{ recipient_name }},</p><p>We've received a payment of <strong>{{ "
+"payment.amount }}</strong> ({{ payment.get_payment_method_display }}) for "
+"booking {{ booking.voucher_number }}.</p><p>Thank you.</p>"
+msgstr ""
+"<p>प्रिय {{ recipient_name }},</p><p>हमें बुकिंग {{ booking.voucher_number "
+"}} के लिए <strong>{{ payment.amount }}</strong> ({{ "
+"payment.get_payment_method_display }}) का भुगतान प्राप्त हुआ "
+"है।</p><p>धन्यवाद।</p>"
+
+msgid "Your Voucher is Ready — {{ booking.voucher_number }}"
+msgstr "आपका वाउचर तैयार है — {{ booking.voucher_number }}"
+
+msgid ""
+"<p>Dear {{ recipient_name }},</p><p>Your voucher for booking <strong>{{ "
+"booking.voucher_number }}</strong> is ready. Your agent can share the "
+"printable copy with you.</p>"
+msgstr ""
+"<p>प्रिय {{ recipient_name }},</p><p>बुकिंग <strong>{{ "
+"booking.voucher_number }}</strong> के लिए आपका वाउचर तैयार है। आपका एजेंट "
+"आपके साथ प्रिंट करने योग्य प्रति साझा कर सकता है।</p>"
+
+msgid "Booking Cancelled — {{ booking.voucher_number }}"
+msgstr "बुकिंग रद्द हो गई — {{ booking.voucher_number }}"
+
+msgid ""
+"<p>Dear {{ recipient_name }},</p><p>Booking <strong>{{ "
+"booking.voucher_number }}</strong> with {{ agency.name }} has been "
+"cancelled.</p>"
+msgstr ""
+"<p>प्रिय {{ recipient_name }},</p><p>{{ agency.name }} के साथ बुकिंग "
+"<strong>{{ booking.voucher_number }}</strong> रद्द कर दी गई है।</p>"
+
+msgid "Disabled in this agency's notification settings."
+msgstr "इस एजेंसी की सूचना सेटिंग्स में अक्षम।"
+
+msgid "No contact or traveler on this booking has an email address on file."
+msgstr "इस बुकिंग पर किसी संपर्क या यात्री का कोई ईमेल पता दर्ज नहीं है।"
+
+msgid "SMS is enabled in settings, but no SMS provider is configured yet."
+msgstr ""
+"सेटिंग्स में SMS सक्षम है, लेकिन अभी तक कोई SMS प्रदाता कॉन्फ़िगर नहीं है।"
+
+msgid "Traveler"
+msgstr "यात्री"
+
+msgid "Payment overdue — %(voucher)s"
+msgstr "भुगतान अतिदेय — %(voucher)s"
+
+msgid "Payment due soon — %(voucher)s"
+msgstr "भुगतान जल्द देय है — %(voucher)s"
+
+msgid ""
+"Dear %(recipient)s,\n"
+"\n"
+"The '%(label)s' installment of %(amount)s for booking %(voucher)s was due on %(due_date)s%(overdue_note)s.\n"
+"\n"
+"Please arrange payment at your earliest convenience.\n"
+msgstr ""
+"प्रिय %(recipient)s,\n"
+"\n"
+"बुकिंग %(voucher)s के लिए '%(label)s' किस्त %(amount)s की %(due_date)s को देय थी%(overdue_note)s।\n"
+"\n"
+"कृपया जल्द से जल्द भुगतान की व्यवस्था करें।\n"
+
+msgid " and is now overdue"
+msgstr " और अब अतिदेय है"
+
+msgid "Your trial ends in %(days)s day(s)"
+msgstr "आपका परीक्षण %(days)s दिन में समाप्त हो जाएगा"
+
+msgid ""
+"Hi %(name)s,\n"
+"\n"
+"Your trial of %(plan)s for %(agency)s ends on %(end_date)s. Subscribe from the Billing page in your dashboard to keep access without interruption.\n"
+msgstr ""
+"नमस्ते %(name)s,\n"
+"\n"
+"%(agency)s के लिए आपकी %(plan)s की परीक्षण अवधि %(end_date)s को समाप्त हो जाएगी। बिना किसी रुकावट के पहुंच बनाए रखने के लिए अपने डैशबोर्ड में बिलिंग पेज से सदस्यता लें।\n"
+
+msgid "Password Reset Request"
+msgstr "पासवर्ड रीसेट अनुरोध"
+
+msgid "Click the link to reset your password: %(url)s"
+msgstr "अपना पासवर्ड रीसेट करने के लिए लिंक पर क्लिक करें: %(url)s"
+
+msgid " (Head)"
+msgstr " (मुखिया)"
+
+msgid " failed: "
+msgstr " विफल: "
+
+msgid "+ Add member"
+msgstr "+ सदस्य जोड़ें"
+
+msgid ", {{ children }} child"
+msgstr "، {{ children }} बच्चा"
+
+msgid ", {{ infants }} infant"
+msgstr "، {{ infants }} शिशु"
+
+msgid "AI"
+msgstr "AI"
+
+msgid "AI Assistant"
+msgstr "AI सहायक"
+
+msgid "Absent"
+msgstr "अनुपस्थित"
+
+msgid "Absent ({{ month_filter }})"
+msgstr "अनुपस्थित ({{ month_filter }})"
+
+msgid "Active profiles"
+msgstr "सक्रिय प्रोफाइल"
+
+msgid "Add Mutamer"
+msgstr "मुतमर जोड़ें"
+
+msgid "Add at least one family member."
+msgstr "कम से कम एक परिवार सदस्य जोड़ें।"
+
+msgid "Add flight row"
+msgstr "उड़ान पंक्ति जोड़ें"
+
+msgid "Add hotel row"
+msgstr "होटल पंक्ति जोड़ें"
+
+msgid "Add instructions on the Contacts page"
+msgstr "संपर्क पृष्ठ पर निर्देश जोड़ें"
+
+msgid ""
+"Add many pilgrims at once instead of one form at a time. Rows with problems "
+"are skipped and listed below — nothing else is rolled back."
+msgstr ""
+"एक बार में एक फॉर्म के बजाय कई तीर्थयात्रियों को एक साथ जोड़ें। समस्याओं "
+"वाली पंक्तियों को छोड़ दिया जाता है और नीचे सूचीबद्ध किया जाता है — बाकी कुछ"
+" भी वापस नहीं लिया जाता।"
+
+msgid "Add members, choose one head, then save."
+msgstr "सदस्य जोड़ें, एक मुखिया चुनें, फिर सहेजें।"
+
+msgid "Add mutamer"
+msgstr "मुतमर जोड़ें"
+
+msgid "Add transport row"
+msgstr "परिवहन पंक्ति जोड़ें"
+
+msgid ""
+"Add your first pilgrim profile for visas, vouchers, and group manifests."
+msgstr ""
+"वीजा, वाउचर, और समूह मैनिफेस्ट के लिए अपनी पहली तीर्थयात्री प्रोफ़ाइल "
+"जोड़ें।"
+
+msgid "Additional notes or instructions…"
+msgstr "अतिरिक्त नोट्स या निर्देश…"
+
+msgid "Adult"
+msgstr "वयस्क"
+
+msgid "Agent Bookings"
+msgstr "एजेंट बुकिंग"
+
+msgid "Agent Dashboard"
+msgstr "एजेंट डैशबोर्ड"
+
+msgid "Agent Mutamers"
+msgstr "एजेंट मुतमर"
+
+msgid "Agent Vouchers"
+msgstr "एजेंट वाउचर"
+
+msgid "Airline / flight"
+msgstr "एयरलाइन / उड़ान"
+
+msgid ""
+"All issued vouchers in one place — view, print, and export as PDF for "
+"partners and clients."
+msgstr ""
+"सभी जारी किए गए वाउचर एक जगह — देखें, प्रिंट करें, और भागीदारों और ग्राहकों "
+"के लिए PDF के रूप में निर्यात करें।"
+
+msgid "All members in this family group."
+msgstr "इस परिवार समूह के सभी सदस्य।"
+
+msgid "As per passport"
+msgstr "पासपोर्ट के अनुसार"
+
+msgid "Ask a question or give an instruction…"
+msgstr "प्रश्न पूछें या निर्देश दें…"
+
+msgid ""
+"Ask about your bookings, revenue, or payables — or ask it to record a "
+"payment (you'll always confirm first)."
+msgstr ""
+"अपनी बुकिंग, राजस्व, या देय के बारे में पूछें — या इसे भुगतान रिकॉर्ड करने "
+"के लिए कहें (आप हमेशा पहले पुष्टि करेंगे)।"
+
+msgid "Ask me anything about this agency"
+msgstr "इस एजेंसी के बारे में मुझसे कुछ भी पूछें"
+
+msgid "Attendance password *"
+msgstr "उपस्थिति पासवर्ड *"
+
+msgid "Attendance password changed"
+msgstr "उपस्थिति पासवर्ड बदला गया"
+
+msgid "Attendance password not set"
+msgstr "उपस्थिति पासवर्ड सेट नहीं है"
+
+msgid "Attendance password reset"
+msgstr "उपस्थिति पासवर्ड रीसेट हुआ"
+
+msgid "Attendance password set"
+msgstr "उपस्थिति पासवर्ड सेट हुआ"
+
+msgid "Auto-detect language"
+msgstr "भाषा स्वतः पहचानें"
+
+msgid "Back to bookings"
+msgstr "बुकिंग पर वापस जाएं"
+
+msgid "Back to mutamers"
+msgstr "मुतमर पर वापस जाएं"
+
+msgid "Beds"
+msgstr "बिस्तर"
+
+msgid "Bookings you have created"
+msgstr "आपके द्वारा बनाई गई बुकिंग"
+
+msgid "Branding not configured."
+msgstr "ब्रांडिंग कॉन्फ़िगर नहीं है।"
+
+msgid "CSV file"
+msgstr "CSV फ़ाइल"
+
+msgid "CSV format"
+msgstr "CSV प्रारूप"
+
+msgid "CSV row"
+msgstr "CSV पंक्ति"
+
+msgid "Change"
+msgstr "बदलें"
+
+msgid "Change password"
+msgstr "पासवर्ड बदलें"
+
+msgid "Check-in"
+msgstr "चेक-इन"
+
+msgid "Check-out"
+msgstr "चेक-आउट"
+
+msgid "Child"
+msgstr "बच्चा"
+
+msgid "Choose a CSV file first."
+msgstr "पहले एक CSV फ़ाइल चुनें।"
+
+msgid "Choose one option below. Only one “new password” field is needed."
+msgstr "नीचे से एक विकल्प चुनें। केवल एक “नया पासवर्ड” फ़ील्ड की आवश्यकता है।"
+
+msgid "Collapse"
+msgstr "संक्षिप्त करें"
+
+msgid "Company details"
+msgstr "कंपनी विवरण"
+
+msgid "Company logo"
+msgstr "कंपनी लोगो"
+
+msgid "Company name *"
+msgstr "कंपनी का नाम *"
+
+msgid "Company name is required"
+msgstr "कंपनी का नाम आवश्यक है"
+
+msgid "Company profile"
+msgstr "कंपनी प्रोफ़ाइल"
+
+msgid "Conf. #"
+msgstr "पुष्टि #"
+
+msgid "Confirm your account password *"
+msgstr "अपने खाते का पासवर्ड पुष्टि करें *"
+
+msgid "Confirmation"
+msgstr "पुष्टि"
+
+msgid "Confirm your password (used on every attendance save)."
+msgstr "अपने पासवर्ड की पुष्टि करें (हर उपस्थिति सहेजने पर उपयोग होता है)।"
+
+msgid "Contact"
+msgstr "संपर्क"
+
+msgid "Contact Name *"
+msgstr "संपर्क नाम *"
+
+msgid "Could not load family group."
+msgstr "परिवार समूह लोड नहीं हो सका।"
+
+msgid "Could not load mutamer."
+msgstr "मुतमर लोड नहीं हो सका।"
+
+msgid "Couldn't read that file — please export it as UTF-8 CSV."
+msgstr ""
+"वह फ़ाइल पढ़ी नहीं जा सकी — कृपया इसे UTF-8 CSV के रूप में निर्यात करें।"
+
+msgid ""
+"Create a pilgrim profile individually or add a whole family group at once."
+msgstr ""
+"व्यक्तिगत रूप से एक तीर्थयात्री प्रोफ़ाइल बनाएं या एक बार में पूरा परिवार "
+"समूह जोड़ें।"
+
+msgid "Create password"
+msgstr "पासवर्ड बनाएं"
+
+msgid "Create voucher"
+msgstr "वाउचर बनाएं"
+
+msgid "Create your first booking."
+msgstr "अपनी पहली बुकिंग बनाएं।"
+
+msgid "Ctrl/Cmd + click for several"
+msgstr "कई के लिए Ctrl/Cmd + क्लिक करें"
+
+msgid "Current attendance password *"
+msgstr "वर्तमान उपस्थिति पासवर्ड *"
+
+msgid "Current password"
+msgstr "वर्तमान पासवर्ड"
+
+msgid "Date and status are required"
+msgstr "तारीख और स्थिति आवश्यक हैं"
+
+msgid "Date of birth"
+msgstr "जन्म तिथि"
+
+msgid "Delete attendance record"
+msgstr "उपस्थिति रिकॉर्ड हटाएं"
+
+msgid "Delete contact"
+msgstr "संपर्क हटाएं"
+
+msgid "Delete family group?"
+msgstr "परिवार समूह हटाएं?"
+
+msgid "Delete mutamer?"
+msgstr "मुतमर हटाएं?"
+
+msgid "Deleted"
+msgstr "हटाया गया"
+
+msgid "Documents"
+msgstr "दस्तावेज़"
+
+msgid "Edit contact"
+msgstr "संपर्क संपादित करें"
+
+msgid "Edit family"
+msgstr "परिवार संपादित करें"
+
+msgid "Edit family group"
+msgstr "परिवार समूह संपादित करें"
+
+msgid "Edit mutamer"
+msgstr "मुतमर संपादित करें"
+
+msgid "Empty message."
+msgstr "खाली संदेश।"
+
+msgid "Enter account password and new attendance password"
+msgstr "खाता पासवर्ड और नया उपस्थिति पासवर्ड दर्ज करें"
+
+msgid ""
+"Enter any name (your agency can track staff without creating accounts)."
+msgstr ""
+"कोई भी नाम दर्ज करें (आपकी एजेंसी बिना खाते बनाए स्टाफ को ट्रैक कर सकती है)।"
+
+msgid "Enter current and new password"
+msgstr "वर्तमान और नया पासवर्ड दर्ज करें"
+
+msgid "Enter new attendance password"
+msgstr "नया उपस्थिति पासवर्ड दर्ज करें"
+
+msgid "Expand"
+msgstr "विस्तृत करें"
+
+msgid "Family"
+msgstr "परिवार"
+
+msgid "Family ID"
+msgstr "परिवार आईडी"
+
+msgid "Family ID {{ g.family_id }}"
+msgstr "परिवार आईडी {{ g.family_id }}"
+
+msgid "Family group"
+msgstr "परिवार समूह"
+
+msgid "Family group summary and member list."
+msgstr "परिवार समूह सारांश और सदस्य सूची।"
+
+msgid "Family groups"
+msgstr "परिवार समूह"
+
+msgid "Family head"
+msgstr "परिवार का मुखिया"
+
+msgid "Family head name"
+msgstr "परिवार मुखिया का नाम"
+
+msgid "Family heads"
+msgstr "परिवार मुखिया"
+
+msgid "Family members"
+msgstr "परिवार के सदस्य"
+
+msgid "Female"
+msgstr "महिला"
+
+msgid "Fields you set here are specific to this voucher."
+msgstr "यहां आपके द्वारा सेट की गई फ़ील्ड इस वाउचर के लिए विशिष्ट हैं।"
+
+msgid "First row must be a header with these column names."
+msgstr "पहली पंक्ति इन कॉलम नामों के साथ एक हेडर होनी चाहिए।"
+
+msgid "Flight"
+msgstr "उड़ान"
+
+msgid "For security, password is required on every save."
+msgstr "सुरक्षा के लिए, हर सहेजने पर पासवर्ड आवश्यक है।"
+
+msgid "For support, contact your issuing agent: {{ agent }}"
+msgstr "सहायता के लिए, अपने जारीकर्ता एजेंट से संपर्क करें: {{ agent }}"
+
+msgid "Forgot password (reset)"
+msgstr "पासवर्ड भूल गए (रीसेट)"
+
+msgid "Full Name"
+msgstr "पूरा नाम"
+
+msgid "Full business address"
+msgstr "पूरा व्यावसायिक पता"
+
+msgid "Full name"
+msgstr "पूरा नाम"
+
+msgid "Full name *"
+msgstr "पूरा नाम *"
+
+msgid "Gender"
+msgstr "लिंग"
+
+msgid "Gender *"
+msgstr "लिंग *"
+
+msgid "Ground transport"
+msgstr "जमीनी परिवहन"
+
+msgid "Head"
+msgstr "मुखिया"
+
+msgid "Hotel"
+msgstr "होटल"
+
+msgid "Import"
+msgstr "आयात करें"
+
+msgid "Import CSV"
+msgstr "CSV आयात करें"
+
+msgid "Import Mutamers"
+msgstr "मुतमर आयात करें"
+
+msgid "Import mutamers from CSV"
+msgstr "CSV से मुतमर आयात करें"
+
+msgid "Imported %(count)s mutamer(s)."
+msgstr "%(count)s मुतमर आयात किए गए।"
+
+msgid "Included Services"
+msgstr "शामिल सेवाएं"
+
+msgid "Individual"
+msgstr "व्यक्तिगत"
+
+msgid "Individuals"
+msgstr "व्यक्ति"
+
+msgid "Infant"
+msgstr "शिशु"
+
+msgid "Invalid account password"
+msgstr "अमान्य खाता पासवर्ड"
+
+msgid "Invalid contact"
+msgstr "अमान्य संपर्क"
+
+msgid "Invalid current password"
+msgstr "अमान्य वर्तमान पासवर्ड"
+
+msgid "Invalid date"
+msgstr "अमान्य तारीख"
+
+msgid ""
+"Invalid date_of_birth '%(dob)s' (use YYYY-MM-DD) — row imported without it."
+msgstr ""
+"अमान्य जन्म तिथि '%(dob)s' (YYYY-MM-DD उपयोग करें) — पंक्ति इसके बिना आयात "
+"की गई।"
+
+msgid "Invalid log"
+msgstr "अमान्य लॉग"
+
+msgid "Invalid password"
+msgstr "अमान्य पासवर्ड"
+
+msgid "Invalid record"
+msgstr "अमान्य रिकॉर्ड"
+
+msgid "Issued"
+msgstr "जारी किया गया"
+
+msgid "Issued:"
+msgstr "जारी किया गया:"
+
+msgid "JPEG, PNG, GIF, or SVG — max 5MB. Leave empty to keep current logo."
+msgstr ""
+"JPEG, PNG, GIF, या SVG — अधिकतम 5MB। वर्तमान लोगो रखने के लिए खाली छोड़ें।"
+
+msgid "Late"
+msgstr "देरी"
+
+msgid "Late / Leave ({{ month_filter }})"
+msgstr "देर / छुट्टी ({{ month_filter }})"
+
+msgid "Leave"
+msgstr "छुट्टी"
+
+msgid "Leg"
+msgstr "चरण"
+
+msgid "Live header (from profile)"
+msgstr "लाइव हेडर (प्रोफ़ाइल से)"
+
+msgid "Local contacts"
+msgstr "स्थानीय संपर्क"
+
+msgid "Logo"
+msgstr "लोगो"
+
+msgid "Logo and contact details shown on vouchers and documents."
+msgstr "वाउचर और दस्तावेज़ों पर दिखाया गया लोगो और संपर्क विवरण।"
+
+msgid "Logo file too large (max 5MB)"
+msgstr "लोगो फ़ाइल बहुत बड़ी है (अधिकतम 5MB)"
+
+msgid "Logo must be JPEG, PNG, GIF, or SVG"
+msgstr "लोगो JPEG, PNG, GIF, या SVG होना चाहिए"
+
+msgid "Makkah Management, Madina Helpline, etc."
+msgstr "मक्का प्रबंधन, मदीना हेल्पलाइन, आदि।"
+
+msgid "Male"
+msgstr "पुरुष"
+
+msgid ""
+"Manage at <a href=\"{{ contacts_url }}\">Contacts</a>. Profile / Shirka "
+"block: <a href=\"{{ profile_url }}\">Company profile</a>."
+msgstr ""
+"<a href=\"{{ contacts_url }}\">संपर्क</a> पर प्रबंधित करें। प्रोफ़ाइल / "
+"शिरका ब्लॉक: <a href=\"{{ profile_url }}\">कंपनी प्रोफ़ाइल</a>।"
+
+msgid "Manage password"
+msgstr "पासवर्ड प्रबंधित करें"
+
+msgid "Meal"
+msgstr "भोजन"
+
+msgid "Member "
+msgstr "सदस्य "
+
+msgid "Member name *"
+msgstr "सदस्य नाम *"
+
+msgid "Member name is required"
+msgstr "सदस्य नाम आवश्यक है"
+
+msgid "Members"
+msgstr "सदस्य"
+
+msgid "Members list"
+msgstr "सदस्य सूची"
+
+msgid "Missing fields"
+msgstr "अनुपस्थित फ़ील्ड"
+
+msgid ""
+"Missing or invalid required field (name/passport_number/nationality/gender)."
+msgstr ""
+"अनुपस्थित या अमान्य आवश्यक फ़ील्ड (नाम/पासपोर्ट नंबर/राष्ट्रीयता/लिंग)।"
+
+msgid "Missing required column(s): %(cols)s"
+msgstr "अनुपस्थित आवश्यक कॉलम: %(cols)s"
+
+msgid "Missing required fields"
+msgstr "अनुपस्थित आवश्यक फ़ील्ड"
+
+msgid "Mutamer"
+msgstr "तीर्थयात्री"
+
+msgid "Mutamer details"
+msgstr "मुतमर विवरण"
+
+msgid "Mutamer: "
+msgstr "मुतमर: "
+
+msgid "My Bookings"
+msgstr "मेरी बुकिंग"
+
+msgid "My Mutamers"
+msgstr "मेरे मुतमर"
+
+msgid "My Vouchers"
+msgstr "मेरे वाउचर"
+
+msgid "My bookings"
+msgstr "मेरी बुकिंग"
+
+msgid "My mutamers"
+msgstr "मेरे मुतमर"
+
+msgid "My vouchers"
+msgstr "मेरे वाउचर"
+
+msgid "Nationality"
+msgstr "राष्ट्रीयता"
+
+msgid "Nationality *"
+msgstr "राष्ट्रीयता *"
+
+msgid "New Booking"
+msgstr "नई बुकिंग"
+
+msgid "New Voucher"
+msgstr "नया वाउचर"
+
+msgid "New attendance password"
+msgstr "नया उपस्थिति पासवर्ड"
+
+msgid "New attendance password *"
+msgstr "नया उपस्थिति पासवर्ड *"
+
+msgid "New chat"
+msgstr "नई चैट"
+
+msgid "New password"
+msgstr "नया पासवर्ड"
+
+msgid "Nights"
+msgstr "रातें"
+
+msgid "No"
+msgstr "नहीं"
+
+msgid "No agency"
+msgstr "कोई एजेंसी नहीं"
+
+msgid "No logo"
+msgstr "कोई लोगो नहीं"
+
+msgid "No mutamers assigned"
+msgstr "कोई मुतमर सौंपा नहीं गया"
+
+msgid "No mutamers yet"
+msgstr "अभी तक कोई मुतमर नहीं"
+
+msgid "No specific services listed on this voucher."
+msgstr "इस वाउचर पर कोई विशिष्ट सेवाएं सूचीबद्ध नहीं हैं।"
+
+msgid "No vouchers yet"
+msgstr "अभी तक कोई वाउचर नहीं"
+
+msgid "Not allowed"
+msgstr "अनुमति नहीं"
+
+msgid "Not found"
+msgstr "नहीं मिला"
+
+msgid "Official service voucher"
+msgstr "आधिकारिक सेवा वाउचर"
+
+msgid "Official voucher"
+msgstr "आधिकारिक वाउचर"
+
+msgid ""
+"Only your account can mark attendance. Password will be required on every "
+"save."
+msgstr ""
+"केवल आपका खाता उपस्थिति चिह्नित कर सकता है। हर सहेजने पर पासवर्ड आवश्यक "
+"होगा।"
+
+msgid "Optional notes"
+msgstr "वैकल्पिक नोट्स"
+
+msgid "Optional:"
+msgstr "वैकल्पिक:"
+
+msgid "Outbound"
+msgstr "जाने वाली"
+
+msgid "PDF uses the same header layout in a print-ready format."
+msgstr "PDF प्रिंट-रेडी प्रारूप में वही हेडर लेआउट उपयोग करता है।"
+
+msgid "Package"
+msgstr "पैकेज"
+
+msgid "Pakistani"
+msgstr "पाकिस्तानी"
+
+msgid "Passport"
+msgstr "पासपोर्ट"
+
+msgid "Passport '%(passport)s' already exists for this agency."
+msgstr "पासपोर्ट '%(passport)s' इस एजेंसी के लिए पहले से मौजूद है।"
+
+msgid "Passport Number"
+msgstr "पासपोर्ट नंबर"
+
+msgid "Passport number"
+msgstr "पासपोर्ट नंबर"
+
+msgid "Passport number *"
+msgstr "पासपोर्ट नंबर *"
+
+msgid "Password is required"
+msgstr "पासवर्ड आवश्यक है"
+
+msgid "Password required"
+msgstr "पासवर्ड आवश्यक है"
+
+msgid "Person type"
+msgstr "व्यक्ति प्रकार"
+
+msgid "Phone"
+msgstr "फ़ोन"
+
+msgid "Phone Number *"
+msgstr "फ़ोन नंबर *"
+
+msgid "Pilgrim"
+msgstr "तीर्थयात्री"
+
+msgid "Pilgrim Information"
+msgstr "तीर्थयात्री जानकारी"
+
+msgid ""
+"Pilgrim records for visas, vouchers, manifests, and family grouping across "
+"your Umrah & Hajj operations."
+msgstr ""
+"आपके उमराह और हज संचालन में वीजा, वाउचर, मैनिफेस्ट, और परिवार समूहीकरण के "
+"लिए तीर्थयात्री रिकॉर्ड।"
+
+msgid "Pilgrims assigned to you"
+msgstr "आपको सौंपे गए तीर्थयात्री"
+
+msgid "Please fill required fields for each family member."
+msgstr "प्रत्येक परिवार सदस्य के लिए आवश्यक फ़ील्ड भरें।"
+
+msgid "Present"
+msgstr "उपस्थित"
+
+msgid "Present ({{ month_filter }})"
+msgstr "उपस्थित ({{ month_filter }})"
+
+msgid "Print Voucher"
+msgstr "वाउचर प्रिंट करें"
+
+msgid "Profiles"
+msgstr "प्रोफाइल"
+
+msgid "Quick actions"
+msgstr "त्वरित कार्रवाइयां"
+
+msgid "Quoted / payable (PKR)"
+msgstr "उद्धृत / देय (PKR)"
+
+msgid "RO"
+msgstr "RO"
+
+msgid "Read replies aloud"
+msgstr "जवाब जोर से पढ़ें"
+
+msgid "Reason"
+msgstr "कारण"
+
+msgid "Record"
+msgstr "रिकॉर्ड"
+
+msgid "Register a new pilgrim."
+msgstr "नए तीर्थयात्री को पंजीकृत करें।"
+
+msgid "Remove row"
+msgstr "पंक्ति हटाएं"
+
+msgid "Required to delete"
+msgstr "हटाने के लिए आवश्यक"
+
+msgid "Required to save"
+msgstr "सहेजने के लिए आवश्यक"
+
+msgid "Required:"
+msgstr "आवश्यक:"
+
+msgid "Reset"
+msgstr "रीसेट"
+
+msgid "Reset uses your normal login password to recover access."
+msgstr ""
+"रीसेट पहुंच पुनर्प्राप्त करने के लिए आपके सामान्य लॉगिन पासवर्ड का उपयोग "
+"करता है।"
+
+msgid "Reset using account password"
+msgstr "खाता पासवर्ड का उपयोग करके रीसेट करें"
+
+msgid "Results"
+msgstr "परिणाम"
+
+msgid "Return"
+msgstr "वापसी"
+
+msgid ""
+"Review vouchers submitted by agents in your agency. Approve to issue, reject"
+" to send back."
+msgstr ""
+"अपनी एजेंसी में एजेंटों द्वारा प्रस्तुत वाउचर की समीक्षा करें। जारी करने के "
+"लिए स्वीकृत करें, वापस भेजने के लिए अस्वीकार करें।"
+
+msgid "Role *"
+msgstr "भूमिका *"
+
+msgid "Room"
+msgstr "कमरा"
+
+msgid "Room / meal"
+msgstr "कमरा / भोजन"
+
+msgid "Save"
+msgstr "सहेजें"
+
+msgid "Save family group"
+msgstr "परिवार समूह सहेजें"
+
+msgid "Save mutamer"
+msgstr "मुतमर सहेजें"
+
+msgid "Save present/absent/late/leave with optional times and notes."
+msgstr "वैकल्पिक समय और नोट्स के साथ उपस्थित/अनुपस्थित/देर/छुट्टी सहेजें।"
+
+msgid "Save voucher"
+msgstr "वाउचर सहेजें"
+
+msgid "Saved"
+msgstr "सहेजा गया"
+
+msgid "Saved under <a href=\"{{ mutamers_url }}\">Mutamers</a>."
+msgstr "<a href=\"{{ mutamers_url }}\">मुतमर</a> के अंतर्गत सहेजा गया।"
+
+msgid "Search approvals"
+msgstr "स्वीकृतियां खोजें"
+
+msgid "Search approvals…"
+msgstr "स्वीकृतियां खोजें…"
+
+msgid ""
+"Search by name, passport, nationality, phone, or visa. Updates as you type."
+msgstr ""
+"नाम, पासपोर्ट, राष्ट्रीयता, फ़ोन, या वीजा द्वारा खोजें। टाइप करते ही अपडेट "
+"होता है।"
+
+msgid ""
+"Search by voucher number, pilgrim, passport, or agent. Filter by status."
+msgstr ""
+"वाउचर नंबर, तीर्थयात्री, पासपोर्ट, या एजेंट द्वारा खोजें। स्थिति के अनुसार "
+"फ़िल्टर करें।"
+
+msgid ""
+"Search by voucher number, pilgrim, passport, or agent. Updates as you type."
+msgstr ""
+"वाउचर नंबर, तीर्थयात्री, पासपोर्ट, या एजेंट द्वारा खोजें। टाइप करते ही अपडेट"
+" होता है।"
+
+msgid "Search mutamers"
+msgstr "मुतमर खोजें"
+
+msgid "Search mutamers…"
+msgstr "मुतमर खोजें…"
+
+msgid "Search vouchers"
+msgstr "वाउचर खोजें"
+
+msgid "Search vouchers…"
+msgstr "वाउचर खोजें…"
+
+msgid "Select a family head."
+msgstr "परिवार का मुखिया चुनें।"
+
+msgid "Send"
+msgstr "भेजें"
+
+msgid "Service Date"
+msgstr "सेवा तिथि"
+
+msgid "Services"
+msgstr "सेवाएं"
+
+msgid ""
+"Set an attendance password once. Only your account will be able to mark "
+"attendance for everyone."
+msgstr ""
+"एक बार उपस्थिति पासवर्ड सेट करें। केवल आपका खाता सभी के लिए उपस्थिति चिह्नित"
+" कर सकेगा।"
+
+msgid "Set password"
+msgstr "पासवर्ड सेट करें"
+
+msgid "Shirka"
+msgstr "शिरका"
+
+msgid "Shirka company"
+msgstr "शिरका कंपनी"
+
+msgid "Shirka company (right-side on voucher)"
+msgstr "शिरका कंपनी (वाउचर पर दाईं ओर)"
+
+msgid "Shirka company WhatsApp"
+msgstr "शिरका कंपनी व्हाट्सएप"
+
+msgid "Shirka company country"
+msgstr "शिरका कंपनी देश"
+
+msgid "Shirka company name"
+msgstr "शिरका कंपनी का नाम"
+
+msgid "Skipped %(count)s row(s) — see details below."
+msgstr "%(count)s पंक्तियां छोड़ी गईं — नीचे विवरण देखें।"
+
+msgid "Speak"
+msgstr "बोलें"
+
+msgid "Speak replies"
+msgstr "जवाब बोलें"
+
+msgid "Standard"
+msgstr "मानक"
+
+msgid "Start a new booking worksheet."
+msgstr "नई बुकिंग वर्कशीट शुरू करें।"
+
+msgid "Status *"
+msgstr "स्थिति *"
+
+msgid "Status:"
+msgstr "स्थिति:"
+
+msgid "Stay"
+msgstr "ठहराव"
+
+msgid "Submit your first service voucher."
+msgstr "अपना पहला सेवा वाउचर प्रस्तुत करें।"
+
+msgid "Tel: {{ phone }}"
+msgstr "टेल: {{ phone }}"
+
+msgid "This action has already been resolved."
+msgstr "यह कार्रवाई पहले ही हल हो चुकी है।"
+
+msgid "This action is permanent."
+msgstr "यह कार्रवाई स्थायी है।"
+
+msgid "This action is permanent. Password is required."
+msgstr "यह कार्रवाई स्थायी है। पासवर्ड आवश्यक है।"
+
+msgid "This deletes all members in this family group. This cannot be undone."
+msgstr ""
+"यह इस परिवार समूह के सभी सदस्यों को हटा देगा। इसे वापस नहीं किया जा सकता।"
+
+msgid ""
+"This deletes the pilgrim record. If this record is used in "
+"bookings/vouchers, links may be removed. This cannot be undone."
+msgstr ""
+"यह तीर्थयात्री रिकॉर्ड को हटा देगा। यदि यह रिकॉर्ड बुकिंग/वाउचर में उपयोग "
+"किया जा रहा है, तो लिंक हटाए जा सकते हैं। इसे वापस नहीं किया जा सकता।"
+
+msgid ""
+"This is a system-generated official voucher. Please present this document "
+"upon request."
+msgstr ""
+"यह एक सिस्टम-जनित आधिकारिक वाउचर है। अनुरोध पर कृपया यह दस्तावेज़ प्रस्तुत "
+"करें।"
+
+msgid ""
+"This voucher was generated electronically and is valid subject to supplier "
+"confirmations listed above."
+msgstr ""
+"यह वाउचर इलेक्ट्रॉनिक रूप से तैयार किया गया है और ऊपर सूचीबद्ध आपूर्तिकर्ता "
+"पुष्टि के अधीन मान्य है।"
+
+msgid "Total amount (PKR)"
+msgstr "कुल राशि (PKR)"
+
+msgid "Total beds"
+msgstr "कुल बिस्तर"
+
+msgid "Total pilgrims"
+msgstr "कुल तीर्थयात्री"
+
+msgid "Total vouchers"
+msgstr "कुल वाउचर"
+
+msgid "Transport"
+msgstr "परिवहन"
+
+msgid "Transporter"
+msgstr "परिवहनकर्ता"
+
+msgid "Travel date"
+msgstr "यात्रा तिथि"
+
+msgid "Travel voucher"
+msgstr "यात्रा वाउचर"
+
+msgid "Travellers (Mutamers)"
+msgstr "यात्री (मुतमर)"
+
+msgid "Trip & client"
+msgstr "यात्रा और ग्राहक"
+
+msgid "Try another search or clear the filter to see all pilgrims."
+msgstr ""
+"दूसरी खोज आज़माएं या सभी तीर्थयात्रियों को देखने के लिए फ़िल्टर साफ़ करें।"
+
+msgid ""
+"Try: \"What installments are due this week?\" or \"How much do I owe my "
+"suppliers?\""
+msgstr ""
+"आज़माएं: \"इस सप्ताह कौन सी किस्तें देय हैं?\" या \"मैं अपने आपूर्तिकर्ताओं "
+"का कितना बकाया हूं?\""
+
+msgid "Type name…"
+msgstr "नाम टाइप करें…"
+
+msgid "Unable to change password"
+msgstr "पासवर्ड बदलने में असमर्थ"
+
+msgid "Unable to delete"
+msgstr "हटाने में असमर्थ"
+
+msgid "Unable to reset password"
+msgstr "पासवर्ड रीसेट करने में असमर्थ"
+
+msgid "Unable to save"
+msgstr "सहेजने में असमर्थ"
+
+msgid "Unable to set password"
+msgstr "पासवर्ड सेट करने में असमर्थ"
+
+msgid "Unknown language code."
+msgstr "अज्ञात भाषा कोड।"
+
+msgid "Update family group"
+msgstr "परिवार समूह अपडेट करें"
+
+msgid ""
+"Update members, change head, add/remove people. All changes apply to this "
+"family."
+msgstr ""
+"सदस्य अपडेट करें, मुखिया बदलें, लोग जोड़ें/हटाएं। सभी परिवर्तन इस परिवार पर "
+"लागू होते हैं।"
+
+msgid "Update mutamer"
+msgstr "मुतमर अपडेट करें"
+
+msgid "Update pilgrim details. Passport must remain unique."
+msgstr "तीर्थयात्री विवरण अपडेट करें। पासपोर्ट अद्वितीय रहना चाहिए।"
+
+msgid "Update what appears for your agency on printed vouchers."
+msgstr ""
+"मुद्रित वाउचर पर आपकी एजेंसी के लिए क्या दिखाई देता है इसे अपडेट करें।"
+
+msgid "Use this when you think someone saw the password."
+msgstr "इसका उपयोग करें जब आपको लगे कि किसी ने पासवर्ड देखा है।"
+
+msgid "Vehicle"
+msgstr "वाहन"
+
+msgid "View all mutamers"
+msgstr "सभी तीर्थयात्री देखें"
+
+msgid "View and manage your vouchers."
+msgstr "अपने वाउचर देखें और प्रबंधित करें।"
+
+msgid "View full profile details."
+msgstr "पूर्ण प्रोफ़ाइल विवरण देखें।"
+
+msgid "Visa"
+msgstr "वीजा"
+
+msgid "Visa number"
+msgstr "वीजा नंबर"
+
+msgid "Voucher header preview"
+msgstr "वाउचर हेडर पूर्वावलोकन"
+
+msgid "Voucher {{ vn }}"
+msgstr "वाउचर {{ vn }}"
+
+msgid "Voucher {{ vn }} — Nahd Travels"
+msgstr "वाउचर {{ vn }} — नहद ट्रैवल्स"
+
+msgid "Vouchers you have submitted"
+msgstr "आपके द्वारा प्रस्तुत वाउचर"
+
+msgid "WA: {{ wa }}"
+msgstr "WA: {{ wa }}"
+
+msgid "Website URL"
+msgstr "वेबसाइट URL"
+
+msgid "Welcome back, {{ name }}"
+msgstr "वापसी पर स्वागत है, {{ name }}"
+
+msgid "WhatsApp"
+msgstr "व्हाट्सएप"
+
+msgid "WhatsApp number"
+msgstr "व्हाट्सएप नंबर"
+
+msgid "WhatsApp: {{ wa }}"
+msgstr "व्हाट्सएप: {{ wa }}"
+
+msgid "Workflow"
+msgstr "वर्कफ़्लो"
+
+msgid "Yes"
+msgstr "हां"
+
+msgid ""
+"Your bookings, mutamers, and vouchers — everything you need in one place."
+msgstr "आपकी बुकिंग, मुतमर, और वाउचर — एक ही स्थान पर आपकी जरूरत की हर चीज़।"
+
+msgid "Your login password"
+msgstr "आपका लॉगिन पासवर्ड"
+
+msgid "Your pilgrims will appear here once registered."
+msgstr "पंजीकरण के बाद आपके तीर्थयात्री यहां दिखाई देंगे।"
+
+msgid "e.g. NAHD TRAVELS"
+msgstr "उदा. NAHD TRAVELS"
+
+msgid "e.g., NOORI KAKI CO."
+msgstr "उदा. NOORI KAKI CO."
+
+msgid "e.g., PAKISTAN"
+msgstr "उदा. PAKISTAN"
+
+msgid "family"
+msgstr "परिवार"
+
+msgid "from Contacts instructions"
+msgstr "संपर्क निर्देशों से"
+
+msgid "from Hotels — add stay details"
+msgstr "होटल से — ठहराव विवरण जोड़ें"
+
+msgid "gender must be \"male\" or \"female\". date_of_birth format: YYYY-MM-DD."
+msgstr "लिंग \"male\" या \"female\" होना चाहिए। date_of_birth प्रारूप: YYYY-MM-DD।"
+
+msgid "set once"
+msgstr "एक बार सेट करें"
+
+msgid "sharing"
+msgstr "शेयरिंग"
+
+msgid "{{ adults }} adult(s)"
+msgstr "{{ adults }} वयस्क"
+
+msgid "%(counter)s pilgrim"
+msgid_plural "%(counter)s pilgrims"
+msgstr[0] "%(counter)s तीर्थयात्री"
+msgstr[1] "%(counter)s तीर्थयात्री"
+
+msgid "member"
+msgid_plural "members"
+msgstr[0] "सदस्य"
+msgstr[1] "सदस्य"
+
+msgid "%(counter)s voucher"
+msgid_plural "%(counter)s vouchers"
+msgstr[0] "%(counter)s वाउचर"
+msgstr[1] "%(counter)s वाउचर"
+
+msgid "%(counter)s pending voucher"
+msgid_plural "%(counter)s pending vouchers"
+msgstr[0] "%(counter)s लंबित वाउचर"
+msgstr[1] "%(counter)s लंबित वाउचर"
+
+msgid "%(counter)s service"
+msgid_plural "%(counter)s services"
+msgstr[0] "%(counter)s सेवा"
+msgstr[1] "%(counter)s सेवाएं"

@@ -1,0 +1,8 @@
+{% load i18n %}<tr>
+  <td><input type="date" class="form-input js-date w-md" value="{{ bt.travel_date|date:'Y-m-d' }}" aria-label="{% trans 'Travel date' %}"></td>
+  <td><select class="form-select js-transport w-md" aria-label="{% trans 'Transport' %}"><option value="">{% trans "Select…" %}</option>{% for t in transports_list %}<option value="{{ t.id }}" data-name="{{ t.name }}" data-type="{{ t.get_transport_type_display }}" {% if bt.transport_id == t.id %}selected{% endif %}>{{ t.name }}</option>{% endfor %}</select></td>
+  <td><input class="form-input js-transporter w-md" value="{{ bt.transporter|default:'' }}" aria-label="{% trans 'Transporter' %}"></td>
+  <td><input class="form-input js-vehicle w-sm" value="{{ bt.vehicle_type|default:'' }}" aria-label="{% trans 'Type' %}"></td>
+  <td><input class="form-input js-desc w-lg" value="{{ bt.description|default:'' }}" placeholder="JED-MAK-MED-MAK-JED" aria-label="{% trans 'Description' %}"></td>
+  <td><button type="button" class="vw-x" aria-label="{% trans 'Remove' %}">&times;</button></td>
+</tr>

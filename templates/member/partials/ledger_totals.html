@@ -1,0 +1,23 @@
+{% load i18n %}
+{% load currency_tags %}
+{# Totals for every entry matching the filters (not just this page). #}
+<div class="ledger-totals" role="group" aria-label="{% trans 'Totals' %}">
+    <div class="ledger-totals__cell">
+        <span class="ledger-totals__label">{% trans "Total debit" %}</span>
+        <span class="ledger-totals__value">Rs. {{ totals.debit|amt }}</span>
+        <span class="ledger-totals__hint">{% trans "charged / paid out" %}</span>
+    </div>
+    <div class="ledger-totals__cell">
+        <span class="ledger-totals__label">{% trans "Total credit" %}</span>
+        <span class="ledger-totals__value">Rs. {{ totals.credit|amt }}</span>
+        <span class="ledger-totals__hint">{% trans "received / billed to you" %}</span>
+    </div>
+    <div class="ledger-totals__cell ledger-totals__cell--net {% if net > 0 %}is-dr{% elif net < 0 %}is-cr{% endif %}">
+        <span class="ledger-totals__label">{% if show_running %}{% trans "Closing balance" %}{% else %}{% trans "Net (debit − credit)" %}{% endif %}</span>
+        <span class="ledger-totals__value">{% if net %}Rs. {% endif %}{{ net|drcr }}</span>
+        <span class="ledger-totals__hint">{% if net > 0 %}{% if show_running %}{% trans "party owes you" %}{% else %}{% trans "more owed to you" %}{% endif %}{% elif net < 0 %}{% if show_running %}{% trans "you owe the party" %}{% else %}{% trans "more owed by you" %}{% endif %}{% else %}{% trans "settled" %}{% endif %}</span>
+    </div>
+    <div class="ledger-totals__meta text-xs text-muted">
+        {% blocktrans count counter=entry_count %}{{ counter }} entry{% plural %}{{ counter }} entries{% endblocktrans %}{% if f.date_from or f.date_to %} · {% if f.date_from %}{{ f.date_from|date:"d M Y" }}{% else %}…{% endif %} – {% if f.date_to %}{{ f.date_to|date:"d M Y" }}{% else %}{% trans "today" %}{% endif %}{% endif %}
+    </div>
+</div>

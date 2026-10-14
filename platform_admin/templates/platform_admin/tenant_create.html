@@ -1,0 +1,70 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "New Tenant" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{% trans "Onboard a new agency" %}</h1>
+  <p class="page-subtitle">{% trans "Creates the agency workspace and its first owner account." %}</p>
+</div>
+
+<div class="card" style="max-width:640px;">
+  <div class="card-content" style="padding-top:20px;">
+    <form method="post" style="display:flex; flex-direction:column; gap:16px;">
+      {% csrf_token %}
+      <div class="grid grid-2">
+        <div class="form-group">
+          <label class="form-label" for="name">{% trans "Agency name" %}</label>
+          <input class="form-input" type="text" id="name" name="name" value="{{ form_data.name|default:'' }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="code">{% trans "Agency code" %}</label>
+          <input class="form-input" type="text" id="code" name="code" value="{{ form_data.code|default:'' }}" placeholder="{% trans 'e.g. ACME01' %}" required>
+        </div>
+      </div>
+      <div class="grid grid-2">
+        <div class="form-group">
+          <label class="form-label" for="email">{% trans "Agency email" %}</label>
+          <input class="form-input" type="email" id="email" name="email" value="{{ form_data.email|default:'' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="phone">{% trans "Agency phone" %}</label>
+          <input class="form-input" type="text" id="phone" name="phone" value="{{ form_data.phone|default:'' }}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="address">{% trans "Address" %}</label>
+        <input class="form-input" type="text" id="address" name="address" value="{{ form_data.address|default:'' }}">
+      </div>
+      <div class="grid grid-4">
+        <div class="form-group"><label class="form-label" for="city">{% trans "City" %}</label><input class="form-input" type="text" id="city" name="city" value="{{ form_data.city|default:'' }}"></div>
+        <div class="form-group"><label class="form-label" for="state">{% trans "State" %}</label><input class="form-input" type="text" id="state" name="state" value="{{ form_data.state|default:'' }}"></div>
+        <div class="form-group"><label class="form-label" for="country">{% trans "Country" %}</label><input class="form-input" type="text" id="country" name="country" value="{{ form_data.country|default:'' }}"></div>
+        <div class="form-group"><label class="form-label" for="postal_code">{% trans "Postal code" %}</label><input class="form-input" type="text" id="postal_code" name="postal_code" value="{{ form_data.postal_code|default:'' }}"></div>
+      </div>
+
+      <div style="border-top:1px solid var(--border); margin-top:8px; padding-top:16px;">
+        <h3 style="font-size:0.95rem; font-weight:600;">{% trans "Owner account" %}</h3>
+      </div>
+      <div class="grid grid-2">
+        <div class="form-group">
+          <label class="form-label" for="owner_username">{% trans "Owner username" %}</label>
+          <input class="form-input" type="text" id="owner_username" name="owner_username" value="{{ form_data.owner_username|default:'' }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="owner_email">{% trans "Owner email" %}</label>
+          <input class="form-input" type="email" id="owner_email" name="owner_email" value="{{ form_data.owner_email|default:'' }}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="owner_password">{% trans "Temporary password" %}</label>
+        <input class="form-input" type="text" id="owner_password" name="owner_password" placeholder="{% trans 'At least 8 characters' %}" required>
+      </div>
+
+      <div class="flex gap-3 mt-2">
+        <button class="btn btn-primary" type="submit">{% trans "Create agency" %}</button>
+        <a class="btn btn-outline" href="{% url 'platform_admin:dashboard' %}">{% trans "Cancel" %}</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

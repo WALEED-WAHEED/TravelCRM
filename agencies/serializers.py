@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from .models import Agency
 
 
@@ -33,7 +34,7 @@ class AgencySerializer(serializers.ModelSerializer):
         instance = self.instance
         if instance and instance.code == value:
             return value
-        
+
         if Agency.objects.filter(code=value).exists():
             raise serializers.ValidationError("Agency with this code already exists.")
         return value
@@ -61,7 +62,5 @@ class AgencyStatisticsSerializer(serializers.Serializer):
     """Serializer for agency statistics"""
     total_bookings = serializers.IntegerField()
     total_revenue = serializers.DecimalField(max_digits=12, decimal_places=2)
-    active_packages = serializers.IntegerField()
-    total_mutamers = serializers.IntegerField()
     member_count = serializers.IntegerField()
     agent_count = serializers.IntegerField()

@@ -1,161 +1,398 @@
 {% extends "base.html" %}
-{% block title %}Attendance{% endblock %}
+{% load i18n %}
+{% load attendance_tags %}
+{% block title %}{% trans "Attendance" %}{% endblock %}
+{% block extra_head %}
+<style>
+    /* Same panel/table language as the Ledger page. */
+    .page-attendance [hidden] { display: none !important; }
+    .att-stat-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .att-stat-hint { display: block; font-size: 0.75rem; color: var(--muted-foreground); margin-top: 2px; }
+    .att-panel { padding: 20px 22px 22px; margin-bottom: 18px; }
+    .att-panel__top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+    .att-panel__title { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--foreground); }
+    .att-panel__hint { margin: 3px 0 0; font-size: 0.85rem; color: var(--muted-foreground); }
+    .att-table-box { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+    .att-table-box .hotels-data-table { margin: 0; }
+    .att-table-box .hotels-data-table td { vertical-align: middle; }
+    .att-table-box .hotels-data-table tbody tr:hover td { background: color-mix(in srgb, var(--primary) 4%, transparent); }
+    .att-checks { display: flex; flex-wrap: wrap; gap: 4px; }
+    .att-check { font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--success); }
+    .att-check--fail { color: var(--destructive); }
+    .att-notice { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 18px; margin-bottom: 18px; }
+    .att-notice__text { display: flex; gap: 10px; align-items: flex-start; font-size: 0.875rem; }
+    .att-notice__icon { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: var(--warning); background: color-mix(in srgb, var(--warning) 14%, transparent); }
+    .att-notice strong { display: block; color: var(--foreground); }
+    .att-corr { display: grid; gap: 10px; }
+    .att-corr__item { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: center; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius); background: color-mix(in srgb, var(--muted) 35%, var(--card)); }
+    .att-corr__item form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .att-corr__item .form-input { width: 200px; }
+    /* Correction request cards */
+    .cr-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .cr-banner { width: 100%; display: flex; align-items: center; gap: 14px; margin-bottom: 16px; padding: 14px 18px; border: 1px solid color-mix(in srgb, var(--warning, #eda100) 40%, var(--border)); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--warning, #eda100) 8%, var(--card)); color: var(--foreground); font: inherit; text-align: start; cursor: pointer; transition: box-shadow .15s, transform .15s; }
+    .cr-banner:hover { box-shadow: var(--shadow-soft); transform: translateY(-1px); }
+    .cr-banner__icon { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 12px; color: #9a6b00; background: color-mix(in srgb, #eda100 18%, transparent); }
+    .cr-banner__txt { flex: 1; min-width: 0; }
+    .cr-banner__txt b { display: block; font-size: 0.95rem; }
+    .cr-banner__txt small { color: var(--muted-foreground); font-size: 0.8rem; }
+    .cr-banner__go { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: 0.86rem; font-weight: 700; color: var(--primary); }
+    [dir="rtl"] .cr-banner__go svg { transform: scaleX(-1); }
+    .drawer--wide { width: min(560px, 100%); }
+    .drawer__intro { margin: 0; padding: 12px 24px 0; font-size: 0.84rem; color: var(--muted-foreground); }
+    .cr-card { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); box-shadow: var(--shadow-soft); }
+    .cr-head { display: flex; align-items: center; gap: 12px; }
+    .cr-avatar { flex: none; width: 38px; height: 38px; border-radius: 999px; display: grid; place-items: center; font-size: 0.85rem; font-weight: 700; color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
+    .cr-who { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .cr-who strong { font-size: 0.95rem; }
+    .cr-who span { font-size: 0.78rem; color: var(--muted-foreground); }
+    .cr-date { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; background: var(--muted); white-space: nowrap; }
+    .cr-date svg { color: var(--primary); }
+    .cr-change { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; padding: 12px; border-radius: var(--radius); background: color-mix(in srgb, var(--muted) 55%, var(--card)); }
+    .cr-side { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+    .cr-side--new { padding-inline-start: 12px; border-inline-start: 2px solid var(--primary); }
+    .cr-side__label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); }
+    .cr-times { font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+    .cr-arrow { color: var(--muted-foreground); }
+    .cr-reason { margin: 0; padding: 8px 12px; border-inline-start: 3px solid color-mix(in srgb, var(--warning) 70%, var(--border)); background: color-mix(in srgb, var(--warning) 7%, var(--card)); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: 0.875rem; font-style: italic; }
+    .cr-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .cr-note-toggle { border: 0; background: none; padding: 0; font: inherit; font-size: 0.82rem; font-weight: 600; color: var(--primary); cursor: pointer; }
+    .cr-note { flex: 1 1 100%; order: 3; }
+    .cr-buttons { margin-inline-start: auto; display: flex; gap: 8px; }
+    .cr-buttons .btn { display: inline-flex; align-items: center; gap: 6px; }
+    .cr-approve { background: var(--success); color: #fff; border: 1px solid var(--success); }
+    .cr-approve:hover { filter: brightness(1.08); }
+    .cr-reject { background: var(--card); color: var(--destructive); border: 1px solid color-mix(in srgb, var(--destructive) 45%, var(--border)); }
+    .cr-reject:hover { background: color-mix(in srgb, var(--destructive) 8%, var(--card)); }
+    @media (max-width: 560px) { .cr-list { grid-template-columns: 1fr; } .cr-change { grid-template-columns: 1fr; } .cr-arrow { transform: rotate(90deg); justify-self: start; } }
+    /* All-records table: larger, higher-contrast text */
+    .rec-table th { font-size: 0.75rem; font-weight: 700; color: var(--foreground); opacity: 0.75; letter-spacing: 0.05em; }
+    .rec-table td { font-size: 0.92rem; color: var(--foreground); vertical-align: middle; }
+    .rec-table th, .rec-name, .rec-link, .rec-table .att-check { white-space: nowrap; }
+    .rec-table .att-checks { flex-wrap: nowrap; }
+    .rec-name { display: block; font-weight: 600; font-size: 0.95rem; }
+    .rec-sub { display: block; font-size: 0.78rem; color: var(--muted-foreground); }
+    .rec-strong { display: block; font-weight: 600; }
+    .rec-nowrap, .rec-time { white-space: nowrap; }
+    .rec-time { font-weight: 600; font-variant-numeric: tabular-nums; }
+    .rec-empty { color: var(--muted-foreground); font-weight: 400; font-size: 0.85rem; }
+    .rec-note { font-size: 0.85rem; color: var(--foreground); }
+    .rec-link { font-weight: 600; color: var(--primary); text-decoration: none; }
+    .rec-link:hover { text-decoration: underline; }
+    .rec-wrap { max-width: 280px; white-space: normal; margin-top: 4px; }
+    .rec-table .att-check { font-size: 0.78rem; padding: 3px 9px; font-weight: 600; }
+    .att-month { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    /* Month picker (replaces the browser's unstyleable native month popup) */
+    .mp { position: relative; display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+    .mp-step { display: grid; place-items: center; width: 34px; height: 36px; border: 0; background: none; color: var(--muted-foreground); cursor: pointer; border-radius: var(--radius-sm); }
+    .mp-step:hover:not(:disabled) { color: var(--foreground); background: var(--muted); }
+    .mp-step:disabled { opacity: 0.35; cursor: default; }
+    .mp-label { display: inline-flex; align-items: center; gap: 8px; min-width: 150px; justify-content: center; padding: 0 12px; height: 36px; border: 0; border-inline: 1px solid var(--border); background: none; color: var(--foreground); font: inherit; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+    .mp-label svg { color: var(--primary); }
+    .mp-label:hover { background: var(--muted); }
+    .mp-pop { position: absolute; top: calc(100% + 6px); inset-inline-end: 0; z-index: 30; width: 270px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--popover, var(--card)); box-shadow: var(--shadow-elevated); }
+    .mp-year { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .mp-year strong { font-size: 0.95rem; }
+    .mp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .mp-month { padding: 9px 0; border: 1px solid transparent; border-radius: var(--radius); background: none; color: var(--foreground); font: inherit; font-size: 0.875rem; cursor: pointer; }
+    .mp-month:hover:not(:disabled) { background: var(--muted); }
+    .mp-month.is-today { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); }
+    .mp-month.is-selected { background: var(--primary); color: var(--primary-foreground); font-weight: 700; }
+    .mp-month:disabled { color: var(--muted-foreground); opacity: 0.45; cursor: default; }
+    .mp-foot { display: flex; justify-content: flex-end; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+    .mp-link { border: 0; background: none; color: var(--primary); font: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+    .mp-link:hover { text-decoration: underline; }
+    .att-sub { display: block; font-size: 0.75rem; color: var(--muted-foreground); }
+    .att-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: -4px 0 14px; }
+    .att-filters .form-select { width: auto; min-width: 170px; }
+    .att-seg { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--muted); }
+    .att-seg label { position: relative; cursor: pointer; }
+    .att-seg input { position: absolute; opacity: 0; pointer-events: none; }
+    .att-seg span { display: block; padding: 6px 14px; border-radius: calc(var(--radius) - 3px); font-size: 0.85rem; color: var(--muted-foreground); }
+    .att-seg input:checked + span { background: var(--card); color: var(--foreground); font-weight: 600; box-shadow: var(--shadow-soft); }
+    .att-seg input:focus-visible + span { outline: 2px solid var(--ring); outline-offset: 1px; }
+    .att-seg input:disabled + span { opacity: 0.45; cursor: not-allowed; }
+    .att-clear { font-size: 0.85rem; font-weight: 600; color: var(--primary); text-decoration: none; }
+    .att-clear:hover { text-decoration: underline; }
+</style>
+{% endblock %}
 {% block content %}
 <div class="page-attendance page-hotels">
     <header class="hotels-hero hotels-reveal" style="--d:0ms">
         <div class="hotels-hero__copy">
-            <p class="hotels-eyebrow">HR</p>
-            <h1 class="page-title hotels-hero__title">Attendance</h1>
-            <p class="page-subtitle hotels-hero__sub">
-                {% if can_edit %}
-                Mark daily attendance for every member in your agency — safely locked behind an admin password.
-                {% else %}
-                View your daily attendance record — secure and private to your account.
-                {% endif %}
-            </p>
+            <p class="hotels-eyebrow">{% trans "HR" %}</p>
+            <h1 class="page-title hotels-hero__title">{% trans "Attendance" %}</h1>
         </div>
-        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms">
+        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms; display:flex; flex-wrap:wrap; gap:10px;">
+            {% if is_admin_user %}<a class="btn btn-outline" href="{% url 'member-inventory-insights' 'attendance' %}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>{% trans "Attendance insights" %}</a>{% endif %}
+            <a class="btn btn-outline" href="{% url 'attendance-me' %}">{% trans "My check-in" %}</a>
             {% if is_admin_user %}
-            <button type="button" class="btn btn-outline" onclick="openModal('modal-attendance-unlock')">
-                {% if has_admin_password %}Attendance password{% else %}Set attendance password{% endif %}
-            </button>
-            {% endif %}
-            {% if can_edit %}
-            <button type="button" class="btn btn-primary hotels-cta-btn" onclick="openAttendanceMarkModal()">
-                Mark attendance
-            </button>
+            {% if att_settings.require_qr %}<a class="btn btn-outline" href="{% url 'attendance-display' att_settings.kiosk_token %}" target="_blank" rel="noopener">{% trans "Office display" %}</a>{% endif %}
             {% endif %}
         </div>
     </header>
 
-    <div class="hotels-stat-grid">
-        <div class="hotels-stat-card hotels-reveal" style="--d:80ms">
-            <div class="hotels-stat-card__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <path d="M20 7v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7" />
-                    <path d="M16 3h-1a2 2 0 0 0-2 2v1" />
-                    <path d="M8 3h1a2 2 0 0 1 2 2v1" />
-                    <path d="M4 7h16" />
-                </svg>
-            </div>
+
+    {% if is_admin_user %}
+    {% with total=board_rows|length %}
+    <div class="hotels-stat-grid att-stat-grid">
+        <div class="hotels-stat-card hotels-stat-card--success hotels-reveal" style="--d:80ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
             <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Present ({{ month_filter }})</span>
-                <span class="hotels-stat-card__value">{{ attendance_stats.present }}</span>
+                <span class="hotels-stat-card__label">{% trans "Present today" %}</span>
+                <span class="hotels-stat-card__value">{{ board_counts.present }}</span>
+                <span class="att-stat-hint">{% blocktrans %}of {{ total }} staff{% endblocktrans %}</span>
             </div>
         </div>
-        <div class="hotels-stat-card hotels-stat-card--accent hotels-reveal" style="--d:120ms">
-            <div class="hotels-stat-card__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M8 12h8" />
-                </svg>
-            </div>
+        <div class="hotels-stat-card hotels-stat-card--warning hotels-reveal" style="--d:110ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
             <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Absent ({{ month_filter }})</span>
-                <span class="hotels-stat-card__value">{{ attendance_stats.absent }}</span>
+                <span class="hotels-stat-card__label">{% trans "Late today" %}</span>
+                <span class="hotels-stat-card__value">{{ board_counts.late }}</span>
+                <span class="att-stat-hint">{% blocktrans with t=att_settings.workday_start|time:"g:i A" %}work starts {{ t }}{% endblocktrans %}</span>
             </div>
         </div>
-        <div class="hotels-stat-card hotels-reveal" style="--d:160ms">
-            <div class="hotels-stat-card__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 6v6l4 2" />
-                </svg>
-            </div>
+        <div class="hotels-stat-card hotels-stat-card--danger hotels-reveal" style="--d:140ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
             <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Late / Leave ({{ month_filter }})</span>
-                <span class="hotels-stat-card__value">{{ attendance_stats.late|add:attendance_stats.leave }}</span>
+                <span class="hotels-stat-card__label">{% trans "Absent today" %}</span>
+                <span class="hotels-stat-card__value">{{ board_counts.absent }}</span>
+                <span class="att-stat-hint">{% blocktrans with t=att_settings.absent_after|time:"g:i A" %}not in by {{ t }}{% endblocktrans %}</span>
+            </div>
+        </div>
+        <div class="hotels-stat-card hotels-stat-card--info hotels-reveal" style="--d:170ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">{% trans "Not in yet" %}</span>
+                <span class="hotels-stat-card__value">{{ board_counts.not_in }}</span>
+                <span class="att-stat-hint">{% if board_counts.leave %}{% blocktrans with n=board_counts.leave %}{{ n }} on leave{% endblocktrans %}{% else %}{% trans "still expected today" %}{% endif %}</span>
             </div>
         </div>
     </div>
+    {% endwith %}
 
-    <section class="card hotels-panel hotels-reveal" style="--d:200ms">
-        <div class="hotels-panel__head">
-            <div>
-                <h2 class="hotels-panel__title">{% if can_edit %}Agency attendance{% else %}My attendance{% endif %}</h2>
-                <p class="hotels-panel__hint text-muted text-sm">
-                    {% if can_edit %}
-                    Filter by month. Mark attendance entries with date, status, and optional check-in/out times.
-                    {% else %}
-                    Filter by month. Your attendance remains visible only to your account.
-                    {% endif %}
-                </p>
+
+
+    {% if corrections %}
+    <button type="button" class="cr-banner hotels-reveal" id="corrections" style="--d:200ms" onclick="openModal('modal-corrections')">
+        <span class="cr-banner__icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>
+        <span class="cr-banner__txt"><b>{% blocktrans count n=corrections|length %}{{ n }} correction request is waiting{% plural %}{{ n }} correction requests are waiting{% endblocktrans %}</b><small>{% trans "Review what staff asked to change" %}</small></span>
+        <span class="cr-banner__go">{% trans "Review" %}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></span>
+    </button>
+
+    <div id="modal-corrections" class="modal-overlay drawer-wrap hidden" role="dialog" aria-modal="true" aria-labelledby="modal-corrections-title">
+        <aside class="drawer drawer--wide">
+            <div class="drawer__head">
+                <span id="modal-corrections-title" class="modal-title">{% trans "Correction requests" %} <span class="badge badge-warning">{{ corrections|length }}</span></span>
+                <button type="button" class="modal-close" onclick="closeModal('modal-corrections')" aria-label="{% trans 'Close dialog' %}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                </button>
+            </div>
+            <p class="drawer__intro">{% trans "Staff can't edit their own records. Check what would change, then approve or reject — your decision is logged." %}</p>
+            <div class="drawer__body">
+        <div class="cr-list">
+            {% for item in corrections %}{% with c=item.c cur=item.current %}
+            <article class="cr-card">
+                <header class="cr-head">
+                    <span class="cr-avatar" aria-hidden="true">{{ c.user.first_name|first|default:c.user.username|first|upper }}{{ c.user.last_name|first|upper }}</span>
+                    <div class="cr-who">
+                        <strong>{{ c.user.full_name }}</strong>
+                        <span>{{ c.user.custom_role.name|default:c.user.get_role_display }} · {% blocktrans with t=c.created_at|timesince %}asked {{ t }} ago{% endblocktrans %}</span>
+                    </div>
+                    <span class="cr-date">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                        {{ c.date|date:"D, d M Y" }}
+                    </span>
+                </header>
+
+                <div class="cr-change" role="group" aria-label="{% trans 'Requested change' %}">
+                    <div class="cr-side">
+                        <span class="cr-side__label">{% trans "Now" %}</span>
+                        {% if cur %}
+                        <span class="badge {% if cur.status == 'present' %}badge-success{% elif cur.status == 'late' %}badge-warning{% elif cur.status == 'absent' %}badge-danger{% else %}badge-primary{% endif %}">{{ cur.get_status_display }}</span>
+                        <span class="cr-times">{% if cur.check_in_time %}{{ cur.check_in_time|time:"g:i A" }}{% else %}—{% endif %} → {% if cur.check_out_time %}{{ cur.check_out_time|time:"g:i A" }}{% else %}—{% endif %}</span>
+                        {% else %}
+                        <span class="badge badge-outline">{% trans "No record" %}</span>
+                        {% endif %}
+                    </div>
+                    <span class="cr-arrow" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+                    <div class="cr-side cr-side--new">
+                        <span class="cr-side__label">{% trans "Requested" %}</span>
+                        <span class="badge {% if c.requested_status == 'present' %}badge-success{% elif c.requested_status == 'late' %}badge-warning{% elif c.requested_status == 'absent' %}badge-danger{% else %}badge-primary{% endif %}">{{ c.get_requested_status_display }}</span>
+                        {% if c.requested_check_in or c.requested_check_out %}
+                        <span class="cr-times">{% if c.requested_check_in %}{{ c.requested_check_in|time:"g:i A" }}{% else %}—{% endif %} → {% if c.requested_check_out %}{{ c.requested_check_out|time:"g:i A" }}{% else %}—{% endif %}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <blockquote class="cr-reason" dir="auto">{{ c.reason }}</blockquote>
+
+                <form method="post" action="{% url 'attendance-correction-review' c.id %}" class="cr-actions">
+                    {% csrf_token %}
+                    <button type="button" class="cr-note-toggle" data-cr-note>{% trans "+ Add a note" %}</button>
+                    <input class="form-input cr-note" name="note" placeholder="{% trans 'Note for the staff member (optional)' %}" aria-label="{% trans 'Note' %}" hidden>
+                    <span class="cr-buttons">
+                        <button class="btn btn-sm cr-reject" name="decision" value="reject">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            {% trans "Reject" %}
+                        </button>
+                        <button class="btn btn-sm cr-approve" name="decision" value="approve">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                            {% trans "Approve" %}
+                        </button>
+                    </span>
+                </form>
+            </article>
+            {% endwith %}{% endfor %}
+        </div>
+            </div>
+        </aside>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="hotels-stat-grid att-stat-grid">
+        <div class="hotels-stat-card hotels-stat-card--success hotels-reveal" style="--d:80ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">{% blocktrans %}Present ({{ month_filter }}){% endblocktrans %}</span>
+                <span class="hotels-stat-card__value">{{ attendance_stats.present }}</span>
+                <span class="att-stat-hint"></span>
             </div>
         </div>
-        <div class="card-content hotels-panel__body">
-            <div class="toolbar hotels-toolbar">
-                <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
-                    <form method="get" action="" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                        <div class="form-group" style="margin:0;min-width:240px;">
-                            <label class="form-label" for="attendance-month" style="margin-bottom:6px;">Month</label>
-                            <input id="attendance-month" class="form-input" type="month" name="month" value="{{ month_filter }}" />
+        <div class="hotels-stat-card hotels-stat-card--danger hotels-reveal" style="--d:110ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">{% blocktrans %}Absent ({{ month_filter }}){% endblocktrans %}</span>
+                <span class="hotels-stat-card__value">{{ attendance_stats.absent }}</span>
+                <span class="att-stat-hint"></span>
+            </div>
+        </div>
+        <div class="hotels-stat-card hotels-stat-card--warning hotels-reveal" style="--d:140ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">{% blocktrans %}Late / Leave ({{ month_filter }}){% endblocktrans %}</span>
+                <span class="hotels-stat-card__value">{{ attendance_stats.late|add:attendance_stats.leave }}</span>
+                <span class="att-stat-hint"></span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <section class="card att-panel hotels-reveal" style="--d:220ms">
+        <div class="att-panel__top">
+            <div>
+                <h2 class="att-panel__title">{% if is_admin_user %}{% trans "All records" %}{% else %}{% trans "My attendance" %}{% endif %}</h2>
+                <p class="att-panel__hint">{% if is_admin_user %}{% trans "Every check-in, check-out and automatic absence, with how it was verified." %}{% else %}{% trans "Your attendance remains visible only to your account." %}{% endif %}</p>
+            </div>
+            <form method="get" class="att-month" id="att-month-form">
+                <input type="hidden" name="month" id="attendance-month" value="{{ month_filter }}">
+                <div class="mp" id="mp">
+                    <button type="button" class="mp-step" data-step="-1" aria-label="{% trans 'Previous month' %}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+                    <button type="button" class="mp-label" id="mp-label" aria-haspopup="dialog" aria-expanded="false" aria-controls="mp-pop">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>{{ period_start|date:"F Y" }}</span>
+                    </button>
+                    <button type="button" class="mp-step" data-step="1" id="mp-next" aria-label="{% trans 'Next month' %}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
+                    <div class="mp-pop" id="mp-pop" role="dialog" aria-label="{% trans 'Choose a month' %}" hidden>
+                        <div class="mp-year">
+                            <button type="button" class="mp-step" data-year="-1" aria-label="{% trans 'Previous year' %}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg></button>
+                            <strong id="mp-year"></strong>
+                            <button type="button" class="mp-step" data-year="1" id="mp-year-next" aria-label="{% trans 'Next year' %}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg></button>
                         </div>
-                        <button class="btn btn-outline" type="submit" style="margin-top:22px;">Apply</button>
-                    </form>
+                        <div class="mp-grid" id="mp-grid"></div>
+                        <div class="mp-foot"><button type="button" class="mp-link" id="mp-this">{% trans "This month" %}</button></div>
+                    </div>
                 </div>
-                <span class="text-sm text-muted hotels-toolbar-count">
-                    {{ logs|length }} record{{ logs|length|pluralize }}
-                </span>
-            </div>
-
-            {% if is_admin_user and attendance_admin_name %}
-            <div class="text-sm text-muted" style="margin:-6px 0 12px;">
-                Attendance admin: <span class="font-medium">{{ attendance_admin_name }}</span>
-                {% if has_admin_password %}<span class="text-muted">• Password required for every edit</span>{% endif %}
-            </div>
+                <span class="text-sm text-muted">{% blocktrans count counter=logs|length %}{{ counter }} record{% plural %}{{ counter }} records{% endblocktrans %}</span>
+                {% for k, v in rec_filters.items %}{% if v and k != 'day' %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endif %}{% endfor %}
+            </form>
+        </div>
+        <form method="get" class="att-filters" id="att-filters">
+            <input type="hidden" name="month" value="{{ month_filter }}">
+            {% if is_admin_user %}
+            <select name="staff" class="form-select" aria-label="{% trans 'Staff' %}" data-nice-select data-prefix="{% trans 'Staff' %}">
+                <option value="">{% trans "Everyone" %}</option>
+                {% for n in staff_options %}<option value="{{ n }}" {% if rec_filters.staff == n %}selected{% endif %}>{{ n }}</option>{% endfor %}
+            </select>
             {% endif %}
-
-            <div class="table-wrapper hotels-table-wrap">
+            <select name="status" class="form-select" aria-label="{% trans 'Status' %}" data-nice-select data-prefix="{% trans 'Status' %}">
+                <option value="">{% trans "Any" %}</option>
+                {% for v, l in status_choices %}<option value="{{ v }}" {% if rec_filters.status == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+            </select>
+            <select name="source" class="form-select" aria-label="{% trans 'Verified by' %}" data-nice-select data-prefix="{% trans 'Verified by' %}">
+                <option value="">{% trans "Any" %}</option>
+                {% for v, l in source_choices %}<option value="{{ v }}" {% if rec_filters.source == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+            </select>
+            <div class="att-seg" role="radiogroup" aria-label="{% trans 'Days' %}">
+                <label {% if not is_current_month %}title="{% trans 'Only available for the current month' %}"{% endif %}><input type="radio" name="day" value="today" {% if rec_filters.day == 'today' %}checked{% endif %} {% if not is_current_month %}disabled{% endif %}><span>{% trans "Today only" %}</span></label>
+                <label><input type="radio" name="day" value="month" {% if rec_filters.day == 'month' %}checked{% endif %}><span>{% trans "Whole month" %}</span></label>
+            </div>
+            {% if rec_filtered %}<a class="att-clear" href="?month={{ month_filter }}">{% trans "Clear filters" %}</a>{% endif %}
+        </form>
+        <div>
+            <div class="att-table-box">
                 {% if logs %}
-                <table class="hotels-data-table">
+                <table class="hotels-data-table rec-table">
                     <thead>
                         <tr>
-                            <th>Member</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Check in</th>
-                            <th>Check out</th>
-                            <th>Notes</th>
-                            {% if can_edit %}<th style="width:160px;">Actions</th>{% endif %}
+                            <th>{% trans "Staff member" %}</th>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Checked in" %}</th>
+                            <th>{% trans "Checked out" %}</th>
+                            <th>{% trans "Hours worked" %}</th>
+                            <th>{% trans "How verified" %}</th>
+                            <th>{% trans "Where" %}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for l in logs %}
-                        <tr class="hotels-row"
-                            data-log-id="{{ l.id }}"
-                            data-user-id="{{ l.user_id }}"
-                            data-person-name="{{ l.person_name|default:''|escape }}"
-                            data-date="{{ l.date|date:'Y-m-d' }}"
-                            data-status="{{ l.status }}"
-                            data-check-in="{{ l.check_in_time|time:'H:i'|default:'' }}"
-                            data-check-out="{{ l.check_out_time|time:'H:i'|default:'' }}"
-                            data-notes="{{ l.notes|default:''|escape }}">
-                            <td class="font-medium">{{ l.person_name }}</td>
-                            <td class="text-muted text-sm">{{ l.date|date:"d M Y" }}</td>
+                        <tr class="hotels-row">
+                            <td>
+                                <span class="rec-name">{{ l.person_name }}</span>
+                                {% if l.user %}<span class="rec-sub">{{ l.user.custom_role.name|default:l.user.get_role_display }}</span>{% endif %}
+                            </td>
+                            <td class="rec-nowrap"><span class="rec-strong">{{ l.date|date:"D, d M" }}</span></td>
                             <td>
                                 <span class="badge {% if l.status == 'present' %}badge-success{% elif l.status == 'absent' %}badge-danger{% elif l.status == 'late' %}badge-warning{% else %}badge-default{% endif %}">
                                     {{ l.get_status_display }}
                                 </span>
                             </td>
-                            <td class="tabular-nums">{{ l.check_in_time|time:"H:i"|default:"—" }}</td>
-                            <td class="tabular-nums">{{ l.check_out_time|time:"H:i"|default:"—" }}</td>
-                            <td class="text-muted text-sm">{{ l.notes|default:"—" }}</td>
-                            {% if can_edit %}
+                            <td class="rec-time">{% if l.check_in_time %}{{ l.check_in_time|time:"g:i A" }}{% else %}<span class="rec-empty">{% trans "Not checked in" %}</span>{% endif %}</td>
+                            <td class="rec-time">{% if l.check_out_time %}{{ l.check_out_time|time:"g:i A" }}{% elif l.check_in_time %}<span class="rec-empty">{% trans "Not yet" %}</span>{% else %}<span class="rec-empty">—</span>{% endif %}</td>
+                            <td class="rec-time">{% with hm=l.work_hours|hours_hm %}{% if hm %}{{ hm }}{% else %}<span class="rec-empty">—</span>{% endif %}{% endwith %}</td>
                             <td>
-                                <div style="display:flex;gap:8px;justify-content:flex-end;">
-                                    <button type="button" class="btn btn-outline btn-sm" onclick="openAttendanceEditFromRow(this)">Edit</button>
-                                    <button type="button" class="btn btn-outline btn-sm" onclick="openAttendanceDeleteFromRow(this)">Delete</button>
+                                {% if l.check_in_meta.checks %}
+                                <div class="att-checks">
+                                    {% for key, ok in l.check_in_meta.checks.items %}
+                                    <span class="att-check {% if not ok %}att-check--fail{% endif %}">{% if ok %}&#10003;{% else %}&#10005;{% endif %} {% if key == 'network' %}{% trans "Office Wi-Fi" %}{% elif key == 'qr' %}{% trans "Office QR" %}{% else %}{% trans "GPS location" %}{% endif %}</span>
+                                    {% endfor %}
                                 </div>
+                                {% elif l.source == 'auto' %}<span class="rec-note">{% trans "Marked absent automatically" %}</span>
+                                {% elif l.source == 'correction' %}<span class="rec-note">{% trans "Approved by manager" %}</span>
+                                {% else %}<span class="rec-note">{{ l.get_source_display }}</span>{% endif %}
+                                {% if l.notes and l.source != 'auto' %}<span class="rec-sub rec-wrap" title="{{ l.notes }}">{{ l.notes|truncatechars:90 }}</span>{% endif %}
                             </td>
-                            {% endif %}
+                            <td>
+                                {% with m=l.check_in_meta %}
+                                {% if m.lat %}<a class="rec-link" href="https://www.google.com/maps?q={{ m.lat }},{{ m.lng }}" target="_blank" rel="noopener">{% if m.distance_m is not None %}{% blocktrans with d=m.distance_m %}At office ({{ d }} m){% endblocktrans %}{% else %}{% trans "Field · open map" %}{% endif %}</a>
+                                {% else %}<span class="rec-empty">—</span>{% endif %}
+                                {% endwith %}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
                 {% else %}
-                <div class="empty-state">
-                    <h3>No attendance records</h3>
-                    <p>{% if can_edit %}Start by marking attendance for today.{% else %}Your attendance will appear here.{% endif %}</p>
+                <div class="hotels-empty">
+                    <div class="hotels-empty__glow" aria-hidden="true"></div>
+                    {% if rec_filtered %}
+                    <h3 class="hotels-empty__title">{% trans "No matching records" %}</h3>
+                    <p class="hotels-empty__text">{% trans "Try another staff member, status or method." %}</p>
+                    <a class="btn btn-outline hotels-empty__btn" href="?month={{ month_filter }}">{% trans "Clear filters" %}</a>
+                    {% else %}
+                    <h3 class="hotels-empty__title">{% trans "No attendance records" %}</h3>
+                    <p class="hotels-empty__text">{% if rec_filters.day == 'today' %}{% trans "Nobody has checked in yet today. Switch to Whole month to see earlier days." %}{% else %}{% trans "Records appear here as staff check in." %}{% endif %}</p>
+                    {% endif %}
                 </div>
                 {% endif %}
             </div>
@@ -164,406 +401,76 @@
 
     {% csrf_token %}
 
-    <div id="modal-attendance-unlock" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-attendance-unlock-title" aria-describedby="modal-attendance-unlock-desc">
-        <div class="modal-box hotels-modal" style="max-width:520px;">
-            <div class="modal-header hotels-modal__header">
-                <div>
-                    <span id="modal-attendance-unlock-title" class="modal-title">{% if has_admin_password %}Attendance password{% else %}Set attendance password{% endif %}</span>
-                    <p id="modal-attendance-unlock-desc" class="hotels-modal-sub">
-                        {% if has_admin_password %}
-                        Confirm your password (used on every attendance save).
-                        {% else %}
-                        Set an attendance password once. Only your account will be able to mark attendance for everyone.
-                        {% endif %}
-                    </p>
-                </div>
-                <button type="button" class="modal-close" onclick="closeModal('modal-attendance-unlock')" aria-label="Close dialog">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-body hotels-modal__body">
-                {% if not has_admin_password %}
-                <div class="form-group">
-                    <label class="form-label" for="attendance-set-password">New attendance password <span class="text-muted">(set once)</span></label>
-                    <input id="attendance-set-password" class="form-input" type="password" autocomplete="new-password" placeholder="Create password">
-                    <p class="form-hint">Only your account can mark attendance. Password will be required on every save.</p>
-                </div>
-                {% else %}
-                <div class="form-group" style="margin-bottom:8px;">
-                    <div class="text-sm font-medium" style="margin-bottom:8px;">Manage password</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <button type="button" class="btn btn-outline btn-sm" id="attendance-mode-change">Change password</button>
-                        <button type="button" class="btn btn-outline btn-sm" id="attendance-mode-reset">Forgot password (reset)</button>
-                    </div>
-                    <p class="form-hint" style="margin-top:8px;">Choose one option below. Only one “new password” field is needed.</p>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="attendance-new-password">New attendance password *</label>
-                    <input id="attendance-new-password" class="form-input" type="password" autocomplete="new-password" placeholder="New password">
-                </div>
-
-                <div id="attendance-change-block">
-                    <div class="form-group">
-                        <label class="form-label" for="attendance-change-current">Current attendance password *</label>
-                        <input id="attendance-change-current" class="form-input" type="password" autocomplete="current-password" placeholder="Current password">
-                        <p class="form-hint">Use this when you think someone saw the password.</p>
-                    </div>
-                </div>
-
-                <div id="attendance-reset-block" class="hidden" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
-                    <div class="text-sm font-medium" style="margin-bottom:8px;">Reset using account password</div>
-                    <div class="form-group">
-                        <label class="form-label" for="attendance-reset-account">Confirm your account password *</label>
-                        <input id="attendance-reset-account" class="form-input" type="password" autocomplete="current-password" placeholder="Your login password">
-                        <p class="form-hint">Reset uses your normal login password to recover access.</p>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline" onclick="closeModal('modal-attendance-unlock')">Cancel</button>
-                {% if not has_admin_password %}
-                <button type="button" class="btn btn-primary" id="attendance-set-btn">Set password</button>
-                {% else %}
-                <button type="button" class="btn btn-outline" id="attendance-reset-btn">Reset</button>
-                <button type="button" class="btn btn-primary" id="attendance-change-btn">Change</button>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    {% if can_edit %}
-    <div id="modal-attendance-mark" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-attendance-mark-title" aria-describedby="modal-attendance-mark-desc">
-        <div class="modal-box hotels-modal" style="max-width:760px;">
-            <div class="modal-header hotels-modal__header">
-                <div>
-                    <span id="modal-attendance-mark-title" class="modal-title">Mark attendance</span>
-                    <p id="modal-attendance-mark-desc" class="hotels-modal-sub">Save present/absent/late/leave with optional times and notes.</p>
-                </div>
-                <button type="button" class="modal-close" onclick="closeModal('modal-attendance-mark')" aria-label="Close dialog">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-body hotels-modal__body">
-                <div class="grid grid-2">
-                    <div class="form-group">
-                        <label class="form-label" for="att-mark-date">Date *</label>
-                        <input id="att-mark-date" class="form-input" type="date" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="att-mark-user-name">Member name *</label>
-                        <input id="att-mark-user-name" class="form-input" type="text" placeholder="Type name…" autocomplete="off" spellcheck="false">
-                        <p class="form-hint">Enter any name (your agency can track staff without creating accounts).</p>
-                    </div>
-                </div>
-                <div class="grid grid-2">
-                    <div class="form-group">
-                        <label class="form-label" for="att-mark-status">Status *</label>
-                        <select id="att-mark-status" class="form-select" required>
-                            <option value="present">Present</option>
-                            <option value="absent">Absent</option>
-                            <option value="late">Late</option>
-                            <option value="leave">Leave</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="att-mark-notes">Notes <span class="text-muted">(optional)</span></label>
-                        <input id="att-mark-notes" class="form-input" type="text" maxlength="500" placeholder="Optional notes">
-                    </div>
-                </div>
-                <div class="grid grid-2">
-                    <div class="form-group">
-                        <label class="form-label" for="att-mark-in">Check in <span class="text-muted">(optional)</span></label>
-                        <input id="att-mark-in" class="form-input tabular-nums" type="time">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="att-mark-out">Check out <span class="text-muted">(optional)</span></label>
-                        <input id="att-mark-out" class="form-input tabular-nums" type="time">
-                    </div>
-                </div>
-                <div class="form-group" style="margin-top:6px;">
-                    <label class="form-label" for="att-mark-password">Attendance password *</label>
-                    <input id="att-mark-password" class="form-input" type="password" autocomplete="current-password" placeholder="Required to save">
-                    <p class="form-hint">For security, password is required on every save.</p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline" onclick="closeModal('modal-attendance-mark')">Cancel</button>
-                <button type="button" class="btn btn-primary" id="attendance-mark-btn">Save</button>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    {% if can_edit %}
-    <div id="modal-attendance-delete" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-attendance-delete-title" aria-describedby="modal-attendance-delete-desc">
-        <div class="modal-box hotels-modal" style="max-width:560px;">
-            <div class="modal-header hotels-modal__header">
-                <div>
-                    <span id="modal-attendance-delete-title" class="modal-title">Delete attendance record</span>
-                    <p id="modal-attendance-delete-desc" class="hotels-modal-sub">This action is permanent. Password is required.</p>
-                </div>
-                <button type="button" class="modal-close" onclick="closeModal('modal-attendance-delete')" aria-label="Close dialog">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-body hotels-modal__body">
-                <div class="form-group">
-                    <label class="form-label" for="att-del-summary">Record</label>
-                    <input id="att-del-summary" class="form-input" type="text" readonly>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="att-del-password">Attendance password *</label>
-                    <input id="att-del-password" class="form-input" type="password" autocomplete="current-password" placeholder="Required to delete">
-                </div>
-                <input type="hidden" id="att-del-log-id" value="">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline" onclick="closeModal('modal-attendance-delete')">Cancel</button>
-                <button type="button" class="btn btn-primary" id="attendance-delete-btn" style="background:var(--destructive);border-color:transparent;">
-                    Delete
-                </button>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-</div>
-
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    (function () {
-        var csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
-        var csrf = csrfInput ? csrfInput.value : '';
-
-        var setBtn = document.getElementById('attendance-set-btn');
-        if (setBtn) {
-            setBtn.addEventListener('click', async function () {
-                try {
-                    var pw = (document.getElementById('attendance-set-password') ? document.getElementById('attendance-set-password').value : '').trim();
-                    if (!pw) return showToast('Enter new attendance password', 'error');
-                    var fd = new FormData();
-                    fd.append('csrfmiddlewaretoken', csrf);
-                    fd.append('password', pw);
-                    var res = await fetch('{% url "member-attendance-unlock" %}', { method: 'POST', body: fd });
-                    if (!res.ok) {
-                        var t = await res.text();
-                        return showToast(t || 'Unable to set password', 'error');
-                    }
-                    closeModal('modal-attendance-unlock');
-                    showToast('Attendance password set', 'success');
-                    window.location.reload();
-                } catch (e) {
-                    showToast('Unable to set password', 'error');
-                }
-            });
-        }
-
-        var changeBtn = document.getElementById('attendance-change-btn');
-        if (changeBtn) {
-            changeBtn.addEventListener('click', async function () {
-                try {
-                    var cur = (document.getElementById('attendance-change-current') ? document.getElementById('attendance-change-current').value : '').trim();
-                    var nw = (document.getElementById('attendance-new-password') ? document.getElementById('attendance-new-password').value : '').trim();
-                    if (!cur || !nw) return showToast('Enter current and new password', 'error');
-                    var fd = new FormData();
-                    fd.append('csrfmiddlewaretoken', csrf);
-                    fd.append('current_password', cur);
-                    fd.append('new_password', nw);
-                    var res = await fetch('{% url "member-attendance-password-change" %}', { method: 'POST', body: fd });
-                    if (!res.ok) {
-                        var t = await res.text();
-                        return showToast(t || 'Unable to change password', 'error');
-                    }
-                    closeModal('modal-attendance-unlock');
-                    showToast('Attendance password changed', 'success');
-                    window.location.reload();
-                } catch (e) {
-                    showToast('Unable to change password', 'error');
-                }
-            });
-        }
-
-        var resetBtn = document.getElementById('attendance-reset-btn');
-        if (resetBtn) {
-            resetBtn.addEventListener('click', async function () {
-                try {
-                    var acc = (document.getElementById('attendance-reset-account') ? document.getElementById('attendance-reset-account').value : '').trim();
-                    var nw = (document.getElementById('attendance-new-password') ? document.getElementById('attendance-new-password').value : '').trim();
-                    if (!acc || !nw) return showToast('Enter account password and new attendance password', 'error');
-                    var fd = new FormData();
-                    fd.append('csrfmiddlewaretoken', csrf);
-                    fd.append('account_password', acc);
-                    fd.append('new_password', nw);
-                    var res = await fetch('{% url "member-attendance-password-reset" %}', { method: 'POST', body: fd });
-                    if (!res.ok) {
-                        var t = await res.text();
-                        return showToast(t || 'Unable to reset password', 'error');
-                    }
-                    closeModal('modal-attendance-unlock');
-                    showToast('Attendance password reset', 'success');
-                    window.location.reload();
-                } catch (e) {
-                    showToast('Unable to reset password', 'error');
-                }
-            });
-        }
-
-        var modeChange = document.getElementById('attendance-mode-change');
-        var modeReset = document.getElementById('attendance-mode-reset');
-        var changeBlock = document.getElementById('attendance-change-block');
-        var resetBlock = document.getElementById('attendance-reset-block');
-        if (modeChange && modeReset && changeBlock && resetBlock) {
-            var setMode = function (m) {
-                if (m === 'reset') {
-                    changeBlock.classList.add('hidden');
-                    resetBlock.classList.remove('hidden');
-                    modeReset.classList.add('btn-primary');
-                    modeReset.classList.remove('btn-outline');
-                    modeChange.classList.add('btn-outline');
-                    modeChange.classList.remove('btn-primary');
-                } else {
-                    resetBlock.classList.add('hidden');
-                    changeBlock.classList.remove('hidden');
-                    modeChange.classList.add('btn-primary');
-                    modeChange.classList.remove('btn-outline');
-                    modeReset.classList.add('btn-outline');
-                    modeReset.classList.remove('btn-primary');
-                }
-            };
-            modeChange.addEventListener('click', function () { setMode('change'); });
-            modeReset.addEventListener('click', function () { setMode('reset'); });
-            setMode('change');
-        }
-
-        window.openAttendanceMarkModal = function () {
-            var dateEl = document.getElementById('att-mark-date');
-            var userNameEl = document.getElementById('att-mark-user-name');
-            var pwEl = document.getElementById('att-mark-password');
-            if (dateEl && !dateEl.value) {
-                var d = new Date();
-                var mm = String(d.getMonth() + 1).padStart(2, '0');
-                var dd = String(d.getDate()).padStart(2, '0');
-                dateEl.value = d.getFullYear() + '-' + mm + '-' + dd;
-            }
-            if (userNameEl) userNameEl.value = '';
-            if (pwEl) pwEl.value = '';
-            openModal('modal-attendance-mark');
-        };
-
-        window.openAttendanceEditFromRow = function (btn) {
-            try {
-                var tr = btn && btn.closest ? btn.closest('tr') : null;
-                if (!tr) return;
-                var dateEl = document.getElementById('att-mark-date');
-                var userNameEl = document.getElementById('att-mark-user-name');
-                var statusEl = document.getElementById('att-mark-status');
-                var inEl = document.getElementById('att-mark-in');
-                var outEl = document.getElementById('att-mark-out');
-                var notesEl = document.getElementById('att-mark-notes');
-                if (dateEl) dateEl.value = tr.dataset.date || '';
-                if (userNameEl) userNameEl.value = tr.dataset.personName || (tr.querySelector('td') ? tr.querySelector('td').textContent.trim() : '');
-                if (statusEl) statusEl.value = tr.dataset.status || 'present';
-                if (inEl) inEl.value = tr.dataset.checkIn || '';
-                if (outEl) outEl.value = tr.dataset.checkOut || '';
-                if (notesEl) notesEl.value = tr.dataset.notes || '';
-                openModal('modal-attendance-mark');
-            } catch (e) { }
-        };
-
-        window.openAttendanceDeleteFromRow = function (btn) {
-            try {
-                var tr = btn && btn.closest ? btn.closest('tr') : null;
-                if (!tr) return;
-                var logId = tr.dataset.logId || '';
-                var name = (tr.querySelector('td') ? tr.querySelector('td').textContent.trim() : 'Record');
-                var dateTxt = tr.dataset.date || '';
-                var statusTxt = tr.dataset.status || '';
-                var sumEl = document.getElementById('att-del-summary');
-                var idEl = document.getElementById('att-del-log-id');
-                var pwEl = document.getElementById('att-del-password');
-                if (sumEl) sumEl.value = name + ' • ' + dateTxt + ' • ' + statusTxt;
-                if (idEl) idEl.value = logId;
-                if (pwEl) pwEl.value = '';
-                openModal('modal-attendance-delete');
-            } catch (e) { }
-        };
-
-        var markBtn = document.getElementById('attendance-mark-btn');
-        if (markBtn) {
-            markBtn.addEventListener('click', async function () {
-                try {
-                    var dateV = (document.getElementById('att-mark-date').value || '').trim();
-                    var userNameV = (document.getElementById('att-mark-user-name') ? document.getElementById('att-mark-user-name').value : '').trim();
-                    var statusV = (document.getElementById('att-mark-status').value || '').trim();
-                    var inV = (document.getElementById('att-mark-in').value || '').trim();
-                    var outV = (document.getElementById('att-mark-out').value || '').trim();
-                    var notesV = (document.getElementById('att-mark-notes').value || '').trim();
-                    var pwV = (document.getElementById('att-mark-password') ? document.getElementById('att-mark-password').value : '').trim();
-                    if (!dateV || !statusV) return showToast('Date and status are required', 'error');
-                    if (!userNameV) return showToast('Member name is required', 'error');
-                    if (!pwV) return showToast('Password is required', 'error');
-
-                    var fd = new FormData();
-                    fd.append('csrfmiddlewaretoken', csrf);
-                    fd.append('date', dateV);
-                    fd.append('person_name', userNameV);
-                    fd.append('status', statusV);
-                    fd.append('check_in_time', inV);
-                    fd.append('check_out_time', outV);
-                    fd.append('notes', notesV);
-                    fd.append('password', pwV);
-
-                    var res = await fetch('{% url "member-attendance-mark" %}', { method: 'POST', body: fd });
-                    if (!res.ok) {
-                        var t = await res.text();
-                        return showToast(t || 'Unable to save', 'error');
-                    }
-                    closeModal('modal-attendance-mark');
-                    showToast('Saved', 'success');
-                    window.location.reload();
-                } catch (e) {
-                    showToast('Unable to save', 'error');
-                }
-            });
-        }
-
-        var deleteBtn = document.getElementById('attendance-delete-btn');
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', async function () {
-                try {
-                    var logId = (document.getElementById('att-del-log-id') ? document.getElementById('att-del-log-id').value : '').trim();
-                    var pw = (document.getElementById('att-del-password') ? document.getElementById('att-del-password').value : '').trim();
-                    if (!logId) return showToast('Invalid record', 'error');
-                    if (!pw) return showToast('Password is required', 'error');
-                    var fd = new FormData();
-                    fd.append('csrfmiddlewaretoken', csrf);
-                    fd.append('log_id', logId);
-                    fd.append('password', pw);
-                    var res = await fetch('{% url "member-attendance-delete" %}', { method: 'POST', body: fd });
-                    if (!res.ok) {
-                        var t = await res.text();
-                        return showToast(t || 'Unable to delete', 'error');
-                    }
-                    closeModal('modal-attendance-delete');
-                    showToast('Deleted', 'success');
-                    window.location.reload();
-                } catch (e) {
-                    showToast('Unable to delete', 'error');
-                }
-            });
-        }
-    })();
+(function () {
+  var input = document.getElementById('attendance-month');
+  if (!input) return;
+  var form = input.form, pop = document.getElementById('mp-pop'), label = document.getElementById('mp-label');
+  var grid = document.getElementById('mp-grid'), yearEl = document.getElementById('mp-year');
+  var now = new Date(), thisY = now.getFullYear(), thisM = now.getMonth() + 1;
+  var parts = (input.value || '').split('-'), selY = +parts[0] || thisY, selM = +parts[1] || thisM;
+  var viewY = selY;
+  var names = Array.from({ length: 12 }, function (_, i) {
+    return new Date(2000, i, 1).toLocaleString(document.documentElement.lang || undefined, { month: 'short' });
+  });
+  function go(y, m) {
+    input.value = y + '-' + String(m).padStart(2, '0');
+    form.submit();
+  }
+  function isFuture(y, m) { return y > thisY || (y === thisY && m > thisM); }
+  function render() {
+    yearEl.textContent = viewY;
+    document.getElementById('mp-year-next').disabled = viewY >= thisY;
+    grid.innerHTML = '';
+    names.forEach(function (n, i) {
+      var m = i + 1, b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'mp-month' + (viewY === selY && m === selM ? ' is-selected' : '') + (viewY === thisY && m === thisM ? ' is-today' : '');
+      b.textContent = n;
+      b.disabled = isFuture(viewY, m);
+      if (viewY === selY && m === selM) b.setAttribute('aria-current', 'true');
+      b.addEventListener('click', function () { go(viewY, m); });
+      grid.appendChild(b);
+    });
+  }
+  function open(show) {
+    pop.hidden = !show;
+    label.setAttribute('aria-expanded', show ? 'true' : 'false');
+    if (show) { viewY = selY; render(); var cur = grid.querySelector('.is-selected') || grid.querySelector('button:not(:disabled)'); if (cur) cur.focus(); }
+  }
+  label.addEventListener('click', function () { open(pop.hidden); });
+  document.querySelectorAll('#mp [data-year]').forEach(function (b) {
+    b.addEventListener('click', function () { viewY += +b.dataset.year; render(); });
+  });
+  document.querySelectorAll('#mp > [data-step]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var d = new Date(selY, selM - 1 + +b.dataset.step, 1);
+      go(d.getFullYear(), d.getMonth() + 1);
+    });
+  });
+  document.getElementById('mp-next').disabled = isFuture(selM === 12 ? selY + 1 : selY, selM === 12 ? 1 : selM + 1);
+  document.getElementById('mp-this').addEventListener('click', function () { go(thisY, thisM); });
+  document.addEventListener('click', function (e) { if (!pop.hidden && !e.target.closest('#mp')) open(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !pop.hidden) { open(false); label.focus(); } });
+})();
+</script>
+<script>
+(function () {
+  var f = document.getElementById('att-filters');
+  if (f) f.addEventListener('change', function () { f.submit(); });
+})();
+</script>
+<script>
+(function () {
+  document.querySelectorAll('[data-cr-note]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var input = b.parentNode.querySelector('.cr-note');
+      input.hidden = false; b.hidden = true; input.focus();
+    });
+  });
+})();
 </script>
 {% endblock %}

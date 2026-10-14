@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% trans "Remove this installment?" as js_confirm_remove_installment %}
+{% block title %}{% trans "Payment Plan" %} — {{ booking.voucher_number }}{% endblock %}
+{% block content %}
+<div class="page-contacts">
+  <header class="hotels-hero hotels-reveal" style="--d:0ms">
+    <div class="hotels-hero__copy">
+      <p class="hotels-eyebrow"><a href="{% url 'member-booking-detail' booking.id %}" class="text-muted" style="text-decoration:none;">{{ booking.voucher_number }}</a> · {% trans "Payment plan" %}</p>
+      <h1 class="page-title hotels-hero__title">{% trans "Payment plan" %}</h1>
+      <p class="page-subtitle hotels-hero__sub">{% trans "Split this booking into a deposit/balance schedule instead of one lump sum. Reminders go out automatically as due dates approach." %}</p>
+    </div>
+  </header>
+
+
+  <section class="card hotels-panel hotels-reveal mb-6" style="--d:80ms">
+    <div class="hotels-panel__head"><h2 class="hotels-panel__title">{% trans "Add an installment" %}</h2></div>
+    <div class="card-content hotels-panel__body">
+      <form method="post" style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+        {% csrf_token %}
+        <div class="form-group" style="flex:1; min-width:160px;">
+          <label class="form-label" for="label">{% trans "Label" %}</label>
+          <input class="form-input" type="text" id="label" name="label" placeholder="{% trans 'e.g. Deposit' %}" required>
+        </div>
+        <div class="form-group" style="min-width:140px;">
+          <label class="form-label" for="amount">{% trans "Amount" %}</label>
+          <input class="form-input" type="text" id="amount" name="amount" required>
+        </div>
+        <div class="form-group" style="min-width:160px;">
+          <label class="form-label" for="due_date">{% trans "Due date" %}</label>
+          <input class="form-input" type="date" id="due_date" name="due_date" required>
+        </div>
+        <button type="submit" class="btn btn-primary">{% trans "Add" %}</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="card hotels-panel hotels-reveal" style="--d:120ms">
+    <div class="hotels-panel__head"><h2 class="hotels-panel__title">{% trans "Schedule" %}</h2></div>
+    <div class="card-content hotels-panel__body">
+      <table class="hotels-data-table">
+        <thead><tr><th>#</th><th>{% trans "Label" %}</th><th>{% trans "Amount" %}</th><th>{% trans "Due" %}</th><th>{% trans "Status" %}</th><th></th></tr></thead>
+        <tbody>
+          {% for i in installments %}
+          <tr class="hotels-row">
+            <td class="text-muted text-sm">{{ i.sequence }}</td>
+            <td class="font-medium">{{ i.label }}</td>
+            <td class="tabular-nums">{{ i.amount }}</td>
+            <td class="text-muted text-sm tabular-nums">{{ i.due_date }}</td>
+            <td>
+              {% if i.status == 'paid' %}<span class="badge badge-success">{% trans "Paid" %}</span>
+              {% elif i.is_overdue %}<span class="badge badge-danger">{% trans "Overdue" %}</span>
+              {% elif i.status == 'waived' %}<span class="badge badge-outline">{% trans "Waived" %}</span>
+              {% else %}<span class="badge badge-outline">{% trans "Pending" %}</span>{% endif %}
+            </td>
+            <td>
+              {% if i.status == 'pending' %}
+              <form method="post" onsubmit="return confirm('{{ js_confirm_remove_installment|escapejs }}');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="installment_id" value="{{ i.id }}">
+                <button class="btn btn-outline btn-sm" type="submit">{% trans "Remove" %}</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr class="hotels-row"><td colspan="6"><div class="empty-state"><h3>{% trans "No installments yet" %}</h3><p>{% trans "The full amount is due as one payment until you add a schedule." %}</p></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

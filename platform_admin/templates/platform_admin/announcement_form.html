@@ -1,0 +1,53 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% if announcement %}{% trans "Edit Announcement" %}{% else %}{% trans "New Announcement" %}{% endif %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{% if announcement %}{% trans "Edit announcement" %}{% else %}{% trans "New announcement" %}{% endif %}</h1>
+</div>
+
+<div class="card" style="max-width:680px;">
+  <div class="card-content" style="padding-top:20px;">
+    <form method="post" style="display:flex; flex-direction:column; gap:16px;">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label" for="title">{% trans "Title" %}</label>
+        <input class="form-input" type="text" id="title" name="title" value="{% firstof announcement.title form_data.title '' %}" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="body">{% trans "Message" %}</label>
+        <textarea class="form-input" id="body" name="body" rows="4" required>{% firstof announcement.body form_data.body '' %}</textarea>
+      </div>
+      <div class="grid grid-2">
+        <div class="form-group">
+          <label class="form-label" for="severity">{% trans "Severity" %}</label>
+          <select class="form-select" id="severity" name="severity">
+            <option value="info" {% if announcement.severity == 'info' or not announcement %}selected{% endif %}>{% trans "Info" %}</option>
+            <option value="warning" {% if announcement.severity == 'warning' %}selected{% endif %}>{% trans "Warning" %}</option>
+            <option value="critical" {% if announcement.severity == 'critical' %}selected{% endif %}>{% trans "Critical" %}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="ends_at">{% trans "Ends at (blank = indefinite)" %}</label>
+          <input class="form-input" type="datetime-local" id="ends_at" name="ends_at" value="{{ announcement.ends_at|date:'Y-m-d\TH:i'|default:'' }}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">{% trans "Target agencies (blank = every tenant)" %}</label>
+        <select class="form-select" name="target_agencies" multiple size="6">
+          {% for agency in agencies %}
+          <option value="{{ agency.id }}" {% if agency in announcement.target_agencies.all %}selected{% endif %}>{{ agency.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="is_active" {% if announcement.is_active or not announcement %}checked{% endif %}> {% trans "Active" %}
+      </label>
+      <div class="flex gap-3 mt-2">
+        <button class="btn btn-primary" type="submit">{% trans "Save announcement" %}</button>
+        <a class="btn btn-outline" href="{% url 'platform_admin:announcements' %}">{% trans "Cancel" %}</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

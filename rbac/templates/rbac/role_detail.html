@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ role.name }}{% endblock %}
+{% block content %}
+<div class="page-contacts">
+  <header class="hotels-hero hotels-reveal" style="--d:0ms">
+    <div class="hotels-hero__copy">
+      <p class="hotels-eyebrow">{% trans "Team" %}</p>
+      <h1 class="page-title hotels-hero__title">{{ role.name }}</h1>
+      <p class="page-subtitle hotels-hero__sub">
+        {% if is_editable %}{% trans "Toggle what this role can see and do." %}{% else %}{% trans "Built-in template — read-only. Clone it to customize." %}{% endif %}
+      </p>
+    </div>
+    <div class="hotels-hero__actions">
+      <a href="{% url 'member-roles' %}" class="btn btn-outline hotels-cta-btn">{% trans "Back to roles" %}</a>
+    </div>
+  </header>
+
+
+  <section class="card hotels-panel hotels-reveal" style="--d:80ms">
+    <div class="card-content hotels-panel__body">
+      <form method="post">
+        {% csrf_token %}
+        <table class="hotels-data-table">
+          <thead><tr><th>{% trans "Capability" %}</th><th style="text-align:center;">{% trans "View" %}</th><th style="text-align:center;">{% trans "Manage" %}</th></tr></thead>
+          <tbody>
+            {% for row in matrix %}
+            <tr class="hotels-row">
+              <td class="font-medium">{{ row.label }}</td>
+              <td style="text-align:center;">
+                <input type="checkbox" name="permissions" value="{{ row.capability }}:view" {% if row.view %}checked{% endif %} {% if not is_editable %}disabled{% endif %}>
+              </td>
+              <td style="text-align:center;">
+                <input type="checkbox" name="permissions" value="{{ row.capability }}:manage" {% if row.manage %}checked{% endif %} {% if not is_editable %}disabled{% endif %}>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% if is_editable %}
+        <div style="margin-top:16px;">
+          <button type="submit" class="btn btn-primary">{% trans "Save permissions" %}</button>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+  </section>
+</div>
+{% endblock %}

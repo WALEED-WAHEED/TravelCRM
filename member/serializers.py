@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Flight, Hotel, Mutamer, Transport, Voucher, LedgerEntry
+from .models import Flight, Hotel, LedgerEntry, Package, Transport, Voucher
 
 
 class HotelSerializer(serializers.ModelSerializer):
@@ -131,71 +131,6 @@ class TransportSerializer(serializers.ModelSerializer):
         super().__init__(*args, **kwargs)
 
 
-class MutamerSerializer(serializers.ModelSerializer):
-    """Pilgrim profile; `agent` and `agency` are set on create from the request user."""
-
-    is_active = serializers.BooleanField(required=False, default=True)
-    is_family_head = serializers.BooleanField(required=False, default=False)
-
-    class Meta:
-        model = Mutamer
-        fields = [
-            "id",
-            "name",
-            "passport_number",
-            "visa_number",
-            "nationality",
-            "gender",
-            "person_type",
-            "date_of_birth",
-            "phone",
-            "email",
-            "emergency_contact",
-            "emergency_phone",
-            "address",
-            "city",
-            "state",
-            "country",
-            "postal_code",
-            "notes",
-            "is_active",
-            "family_id",
-            "is_family_head",
-            "family_head_name",
-            "created_at",
-            "updated_at",
-        ]
-        read_only_fields = ["id", "created_at", "updated_at"]
-        extra_kwargs = {
-            "visa_number": {"required": False, "allow_null": True, "allow_blank": True},
-            "person_type": {"required": False, "allow_null": True, "allow_blank": True},
-            "date_of_birth": {"required": False, "allow_null": True},
-            "phone": {"required": False, "allow_blank": True},
-            "email": {"required": False, "allow_blank": True},
-            "emergency_contact": {"required": False, "allow_blank": True},
-            "emergency_phone": {"required": False, "allow_blank": True},
-            "address": {"required": False, "allow_blank": True},
-            "city": {"required": False, "allow_blank": True},
-            "state": {"required": False, "allow_blank": True},
-            "country": {"required": False, "allow_blank": True},
-            "postal_code": {"required": False, "allow_blank": True},
-            "notes": {"required": False, "allow_blank": True},
-            "family_id": {"required": False, "allow_null": True, "allow_blank": True},
-            "family_head_name": {"required": False, "allow_null": True, "allow_blank": True},
-        }
-
-    def __init__(self, *args, **kwargs):
-        data = kwargs.get("data")
-        if data is not None and hasattr(data, "copy"):
-            data = data.copy()
-            if data.get("person_type") == "":
-                data["person_type"] = None
-            if data.get("date_of_birth") == "":
-                data["date_of_birth"] = None
-            kwargs["data"] = data
-        super().__init__(*args, **kwargs)
-
-
 class VoucherSerializer(serializers.ModelSerializer):
     """Voucher read/update serializer for approvals and directory."""
 
@@ -204,13 +139,19 @@ class VoucherSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "voucher_number",
-            "manual_number",
             "agent",
-            "mutamer",
+            "mutamer_name",
+            "mutamer_passport_number",
+            "mutamer_visa_number",
+            "mutamer_nationality",
+            "mutamer_gender",
+            "mutamer_phone",
+            "mutamer_email",
             "status",
             "total_amount",
             "paid_amount",
             "notes",
+            "rejection_reason",
             "approved_by",
             "approved_at",
             "public_token",
@@ -220,6 +161,7 @@ class VoucherSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "id",
             "voucher_number",
+            "rejection_reason",
             "public_token",
             "approved_by",
             "approved_at",
@@ -248,6 +190,10 @@ class LedgerEntrySerializer(serializers.ModelSerializer):
             "trans_no",
             "inv_ref",
             "rate",
+            "fx_currency",
+            "fx_amount",
+            "pax",
+            "type_code",
             "description",
             "category",
             "booking",
@@ -255,8 +201,13 @@ class LedgerEntrySerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "currency", "created_at", "updated_at"]
+        read_only_fields = ["id", "currency", "type_code", "created_at", "updated_at"]
         extra_kwargs = {
+            # Derived from fx_amount * rate when a foreign amount is given.
+            "amount": {"required": False},
+            "fx_currency": {"required": False, "allow_blank": True},
+            "fx_amount": {"required": False, "allow_null": True},
+            "pax": {"required": False, "allow_null": True},
             "counterparty_type": {"required": False, "allow_blank": True},
             "counterparty_name": {"required": False, "allow_blank": True},
             "reference_number": {"required": False, "allow_blank": True},
@@ -268,3 +219,68 @@ class LedgerEntrySerializer(serializers.ModelSerializer):
             "voucher": {"required": False, "allow_null": True},
         }
 
+    def validate(self, attrs):
+        def current(field):
+            if field in attrs:
+                return attrs[field]
+            return getattr(self.instance, field, None)
+
+        fx_amount, rate = current("fx_amount"), current("rate")
+        if fx_amount is not None:
+            if not rate:
+                raise serializers.ValidationError({"rate": "Enter the exchange rate for the foreign amount."})
+            if not current("fx_currency"):
+                raise serializers.ValidationError({"fx_currency": "Choose the currency of the foreign amount."})
+            # The model recomputes this on save; set it so `amount` passes validation.
+            attrs["amount"] = fx_amount * rate
+        elif current("amount") is None:
+            raise serializers.ValidationError({"amount": "Enter an amount."})
+        else:
+            # Switching back from a foreign amount must not leave stale FX fields.
+            attrs.setdefault("fx_currency", "")
+
+        if current("bucket") == "lein_dein" and not (current("counterparty_name") or "").strip():
+            raise serializers.ValidationError({"counterparty_name": "Choose or type the party name."})
+        if current("bucket") == "company_expense":
+            attrs["direction"] = "debit"
+        return attrs
+
+
+
+class PackageSerializer(serializers.ModelSerializer):
+    """Umrah/Hajj package. Hotel/flight/transport choices are limited to the
+    caller's own agency because those models' default managers are tenant-scoped."""
+
+    inclusions = serializers.MultipleChoiceField(choices=Package.INCLUSIONS, required=False)
+
+    class Meta:
+        model = Package
+        fields = [
+            "id", "code", "name", "package_type", "group_leader", "makkah_nights", "madina_nights",
+            "makkah_hotel", "madina_hotel", "makkah_distance", "makkah_shuttle", "madina_distance", "madina_shuttle",
+            "flight", "return_flight", "baggage", "transport", "inclusions", "extra_services",
+            "price_sharing", "price_double", "price_triple", "price_quad", "price_quint",
+            "price_child", "price_infant", "cost_price",
+            "departure_date", "return_date", "total_seats", "notes", "is_active",
+            "created_at", "updated_at",
+        ]
+        read_only_fields = ["id", "code", "created_at", "updated_at"]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["inclusions"] = sorted(data.get("inclusions") or [])
+        return data
+
+    def validate_inclusions(self, value):
+        order = [key for key, _label in Package.INCLUSIONS]
+        return [key for key in order if key in value]
+
+    def validate(self, attrs):
+        dep = attrs.get("departure_date", getattr(self.instance, "departure_date", None))
+        ret = attrs.get("return_date", getattr(self.instance, "return_date", None))
+        if dep and ret and ret < dep:
+            raise serializers.ValidationError({"return_date": "Return date must be after departure."})
+        prices = [attrs.get(f, getattr(self.instance, f, None)) for f, _label in Package.SHARING_FIELDS]
+        if all(p is None for p in prices):
+            raise serializers.ValidationError({"price_quad": "Enter a price for at least one room sharing."})
+        return attrs

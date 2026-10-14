@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Collect Payment" %} — {{ booking.voucher_number }}{% endblock %}
+{% block content %}
+<div class="page-contacts">
+  <header class="hotels-hero hotels-reveal" style="--d:0ms">
+    <div class="hotels-hero__copy">
+      <p class="hotels-eyebrow"><a href="{% url 'member-booking-detail' booking.id %}" class="text-muted" style="text-decoration:none;">{{ booking.voucher_number }}</a> · {% trans "Payment" %}</p>
+      <h1 class="page-title hotels-hero__title">{% trans "Collect payment" %}</h1>
+      <p class="page-subtitle hotels-hero__sub">{% trans "Recording a payment here automatically updates the ledger — no separate entry needed." %}</p>
+    </div>
+  </header>
+
+
+  <div class="grid grid-3 mb-6">
+    <div class="card kpi-card"><div class="kpi-value">{{ booking.total_amount }}</div><div class="kpi-label">{% trans "Total amount" %}</div></div>
+    <div class="card kpi-card"><div class="kpi-value">{{ total_paid }}</div><div class="kpi-label">{% trans "Paid so far" %}</div></div>
+    <div class="card kpi-card"><div class="kpi-value">{{ balance }}</div><div class="kpi-label">{% trans "Balance" %}</div></div>
+  </div>
+
+  <section class="card hotels-panel hotels-reveal mb-6" style="--d:80ms">
+    <div class="hotels-panel__head"><h2 class="hotels-panel__title">{% trans "Record a payment" %}</h2></div>
+    <div class="card-content hotels-panel__body">
+      <form method="post" style="max-width:520px; display:flex; flex-direction:column; gap:16px;">
+        {% csrf_token %}
+        <input type="hidden" name="idempotency_key" value="{{ new_idempotency_key }}">
+        {% if installments %}
+        <div class="form-group">
+          <label class="form-label" for="installment_id">{% trans "Against installment (optional)" %}</label>
+          <select class="form-select" id="installment_id" name="installment_id">
+            <option value="">{% trans "— Not tied to a specific installment —" %}</option>
+            {% for i in installments %}
+            {% if i.status == 'pending' %}
+            <option value="{{ i.id }}">{{ i.label }} — {{ i.amount }} ({% trans "due" %} {{ i.due_date }})</option>
+            {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+        <div class="grid grid-2">
+          <div class="form-group">
+            <label class="form-label" for="amount">{% trans "Amount" %}</label>
+            <input class="form-input" type="text" id="amount" name="amount" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="payment_method">{% trans "Method" %}</label>
+            <select class="form-select" id="payment_method" name="payment_method">
+              <option value="cash">{% trans "Cash" %}</option>
+              <option value="card">{% trans "Card" %}</option>
+              <option value="bank_transfer">{% trans "Bank transfer" %}</option>
+              <option value="check">{% trans "Check" %}</option>
+              <option value="other">{% trans "Other" %}</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="transaction_id">{% trans "Reference / transaction ID" %}</label>
+          <input class="form-input" type="text" id="transaction_id" name="transaction_id">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="notes">{% trans "Notes" %}</label>
+          <input class="form-input" type="text" id="notes" name="notes">
+        </div>
+        <button type="submit" class="btn btn-primary" onclick="var b=this;setTimeout(function(){b.disabled=true;},0);">{% trans "Record payment" %}</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="card hotels-panel hotels-reveal" style="--d:120ms">
+    <div class="hotels-panel__head"><h2 class="hotels-panel__title">{% trans "Payment history" %}</h2></div>
+    <div class="card-content hotels-panel__body">
+      <table class="hotels-data-table">
+        <thead><tr><th>{% trans "Date" %}</th><th>{% trans "Amount" %}</th><th>{% trans "Method" %}</th><th>{% trans "Reference" %}</th><th>{% trans "Recorded by" %}</th></tr></thead>
+        <tbody>
+          {% for p in payments %}
+          <tr class="hotels-row">
+            <td class="text-muted text-sm tabular-nums">{{ p.created_at|date:"Y-m-d H:i" }}</td>
+            <td class="tabular-nums font-medium">{{ p.amount }}</td>
+            <td class="text-muted text-sm">{{ p.get_payment_method_display }}</td>
+            <td class="text-muted text-sm">{{ p.transaction_id|default:"—" }}</td>
+            <td class="text-muted text-sm">{{ p.agent.username }}</td>
+          </tr>
+          {% empty %}
+          <tr class="hotels-row"><td colspan="5"><div class="empty-state"><h3>{% trans "No payments yet" %}</h3></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

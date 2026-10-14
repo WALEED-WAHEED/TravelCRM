@@ -3,13 +3,14 @@ from rest_framework.authentication import SessionAuthentication
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from utils.api import TenantScopedAPIMixin
 from utils.permissions import IsMember
 
 from .models import LedgerEntry
 from .serializers import LedgerEntrySerializer
 
 
-class LedgerEntryViewSet(viewsets.ModelViewSet):
+class LedgerEntryViewSet(TenantScopedAPIMixin, viewsets.ModelViewSet):
     """Agency ledger entries — members can create/update/delete."""
 
     serializer_class = LedgerEntrySerializer

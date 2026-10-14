@@ -1,160 +1,201 @@
 {% load static %}
+{% load asset_tags %}
+{% load i18n %}
 {% load currency_tags %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}">
 <head>
     <meta charset="UTF-8">
     {% include "partials/theme_init.html" %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ledger Report — {{ month_filter }}</title>
-    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <title>{% trans "Account Ledger" %}{% if single_party and statements %} — {{ statements.0.name }}{% endif %}</title>
+    <link rel="stylesheet" href="{% versioned_static 'css/app.css' %}">
     <style>
         body { background: var(--muted); padding: 28px 16px; }
-        .report { max-width: 980px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-card); padding: 28px; }
-        .rep-top { display:flex; justify-content:space-between; gap: 16px; border-bottom: 2px solid var(--border); padding-bottom: 16px; margin-bottom: 18px; }
-        .rep-brand h1 { margin:0; font-size: 1.25rem; color: var(--primary); }
-        .rep-brand .meta { color: var(--muted-foreground); font-size: 0.85rem; line-height: 1.35; margin-top: 4px; }
-        .rep-meta { text-align:right; }
-        .rep-meta .title { font-weight: 700; font-size: 1.05rem; margin:0; }
-        .rep-meta .sub { color: var(--muted-foreground); font-size: 0.85rem; margin-top: 6px; }
-        .rep-actions { display:flex; justify-content:flex-end; gap: 10px; margin-bottom: 14px; }
-        .section-title { margin: 18px 0 10px; font-size: 0.95rem; font-weight: 700; }
-        .rep-table { width:100%; border-collapse: collapse; }
-        .rep-table th, .rep-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align:left; vertical-align: top; }
-        .rep-table th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); background: var(--muted); }
-        .mono { font-family: ui-monospace, monospace; font-variant-numeric: tabular-nums; }
-        .right { text-align:right; }
+        .report { max-width: 1020px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-card); padding: 28px 32px; }
+        .rep-actions { max-width: 1020px; margin: 0 auto 14px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+        .statement + .statement { margin-top: 36px; padding-top: 28px; border-top: 2px dashed var(--border); }
+        .rep-brand { display: flex; gap: 16px; align-items: center; margin-bottom: 14px; }
+        .rep-brand img { width: 72px; height: 72px; object-fit: contain; }
+        .rep-brand h1 { margin: 0; font-size: 1.2rem; }
+        .rep-brand .meta { color: var(--muted-foreground); font-size: 0.85rem; line-height: 1.4; margin-top: 2px; white-space: pre-line; }
+        .rep-title { border: 1.5px solid var(--foreground); text-align: center; font-weight: 700; font-size: 1.15rem; padding: 4px; margin-bottom: 12px; background: color-mix(in srgb, var(--primary) 6%, var(--card)); }
+        .rep-meta { display: grid; grid-template-columns: 1fr auto; gap: 4px 24px; font-size: 0.875rem; margin-bottom: 12px; }
+        .rep-meta dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; }
+        .rep-meta dt { font-weight: 700; }
+        .rep-meta dd { margin: 0; }
+        .rep-meta .end dl { grid-template-columns: auto auto; justify-content: end; }
+        .rep-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        .rep-table thead th { border: 1.5px solid var(--foreground); padding: 4px 6px; text-align: start; font-weight: 700; }
+        .rep-table td { padding: 7px 6px; border-bottom: 1px dotted var(--muted-foreground); vertical-align: top; }
+        .rep-table .num { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .rep-table .trans { color: var(--primary); white-space: nowrap; }
+        .rep-table .nowrap { white-space: nowrap; }
+        .rep-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 10px; font-size: 0.875rem; }
+        .rep-foot .pax { display: grid; grid-template-columns: auto auto; gap: 2px 14px; font-weight: 700; }
+        .rep-foot .total { display: flex; gap: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+        .rep-section { margin: 30px 0 10px; font-size: 1rem; font-weight: 700; }
         .muted { color: var(--muted-foreground); }
-        .group-head { background: color-mix(in srgb, var(--muted) 55%, transparent); }
-        .totals { display:flex; justify-content: flex-end; gap: 18px; margin-top: 10px; }
-        .totals .pill { background: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 8px 12px; font-size: 0.85rem; }
+        .rep-empty { padding: 18px 0; color: var(--muted-foreground); }
+        .rep-setup-hint { margin: -6px 0 12px; padding: 8px 12px; font-size: 0.8rem; border: 1px dashed var(--border); border-radius: 8px; color: var(--muted-foreground); }
+        .rep-setup-hint a { color: var(--primary); }
         @media print {
             body { background: white; padding: 0; }
-            .report { box-shadow:none; border:none; border-radius:0; padding: 0; }
-            .rep-actions { display:none !important; }
-            .theme-toggle-floating { display:none !important; }
+            .report { box-shadow: none; border: none; border-radius: 0; padding: 0; max-width: none; }
+            .rep-actions, .theme-toggle-floating, .rep-setup-hint { display: none !important; }
+            .statement + .statement { border-top: none; margin-top: 0; padding-top: 0; break-before: page; }
+            .rep-table thead { display: table-header-group; }
+            .rep-table tr { break-inside: avoid; }
         }
     </style>
 </head>
 <body>
+    {% trans "Beginning" as t_beginning %}
+    <div class="rep-actions">
+        <a class="btn btn-outline btn-sm" href="{% url 'member-ledger' %}{% if single_party %}?party={{ f.party|urlencode }}{% endif %}">{% trans "Back to ledger" %}</a>
+        {% if single_party and statements %}
+        {% with s=statements.0 %}
+        {% blocktrans asvar wa_text with party=s.name bal=s.closing|drcr d=print_date|date:"d/m/Y" company=branding.company_name|default:agency.name %}{{ company }} — account statement for {{ party }}. Balance as of {{ d }}: {{ bal }}.{% endblocktrans %}
+        <a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="https://wa.me/?text={{ wa_text|urlencode }}">{% trans "Share on WhatsApp" %}</a>
+        {% endwith %}
+        {% endif %}
+        <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">{% trans "Print / Save PDF" %}</button>
+    </div>
+
     <div class="report">
-        <div class="rep-actions">
-            <a class="btn btn-outline btn-sm" href="{% url 'member-ledger' %}?month={{ month_filter }}">Back</a>
-            <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">Print</button>
-        </div>
-
-        <div class="rep-top">
+        {% for s in statements %}
+        <section class="statement">
+            {# Header comes from Agency settings (Profile → Branding), falling back to the agency record. #}
             <div class="rep-brand">
-                <h1>{{ agency.name|default:"Agency" }}</h1>
-                <div class="meta">
-                    {{ agency.address|default:"" }}{% if agency.city %}, {{ agency.city }}{% endif %}{% if agency.country %}, {{ agency.country }}{% endif %}<br>
-                    {% if agency.phone %}{{ agency.phone }}{% endif %}
+                {% if branding and branding.logo %}<img src="{{ branding.logo.url }}" alt="{{ branding.company_name|default:agency.name }}">{% endif %}
+                <div>
+                    <h1>{{ branding.company_name|default:agency.name }}</h1>
+                    <div class="meta">{% if branding and branding.address %}{{ branding.address }}{% else %}{{ agency.address }}{% if agency.city %}, {{ agency.city }}{% endif %}{% endif %}
+{% if branding and branding.phone %}{{ branding.phone }}{% else %}{{ agency.phone }}{% endif %}{% if branding and branding.email %} · {{ branding.email }}{% elif agency.email %} · {{ agency.email }}{% endif %}{% if branding and branding.website %} · {{ branding.website }}{% endif %}</div>
                 </div>
             </div>
+            {% if forloop.first and not branding.logo %}
+            <p class="rep-setup-hint">{% trans "No logo yet." %} <a href="{% url 'profile' %}">{% trans "Upload your logo in Agency settings" %}</a> {% trans "and it will appear on every statement." %}</p>
+            {% endif %}
+            <div class="rep-title">{% trans "Account Ledger" %}</div>
             <div class="rep-meta">
-                <p class="title">Account Ledger</p>
-                <div class="sub">
-                    Period: {{ period_start|date:"d/m/y" }} To: {{ period_end|date:"d/m/y" }}<br>
-                    Print Date: {{ print_date|date:"d/m/y" }}
+                <dl>
+                    <dt>{% trans "Account Title:" %}</dt><dd>{{ s.name }}</dd>
+                    <dt>{% trans "Balance:" %}</dt><dd><strong>{{ s.closing|drcr }}</strong></dd>
+                </dl>
+                <div class="end">
+                    <dl>
+                        <dt>{% trans "Period:" %}</dt><dd>{{ f.date_from|date:"d-m-Y"|default:t_beginning }} &nbsp;<strong>{% trans "To:" %}</strong> {{ f.date_to|default:print_date|date:"d-m-Y" }}</dd>
+                        <dt>{% trans "Print Date:" %}</dt><dd>{{ print_date|date:"d/m/y" }}</dd>
+                        <dt>{% trans "Currency:" %}</dt><dd>{{ currency }}</dd>
+                    </dl>
                 </div>
             </div>
-        </div>
-
-        <div class="section-title">Party accounts (Debit / Credit)</div>
-        {% if party_groups %}
-            {% for g in party_groups %}
-            <table class="rep-table" style="margin-bottom:14px;">
+            <table class="rep-table">
                 <thead>
-                    <tr class="group-head">
-                        <th colspan="8">
-                            <span class="font-medium">{{ g.name }}</span>
-                            {% if g.type %}<span class="muted"> — {{ g.type|title }}</span>{% endif %}
-                            <span class="muted" style="margin-left:10px;">Debit:</span> <span class="mono">{{ g.debit_total|floatformat:0 }}</span>
-                            <span class="muted" style="margin-left:10px;">Credit:</span> <span class="mono">{{ g.credit_total|floatformat:0 }}</span>
-                            <span class="muted" style="margin-left:10px;">Balance:</span> <span class="mono">{{ g.balance_total|floatformat:0 }}</span>
-                        </th>
-                    </tr>
                     <tr>
-                        <th style="width:90px;">Date</th>
-                        <th style="width:90px;">Type</th>
-                        <th style="width:80px;">Rate</th>
-                        <th class="right" style="width:120px;">Debit</th>
-                        <th class="right" style="width:120px;">Credit</th>
-                        <th class="right" style="width:120px;">Balance</th>
-                        <th style="width:120px;">Trans.#</th>
-                        <th style="width:160px;">Particulars / Inv-Ref</th>
+                        <th>{% trans "Date" %}</th>
+                        <th>{% trans "Type" %}</th>
+                        <th>{% trans "Trans.#" %}</th>
+                        <th style="width:34%">{% trans "Particulars" %}</th>
+                        <th>{% trans "Inv/Ref" %}</th>
+                        <th class="num">{% trans "Rate" %}</th>
+                        <th class="num">{% trans "Debit" %}</th>
+                        <th class="num">{% trans "Credit" %}</th>
+                        <th class="num">{% trans "Balance" %}</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for row in g.rows %}
                     <tr>
-                        {% if row.is_opening %}
-                        <td class="mono muted">{{ period_start|date:"d/m/y" }}</td>
-                        <td class="muted">—</td>
-                        <td class="mono muted">—</td>
-                        <td class="right mono">0</td>
-                        <td class="right mono">0</td>
-                        <td class="right mono">{{ row.running|floatformat:0 }}</td>
-                        <td class="mono muted">—</td>
-                        <td class="muted">Previous Balance</td>
-                        {% else %}
-                        <td class="mono">{{ row.e.transaction_date|date:"d/m/y" }}</td>
-                        <td class="muted">{{ row.e.get_transaction_type_display }}</td>
-                        <td class="mono muted">{% if row.e.rate %}{{ row.e.rate|floatformat:2 }}{% else %}—{% endif %}</td>
-                        <td class="right mono">{% if row.e.direction == 'debit' %}{{ row.e.amount|floatformat:0 }}{% else %}0{% endif %}</td>
-                        <td class="right mono">{% if row.e.direction == 'credit' %}{{ row.e.amount|floatformat:0 }}{% else %}0{% endif %}</td>
-                        <td class="right mono">{{ row.running|floatformat:0 }}</td>
-                        <td class="mono muted">{{ row.e.trans_no|default:"—" }}</td>
-                        <td>
-                            {{ row.e.description }}
-                            <div class="muted mono" style="margin-top:2px;">
-                                {% if row.e.inv_ref %}{{ row.e.inv_ref }}{% elif row.e.reference_number %}{{ row.e.reference_number }}{% else %}—{% endif %}
-                            </div>
-                        </td>
-                        {% endif %}
+                        <td class="nowrap">{% if f.date_from %}{{ f.date_from|date:"d/m/y" }}{% endif %}</td>
+                        <td></td><td></td>
+                        <td>{% trans "Previous Balance" %}</td>
+                        <td></td>
+                        <td class="num">.00</td>
+                        <td class="num">0</td>
+                        <td class="num">0</td>
+                        <td class="num">{{ s.opening|amt }}</td>
                     </tr>
+                    {% for e in s.rows %}
+                    <tr>
+                        <td class="nowrap">{{ e.transaction_date|date:"d/m/y" }}</td>
+                        <td class="nowrap">{{ e.type_code }}</td>
+                        <td class="trans">{{ e.trans_no }}</td>
+                        <td>{{ e.description }}{% if e.pax %} x {{ e.pax }}{% endif %}{% if e.fx_amount is not None %} <span class="muted">({{ e.fx_amount|amt }} {{ e.fx_currency }})</span>{% endif %}</td>
+                        <td>{{ e.inv_ref|default:e.reference_number }}</td>
+                        <td class="num">{% if e.rate %}{{ e.rate|floatformat:2 }}{% endif %}</td>
+                        <td class="num">{{ e.debit|amt }}</td>
+                        <td class="num">{{ e.credit|amt }}</td>
+                        <td class="num">{{ e.running|amt }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="9" class="rep-empty">{% trans "No transactions in this period." %}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
-            {% endfor %}
-        {% else %}
-            <p class="muted">No party entries in this period.</p>
-        {% endif %}
-
-        <div class="section-title">Company expenses</div>
-        <table class="rep-table">
-            <thead>
-                <tr>
-                    <th style="width:90px;">Date</th>
-                    <th style="width:120px;">Category</th>
-                    <th>Description</th>
-                    <th style="width:140px;">Method</th>
-                    <th class="right" style="width:140px;">Amount</th>
-                    <th style="width:120px;">Ref</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for e in expense_entries %}
-                <tr>
-                    <td class="mono">{{ e.transaction_date|date:"d/m/y" }}</td>
-                    <td class="muted">{{ e.category|default:"—" }}</td>
-                    <td>{{ e.description }}</td>
-                    <td class="muted">{{ e.get_payment_method_display }}</td>
-                    <td class="right mono">{{ e.amount|floatformat:0 }}</td>
-                    <td class="mono muted">{{ e.reference_number|default:"—" }}</td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="6" class="muted">No company expenses in this period.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <div class="totals">
-            <div class="pill"><span class="muted">Total expenses:</span> <span class="mono">{{ expense_total|floatformat:0 }}</span></div>
+            <div class="rep-foot">
+                <div class="pax">
+                    {% for label, count in s.pax.items %}
+                    <span>{% blocktrans %}Total {{ label }} PAX:{% endblocktrans %}</span><span>{{ count }}</span>
+                    {% endfor %}
+                </div>
+                <div class="total">
+                    <span>{% trans "Total Amount:" %}</span>
+                    <span>{{ s.debit|amt }}</span>
+                    <span>{{ s.credit|amt }}</span>
+                    <span>{{ s.closing|amt }}</span>
+                </div>
+            </div>
+            <p class="muted" style="font-size:0.75rem;margin-top:8px;">
+                {% trans "Balance = Debit − Credit. Positive (Dr): party owes us. Negative (Cr): we owe the party." %}
+            </p>
+        </section>
+        {% empty %}
+        <div class="rep-brand">
+            <div><h1>{{ branding.company_name|default:agency.name }}</h1></div>
         </div>
+        <div class="rep-title">{% trans "Account Ledger" %}</div>
+        <p class="rep-empty">{% trans "No party transactions in this period." %}</p>
+        {% endfor %}
+
+        {% if not single_party %}
+        <section class="statement">
+            <div class="rep-section">{% trans "Company expenses" %} — {{ f.date_from|date:"d-m-Y"|default:t_beginning }} {% trans "to" %} {{ f.date_to|default:print_date|date:"d-m-Y" }}</div>
+            <table class="rep-table">
+                <thead>
+                    <tr>
+                        <th>{% trans "Date" %}</th>
+                        <th>{% trans "Trans.#" %}</th>
+                        <th>{% trans "Category" %}</th>
+                        <th style="width:40%">{% trans "Particulars" %}</th>
+                        <th>{% trans "Method" %}</th>
+                        <th class="num">{% trans "Amount" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for e in expense_entries %}
+                    <tr>
+                        <td class="nowrap">{{ e.transaction_date|date:"d/m/y" }}</td>
+                        <td class="trans">{{ e.trans_no }}</td>
+                        <td>{{ e.category|default:"—" }}</td>
+                        <td>{{ e.description }}</td>
+                        <td>{{ e.get_payment_method_display|default:"—" }}</td>
+                        <td class="num">{{ e.amount|amt }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="rep-empty">{% trans "No company expenses in this period." %}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="rep-foot">
+                <span></span>
+                <div class="total"><span>{% trans "Total expenses:" %}</span><span>{{ expense_total|amt }}</span></div>
+            </div>
+        </section>
+        {% endif %}
     </div>
 
-    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-floating" aria-label="Toggle light or dark theme">
+    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-floating" aria-label="{% trans 'Toggle light or dark theme' %}">
         <svg class="icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="12" cy="12" r="5" />
             <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
@@ -163,7 +204,7 @@
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
         </svg>
     </button>
-    <script src="{% static 'js/app.js' %}"></script>
+    <script src="{% versioned_static 'js/app.js' %}"></script>
     <script>
       (function () {
         try {
@@ -174,4 +215,3 @@
     </script>
 </body>
 </html>
-

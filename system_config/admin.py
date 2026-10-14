@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import SAASProductConfig, AgencyBranding, EmailTemplate, NotificationSettings, APIKey, AuditLog
+
+from .models import AgencyBranding, APIKey, AuditLog, EmailTemplate, NotificationSettings, SAASProductConfig
+
 
 @admin.register(SAASProductConfig)
 class SAASProductConfigAdmin(admin.ModelAdmin):

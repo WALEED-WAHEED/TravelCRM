@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+{% load i18n currency_tags %}
+{% block title %}{% trans "Approval insights" %}{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  /* Same validated chart palette as Reports. */
+  .viz-root { --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500; }
+  html[data-theme="light"] .viz-root { --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100; }
+  .page-bi [hidden] { display: none !important; }
+  .page-bi .hotels-hero { overflow: visible; align-items: center; }
+  .page-bi .hotels-hero:has(.dl-menu[open]) { z-index: 25; }
+  .bi-back { display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem; font-weight: 600; color: var(--muted-foreground); text-decoration: none; }
+  .bi-back:hover { color: var(--primary); }
+  [dir="rtl"] .bi-back svg { transform: scaleX(-1); }
+  .bi-actions { display: flex; align-items: center; gap: 10px; }
+
+  /* Filters */
+  .page-bi { min-width: 0; }
+  .bi-filters { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; margin-bottom: 16px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); box-shadow: var(--shadow-soft); }
+  .bi-filters__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+  .bi-label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); }
+  .bi-range { font-size: 0.8rem; color: var(--muted-foreground); }
+  .bi-range strong { color: var(--foreground); font-size: 0.85rem; }
+  .bi-presets { contain: inline-size; display: flex; gap: 4px; padding: 3px; overflow-x: auto; scrollbar-width: none; border: 1px solid var(--border); border-radius: var(--radius); background: var(--muted); }
+  .bi-presets::-webkit-scrollbar { display: none; }
+  .bi-preset { flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 12px; border: 0; border-radius: calc(var(--radius) - 3px); background: transparent; font: inherit; font-size: 0.82rem; color: var(--muted-foreground); white-space: nowrap; cursor: pointer; }
+  .bi-preset:hover { color: var(--foreground); }
+  .bi-preset.is-on { background: var(--card); color: var(--primary); font-weight: 650; box-shadow: var(--shadow-soft); }
+  .bi-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+  .bi-row .form-group { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+  .bi-row .form-select, .bi-row .form-input { min-width: 150px; height: 38px; }
+  .bi-seg { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--muted); }
+  .bi-seg label { position: relative; cursor: pointer; }
+  .bi-seg input { position: absolute; opacity: 0; width: 0; height: 0; margin: 0; appearance: none; -webkit-appearance: none; pointer-events: none; }
+  .bi-seg span { display: block; padding: 6px 12px; border-radius: calc(var(--radius) - 3px); font-size: 0.82rem; color: var(--muted-foreground); white-space: nowrap; }
+  .bi-seg input:checked + span { background: var(--card); color: var(--foreground); font-weight: 600; box-shadow: var(--shadow-soft); }
+  .bi-search { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); color: var(--muted-foreground); }
+  .bi-search input { width: 190px; border: 0; outline: 0; background: transparent; font: inherit; font-size: 0.85rem; color: var(--foreground); }
+  .bi-clear { align-self: center; margin-top: 18px; font-size: 0.82rem; font-weight: 600; color: var(--destructive); text-decoration: none; }
+
+  /* KPIs */
+  .bi-kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+  .bi-kpi { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); box-shadow: var(--shadow-soft); }
+  .bi-kpi__label { font-size: 0.74rem; font-weight: 600; color: var(--muted-foreground); }
+  .bi-kpi__value { font-size: 1.3rem; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bi-kpi__sub { font-size: 0.74rem; color: var(--muted-foreground); }
+  .bi-delta { align-self: flex-start; display: inline-flex; align-items: center; gap: 3px; margin-top: 4px; padding: 1px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; border: 1px solid var(--border); color: var(--muted-foreground); }
+  .bi-delta--good { color: var(--success); border-color: color-mix(in srgb, var(--success) 40%, var(--border)); }
+  .bi-delta--bad { color: var(--destructive); border-color: color-mix(in srgb, var(--destructive) 40%, var(--border)); }
+
+  /* Charts */
+  .bi-sec { margin: 26px 0 10px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-foreground); }
+  .bi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .bi-card { min-width: 0; padding: 16px 18px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); box-shadow: var(--shadow-soft); }
+  .bi-card--wide { grid-column: 1 / -1; }
+  .bi-card__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+  .bi-card__head h3 { margin: 0; font-size: 0.95rem; }
+  .bi-card__head p { margin: 2px 0 0; font-size: 0.76rem; color: var(--muted-foreground); }
+  .bi-toggle { flex: none; border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; background: var(--card); font: inherit; font-size: 0.74rem; color: var(--muted-foreground); cursor: pointer; }
+  .bi-toggle:hover { color: var(--foreground); }
+  .bi-canvas { position: relative; height: 260px; }
+  .bi-card--wide .bi-canvas { height: 290px; }
+  .bi-canvas--donut { height: 230px; }
+  .bi-empty { display: grid; place-items: center; height: 160px; font-size: 0.85rem; color: var(--muted-foreground); border: 1px dashed var(--border); border-radius: var(--radius); }
+  .bi-tbl { contain: inline-size; overflow: auto; max-height: 300px; }
+  .bi-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .bi-table th, .bi-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); text-align: start; white-space: nowrap; }
+  .bi-table th { position: sticky; top: 0; z-index: 1; background: var(--card); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-foreground); }
+  .bi-table .num { text-align: end; font-variant-numeric: tabular-nums; }
+  .bi-table tbody tr:hover { background: color-mix(in srgb, var(--muted) 60%, transparent); }
+  .bi-table a { color: var(--primary); font-weight: 600; text-decoration: none; }
+
+  /* Bookings list */
+  .bi-listbar { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px; margin: 26px 0 10px; }
+  .bi-listbar h3 { margin: 0; font-size: 1rem; }
+  .bi-n { margin-inline-start: 6px; padding: 1px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; color: var(--muted-foreground); background: var(--muted); }
+  .bi-tabs { display: inline-flex; padding: 2px; gap: 2px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--muted); }
+  .bi-tabs button { padding: 5px 11px; border: 0; border-radius: calc(var(--radius) - 3px); background: transparent; font: inherit; font-size: 0.78rem; color: var(--muted-foreground); cursor: pointer; }
+  .bi-tabs button.is-on { background: var(--card); color: var(--foreground); font-weight: 600; box-shadow: var(--shadow-soft); }
+  .bi-list { padding: 0; overflow: hidden; }
+  .bi-list .bi-tbl { max-height: 480px; }
+  .bi-status { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; background: var(--muted); color: var(--muted-foreground); }
+  .bi-status--saved, .bi-status--confirmed { color: #1baf7a; background: color-mix(in srgb, #1baf7a 12%, transparent); }
+  .bi-status--completed { color: #2a78d6; background: color-mix(in srgb, #2a78d6 12%, transparent); }
+  .bi-status--cancelled { color: var(--destructive); background: color-mix(in srgb, var(--destructive) 10%, transparent); }
+  .bi-due { color: var(--destructive); font-weight: 600; }
+  .bi-noresult { padding: 22px; text-align: center; font-size: 0.85rem; color: var(--muted-foreground); }
+
+  /* Download menu (same as Reports) */
+  .dl-menu { position: relative; }
+  .dl-menu > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+  .dl-menu > summary::-webkit-details-marker { display: none; }
+  .dl-menu__list { position: absolute; z-index: 30; top: calc(100% + 8px); inset-inline-end: 0; width: 270px; padding: 6px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); box-shadow: 0 16px 40px rgba(15, 23, 42, .16); }
+  .dl-menu__item { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px; border: 0; border-radius: 10px; background: transparent; color: var(--foreground); font: inherit; text-align: start; text-decoration: none; cursor: pointer; }
+  .dl-menu__item:hover { background: var(--muted); }
+  .dl-menu__item strong { display: block; font-size: 0.875rem; font-weight: 600; }
+  .dl-menu__item small { display: block; font-size: 0.75rem; color: var(--muted-foreground); }
+  .dl-menu__icon { flex: none; width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; font-size: 0.66rem; font-weight: 800; }
+  .dl-menu__icon--xls { color: #1d7a46; background: color-mix(in srgb, #1d7a46 13%, transparent); }
+  .dl-menu__icon--pdf { color: #c2361f; background: color-mix(in srgb, #c2361f 12%, transparent); }
+
+
+  .bi-tcard .bi-tbl { max-height: 340px; }
+  .bi-kpis--6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .bi-bar { display: inline-block; height: 6px; border-radius: 99px; background: var(--primary); vertical-align: middle; margin-inline-end: 6px; opacity: .75; }
+  @media (max-width: 1400px) { .bi-kpis--6 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .bi-kpis--6 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .bi-kpis--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (max-width: 1200px) { .bi-kpis, .bi-kpis--4 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (max-width: 960px) { .bi-grid { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 640px) { .bi-kpis, .bi-kpis--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .bi-row .form-group, .bi-search { flex: 1 1 100%; } .bi-row .form-select { width: 100%; } }
+  @media print {
+    @page { size: A4; margin: 10mm; }
+    /* Only the insights themselves: no sidebar, top bar, buttons or date-range controls. */
+    .sidebar, .topnav, .sidebar-overlay, .toast-container, .dl-menu, .bi-actions { display: none !important; }
+    .app-shell { display: block !important; }
+    .main-content { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+    .page-content { padding: 0 !important; }
+    body, .main-content, .page-content, .app-shell { background: #fff !important; }
+    .bi-filters .bi-row, .bi-presets, .bi-back, .bi-toggle, .bi-tabs, .bi-search-list { display: none !important; }
+    .bi-card, .bi-kpi { box-shadow: none; break-inside: avoid; }
+    .bi-list .bi-tbl, .bi-tbl { max-height: none; overflow: visible; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{% with k=data.kpis d=data.deltas %}
+<div class="page-bi viz-root">
+  <header class="hotels-hero hotels-reveal" style="--d:0ms">
+    <div class="hotels-hero__copy">
+      <a class="bi-back" href="{% url 'member-approvals' %}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>{% trans "Approvals" %}</a>
+      <h1 class="page-title hotels-hero__title">{% trans "Approval insights" %}</h1>
+    </div>
+    <div class="hotels-hero__actions bi-actions">
+      <details class="dl-menu" id="dl-menu">
+        <summary class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          {% trans "Download" %}
+        </summary>
+        <div class="dl-menu__list" role="menu">
+          <a role="menuitem" class="dl-menu__item" href="?{{ request.GET.urlencode }}{% if request.GET %}&amp;{% endif %}export=xlsx">
+            <span class="dl-menu__icon dl-menu__icon--xls">XLS</span>
+            <span><strong>{% trans "Excel workbook" %}</strong><small>{% trans "Summary, trends, agents, decisions and sent-back reasons" %}</small></span>
+          </a>
+          <button type="button" role="menuitem" class="dl-menu__item" onclick="document.getElementById('dl-menu').open=false; setTimeout(function(){ window.print(); }, 50);">
+            <span class="dl-menu__icon dl-menu__icon--pdf">PDF</span>
+            <span><strong>{% trans "PDF / Print" %}</strong><small>{% trans "The full page, ready to share" %}</small></span>
+          </button>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <form class="bi-filters" method="get" id="bi-filters">
+    <div class="bi-filters__head">
+      <span class="bi-label">{% trans "Date range" %}</span>
+      <span class="bi-range"><strong>{{ period.start|date:"d M Y" }} – {{ period.end|date:"d M Y" }}</strong> · {% blocktrans with a=period.prev_start|date:"d M Y" b=period.prev_end|date:"d M Y" %}compared with {{ a }} – {{ b }}{% endblocktrans %}</span>
+    </div>
+    <input type="hidden" name="preset" id="bi-preset" value="{{ period.preset }}">
+    <div class="bi-presets" role="radiogroup">
+      {% for value, label in presets.items %}<button type="button" role="radio" class="bi-preset{% if period.preset == value %} is-on{% endif %}" data-preset="{{ value }}" aria-checked="{% if period.preset == value %}true{% else %}false{% endif %}">{% trans label %}</button>{% endfor %}
+    </div>
+    <div class="bi-row">
+      <div class="form-group bi-custom" {% if period.preset != 'custom' %}hidden{% endif %}>
+        <label class="bi-label" for="bi-from">{% trans "From" %}</label>
+        <input id="bi-from" type="date" name="from" class="form-input" value="{{ period.start|date:'Y-m-d' }}">
+      </div>
+      <div class="form-group bi-custom" {% if period.preset != 'custom' %}hidden{% endif %}>
+        <label class="bi-label" for="bi-to">{% trans "To" %}</label>
+        <input id="bi-to" type="date" name="to" class="form-input" value="{{ period.end|date:'Y-m-d' }}">
+      </div>
+      <button type="submit" class="btn btn-outline bi-custom" {% if period.preset != 'custom' %}hidden{% endif %}>{% trans "Apply" %}</button>
+    </div>
+  </form>
+
+  <p class="bi-sec">{% trans "In this period" %}</p>
+  <div class="bi-kpis bi-kpis--6">
+    {% include "member/partials/_bi_kpi.html" with label=_("Submitted") value=k.submitted delta=d.submitted good="up" sub=_("vouchers from agents") %}
+    {% if k.approval_rate is not None %}{% blocktrans asvar sub with r=k.approval_rate %}{{ r }}% of decided{% endblocktrans %}{% else %}{% trans "none decided yet" as sub %}{% endif %}
+    {% include "member/partials/_bi_kpi.html" with label=_("Approved") value=k.approved delta=d.approved good="up" sub=sub %}
+    {% include "member/partials/_bi_kpi.html" with label=_("Sent back") value=k.rejected delta=d.rejected good="down" sub=_("waiting for the agent to fix") %}
+    {% include "member/partials/_bi_kpi.html" with label=_("Still pending") value=k.pending sub=_("waiting for a decision") nodelta=True %}
+    {% if k.avg_text %}{% include "member/partials/_bi_kpi.html" with label=_("Average decision time") value=k.avg_text sub=_("from submitting to deciding") nodelta=True %}{% else %}{% include "member/partials/_bi_kpi.html" with label=_("Average decision time") value="—" sub=_("from submitting to deciding") nodelta=True %}{% endif %}
+    {% include "member/partials/_bi_kpi.html" with label=_("Travellers (PAX)") value=k.pax sub=_("on these vouchers") nodelta=True %}
+  </div>
+
+  <p class="bi-sec">{% trans "Trends" %}</p>
+  <div class="bi-grid">
+    {% include "member/partials/_bi_card.html" with id="outcome" wide=True title=_("Submitted by outcome") hint=_("Vouchers submitted each period and where they stand now.") %}
+    {% include "member/partials/_bi_card.html" with id="speed" title=_("Decision time") hint=_("How long approved and sent-back vouchers waited.") %}
+    {% include "member/partials/_bi_card.html" with id="sizes" title=_("Group size") hint=_("Submitted vouchers by number of travellers.") %}
+  </div>
+
+  <p class="bi-sec">{% trans "Agents and decisions" %}</p>
+  <div class="bi-grid">
+    <section class="bi-card bi-card--wide bi-tcard">
+      <div class="bi-card__head"><div><h3>{% trans "Agents" %}</h3><p>{% trans "What each agent submitted and how it went." %}</p></div></div>
+      {% if data.tables.agents %}
+      <div class="bi-tbl"><table class="bi-table">
+        <thead><tr><th>{% trans "Agent" %}</th><th class="num">{% trans "Submitted" %}</th><th class="num">{% trans "Approved" %}</th><th class="num">{% trans "Sent back" %}</th><th class="num">{% trans "Pending" %}</th><th class="num">{% trans "Approval rate (%)" %}</th><th class="num">{% trans "Average decision time" %}</th></tr></thead>
+        <tbody>{% for r in data.tables.agents %}<tr><td dir="auto">{{ r.agent }}</td><td class="num">{{ r.submitted }}</td><td class="num">{{ r.approved }}</td><td class="num">{{ r.rejected }}</td><td class="num">{{ r.pending }}</td><td class="num">{% if r.rate is not None %}{{ r.rate }}%{% else %}—{% endif %}</td><td class="num">{% if r.avg_hours is not None %}{{ r.avg_hours }} h{% else %}—{% endif %}</td></tr>{% endfor %}</tbody>
+      </table></div>
+      {% else %}<div class="bi-empty" style="margin:0 16px 16px;">{% trans "No vouchers were submitted in this period." %}</div>{% endif %}
+    </section>
+    <section class="bi-card bi-card--wide bi-tcard">
+      <div class="bi-card__head"><div><h3>{% trans "Team decisions" %}</h3><p>{% trans "Who approved or sent back vouchers, and how fast." %}</p></div></div>
+      {% if data.tables.deciders %}
+      <div class="bi-tbl"><table class="bi-table">
+        <thead><tr><th>{% trans "Team member" %}</th><th class="num">{% trans "Decisions" %}</th><th class="num">{% trans "Approved" %}</th><th class="num">{% trans "Sent back" %}</th><th class="num">{% trans "Average decision time" %}</th></tr></thead>
+        <tbody>{% for r in data.tables.deciders %}<tr><td dir="auto">{{ r.member }}</td><td class="num">{{ r.decisions }}</td><td class="num">{{ r.approved }}</td><td class="num">{{ r.rejected }}</td><td class="num">{% if r.avg_hours is not None %}{{ r.avg_hours }} h{% else %}—{% endif %}</td></tr>{% endfor %}</tbody>
+      </table></div>
+      {% else %}<div class="bi-empty" style="margin:0 16px 16px;">{% trans "No decisions in this period yet." %}</div>{% endif %}
+    </section>
+  </div>
+
+  <p class="bi-sec">{% trans "Why vouchers come back" %}</p>
+  <div class="bi-grid">
+    <section class="bi-card bi-card--wide bi-tcard">
+      <div class="bi-card__head"><div><h3>{% trans "Sent back" %}</h3><p>{% trans "The most recent reasons given to agents." %}</p></div></div>
+      {% if data.tables.reasons %}
+      <div class="bi-tbl"><table class="bi-table">
+        <thead><tr><th>{% trans "Voucher #" %}</th><th>{% trans "Family head" %}</th><th>{% trans "Agent" %}</th><th>{% trans "Sent back on" %}</th><th>{% trans "Reason" %}</th></tr></thead>
+        <tbody>{% for r in data.tables.reasons %}<tr><td><a href="{% url 'member-booking-detail' r.id %}">{{ r.voucher }}</a></td><td dir="auto">{{ r.head|default:"—" }}</td><td dir="auto">{{ r.agent }}</td><td>{{ r.at|date:"d M Y" }}</td><td dir="auto" style="white-space:normal;min-width:240px;">{{ r.reason }}</td></tr>{% endfor %}</tbody>
+      </table></div>
+      {% else %}<div class="bi-empty" style="margin:0 16px 16px;">{% trans "Nothing was sent back in this period." %}</div>{% endif %}
+    </section>
+  </div>
+
+  <p class="bi-sec">{% trans "What agents submit" %}</p>
+  <div class="bi-grid">
+    <section class="bi-card bi-card--wide bi-tcard">
+      <div class="bi-card__head"><div><h3>{% trans "Packages" %}</h3><p>{% trans "Which packages agents sell and how their vouchers fare." %}</p></div></div>
+      {% if data.tables.packages %}
+      <div class="bi-tbl"><table class="bi-table">
+        <thead><tr><th>{% trans "Package" %}</th><th class="num">{% trans "Submitted" %}</th><th class="num">{% trans "Approved" %}</th><th class="num">{% trans "Sent back" %}</th><th class="num">{% trans "Pending" %}</th><th class="num">{% trans "PAX" %}</th><th class="num">{% trans "Approval rate (%)" %}</th></tr></thead>
+        <tbody>{% for r in data.tables.packages %}<tr><td dir="auto">{% if r.custom %}<span class="bi-kpi__sub">{{ r.package }}</span>{% else %}{{ r.package }}{% endif %}</td><td class="num">{{ r.submitted }}</td><td class="num">{{ r.approved }}</td><td class="num">{{ r.rejected }}</td><td class="num">{{ r.pending }}</td><td class="num">{{ r.pax }}</td><td class="num">{% if r.rate is not None %}{{ r.rate }}%{% else %}—{% endif %}</td></tr>{% endfor %}</tbody>
+      </table></div>
+      {% else %}<div class="bi-empty" style="margin:0 16px 16px;">{% trans "No data for this period." %}</div>{% endif %}
+    </section>
+    {% include "member/partials/_bi_card.html" with id="cities" title=_("Nights by city") hint=_("Where the submitted vouchers stay.") %}
+  </div>
+</div>
+{% endwith %}
+{% endblock %}
+
+{% block extra_js %}
+{{ data.charts|json_script:"bi-data" }}
+{% trans "Vouchers" as t_vouchers %}{% trans "Rooms" as t_rooms %}{% trans "Travellers (PAX)" as t_pax %}
+{% trans "Nights" as t_nights %}{% trans "Flights" as t_flights %}{% trans "Period" as t_period %}{% trans "Count" as t_count %}
+{% trans "No data for these filters." as t_empty %}{% trans "Show table" as t_show_table %}{% trans "Show chart" as t_show_chart %}
+<script>
+(function () {
+  var D = JSON.parse(document.getElementById('bi-data').textContent);
+  var T = {
+    vouchers: '{{ t_vouchers|escapejs }}', rooms: '{{ t_rooms|escapejs }}', pax: '{{ t_pax|escapejs }}',
+    nights: '{{ t_nights|escapejs }}', flights: '{{ t_flights|escapejs }}', period: '{{ t_period|escapejs }}',
+    count: '{{ t_count|escapejs }}', empty: '{{ t_empty|escapejs }}', showTable: '{{ t_show_table|escapejs }}', showChart: '{{ t_show_chart|escapejs }}'
+  };
+  var form = document.getElementById('bi-filters');
+  var preset = document.getElementById('bi-preset');
+
+  // ── Filters ──
+  function syncCustom() {
+    var custom = preset.value === 'custom';
+    form.querySelectorAll('.bi-custom').forEach(function (el) { el.hidden = !custom; });
+    form.querySelectorAll('.bi-custom input').forEach(function (el) { el.disabled = !custom; });
+  }
+  form.querySelectorAll('.bi-preset').forEach(function (b) {
+    b.addEventListener('click', function () {
+      preset.value = b.getAttribute('data-preset');
+      form.querySelectorAll('.bi-preset').forEach(function (x) { x.classList.toggle('is-on', x === b); x.setAttribute('aria-checked', x === b ? 'true' : 'false'); });
+      syncCustom();
+      if (preset.value !== 'custom') form.submit(); else document.getElementById('bi-from').focus();
+    });
+  });
+  form.querySelectorAll('.bi-auto').forEach(function (el) { el.addEventListener('change', function () { form.submit(); }); });
+  syncCustom();
+  (function () {
+    var bar = form.querySelector('.bi-presets'), on = form.querySelector('.bi-preset.is-on');
+    if (bar && on && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = on.offsetLeft - bar.offsetLeft - (bar.clientWidth - on.offsetWidth) / 2;
+  })();
+
+  // Download menu closes on outside click / Esc.
+  document.addEventListener('click', function (e) { var m = document.getElementById('dl-menu'); if (m && m.open && !m.contains(e.target)) m.open = false; });
+  document.addEventListener('keydown', function (e) { var m = document.getElementById('dl-menu'); if (e.key === 'Escape' && m) m.open = false; });
+
+  // Bookings list: status tabs.
+  document.querySelectorAll('[data-rowfilter]').forEach(function (seg) {
+    seg.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      seg.querySelectorAll('button').forEach(function (x) { x.classList.toggle('is-on', x === b); });
+      var kind = b.getAttribute('data-kind'), table = document.getElementById(seg.getAttribute('data-rowfilter')), shown = 0;
+      if (!table) return;
+      table.querySelectorAll('tbody tr').forEach(function (tr) { var ok = !kind || tr.getAttribute('data-kind') === kind; tr.hidden = !ok; if (ok) shown++; });
+      table.parentNode.querySelector('.bi-noresult').hidden = shown > 0;
+    });
+  });
+
+  // ── Charts ──
+  function money(v) { return 'Rs. ' + Math.round(v).toLocaleString('en-US'); }
+  var compactFmt = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
+  function allZero(a) { return !a || !a.length || a.every(function (v) { return !v; }); }
+  function esc(s) { return String(s).replace(/[<>&]/g, function (x) { return { '<': '&lt;', '>': '&gt;', '&': '&amp;' }[x]; }); }
+  function theme() {
+    var s = getComputedStyle(document.querySelector('.viz-root')), r = getComputedStyle(document.documentElement);
+    var g = function (n) { return s.getPropertyValue(n).trim(); };
+    return { s: [null, g('--series-1'), g('--series-2'), g('--series-3'), g('--series-4')],
+      ink: r.getPropertyValue('--foreground').trim(), muted: r.getPropertyValue('--muted-foreground').trim(),
+      grid: r.getPropertyValue('--border').trim(), surface: r.getPropertyValue('--card').trim(),
+      success: r.getPropertyValue('--success').trim(), danger: r.getPropertyValue('--destructive').trim() };
+  }
+  var STATUS_SLOT = { approved: 3, rejected: 2, pending: 4 };
+  var charts = [];
+
+  function opts(th, o) {
+    o = o || {};
+    var h = !!o.horizontal;
+    var val = { beginAtZero: true, stacked: !!o.stacked, grid: { color: th.grid, drawTicks: false }, border: { display: false },
+      ticks: { color: th.muted, padding: 8, precision: o.count ? 0 : undefined, callback: function (v) { return o.count ? v : compactFmt.format(v); } } };
+    var cat = { stacked: !!o.stacked, grid: { display: false }, border: { color: th.grid }, ticks: { color: th.muted, autoSkip: true, maxRotation: 0 } };
+    return {
+      responsive: true, maintainAspectRatio: false, indexAxis: h ? 'y' : 'x', animation: { duration: 250 },
+      interaction: h ? { mode: 'nearest', axis: 'y', intersect: false } : { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: !!o.legend, position: 'top', align: 'start', labels: { color: th.ink, usePointStyle: true, pointStyle: 'rectRounded', boxWidth: 10, boxHeight: 10, padding: 14 } },
+        tooltip: { backgroundColor: th.surface, titleColor: th.ink, bodyColor: th.ink, borderColor: th.grid, borderWidth: 1, padding: 10, usePointStyle: true,
+          callbacks: o.tooltip || { label: function (c) { var v = h ? c.parsed.x : c.parsed.y; return (c.dataset.label ? c.dataset.label + ': ' : '') + (o.count ? v : money(v)); } } }
+      },
+      scales: h ? { x: val, y: cat } : { x: cat, y: val }
+    };
+  }
+  function bar(color, extra) {
+    return Object.assign({ backgroundColor: color, hoverBackgroundColor: color, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 26, categoryPercentage: 0.72, barPercentage: 0.88 }, extra || {});
+  }
+  function mount(id, config, table) {
+    var card = document.querySelector('[data-bi="' + id + '"]');
+    if (!card) return;
+    var box = card.querySelector('.bi-canvas'), empty = card.querySelector('.bi-empty'), tbl = card.querySelector('.bi-tbl'), tg = card.querySelector('.bi-toggle');
+    if (!config) { box.hidden = true; empty.hidden = false; tg.hidden = true; return; }
+    empty.hidden = true;
+    if (config.options && config.options.indexAxis === 'y') box.style.height = Math.max(150, config.data.labels.length * 34 + 50) + 'px';
+    tbl.innerHTML = '<table class="bi-table"><thead><tr>' + table.headers.map(function (h, i) { return '<th' + (i ? ' class="num"' : '') + '>' + esc(h) + '</th>'; }).join('') +
+      '</tr></thead><tbody>' + table.rows.map(function (r) { return '<tr>' + r.map(function (c, i) { return i ? '<td class="num">' + ((table.money || []).indexOf(i) !== -1 ? money(c) : c) + '</td>' : '<td>' + esc(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>';
+    charts.push(new Chart(box.querySelector('canvas'), config));
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.bi-toggle'); if (!b) return;
+    var card = b.closest('.bi-card'), toTable = card.dataset.view !== 'table';
+    card.dataset.view = toTable ? 'table' : 'chart';
+    card.querySelector('.bi-canvas').hidden = toTable; card.querySelector('.bi-tbl').hidden = !toTable;
+    b.textContent = toTable ? T.showChart : T.showTable;
+  });
+
+  function ranked(id, pairs, color, o) {
+    o = o || {};
+    if (allZero(pairs.values)) return mount(id, null);
+    var th = theme();
+    var op = opts(th, Object.assign({ horizontal: true }, o));
+    mount(id, { type: 'bar', data: { labels: pairs.labels, datasets: [bar(color, { label: o.label || T.count, data: pairs.values, maxBarThickness: 20 })] }, options: op },
+      { headers: ['', o.label || T.count], rows: pairs.labels.map(function (l, i) { return [l, pairs.values[i]]; }), money: o.count ? [] : [1] });
+  }
+  function donut(id, labels, values, colors, isMoney) {
+    if (allZero(values)) return mount(id, null);
+    var th = theme();
+    var total = values.reduce(function (a, b) { return a + b; }, 0);
+    mount(id, { type: 'doughnut', data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderColor: th.surface, borderWidth: 2, hoverOffset: 4 }] },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '64%', animation: { duration: 250 },
+        plugins: { legend: { position: 'right', labels: { color: th.ink, usePointStyle: true, pointStyle: 'rectRounded', boxWidth: 10, boxHeight: 10, padding: 12 } },
+          tooltip: { backgroundColor: th.surface, titleColor: th.ink, bodyColor: th.ink, borderColor: th.grid, borderWidth: 1, padding: 10,
+            callbacks: { label: function (c) { return c.label + ': ' + (isMoney ? money(c.parsed) : c.parsed) + ' (' + Math.round(c.parsed * 100 / total) + '%)'; } } } } } },
+      { headers: ['', isMoney ? T.value : T.count], rows: labels.map(function (l, i) { return [l, values[i]]; }), money: isMoney ? [1] : [] });
+  }
+
+  function columns(id, pair, label) {
+    if (allZero(pair.values)) return mount(id, null);
+    var th = theme();
+    mount(id, { type: 'bar', data: { labels: pair.labels, datasets: [bar(th.s[1], { label: label, data: pair.values })] }, options: opts(th, { count: true }) },
+      { headers: ['', label], rows: pair.labels.map(function (l, i) { return [l, pair.values[i]]; }) });
+  }
+  function render() {
+    charts.forEach(function (c) { c.destroy(); }); charts = [];
+    var th = theme();
+
+    // Submitted by outcome - stacked, colour follows the outcome.
+    var st = D.outcome, present = st.keys.filter(function (k, i) { return !allZero(st.values[i]); });
+    if (!present.length) mount('outcome', null);
+    else mount('outcome', { type: 'bar', data: { labels: D.labels, datasets: present.map(function (k, idx) {
+        var i = st.keys.indexOf(k);
+        return bar(th.s[STATUS_SLOT[k]], { label: st.labels[i], data: st.values[i], borderColor: th.surface, borderWidth: { top: idx === present.length - 1 ? 0 : 2 }, borderSkipped: false, borderRadius: idx === present.length - 1 ? 4 : 0 });
+      }) }, options: opts(th, { legend: true, stacked: true, count: true }) },
+      { headers: [T.period].concat(present.map(function (k) { return st.labels[st.keys.indexOf(k)]; })), rows: D.labels.map(function (l, j) { return [l].concat(present.map(function (k) { return st.values[st.keys.indexOf(k)][j]; })); }) });
+
+    columns('speed', D.speed, T.vouchers);
+    columns('sizes', D.sizes, T.vouchers);
+    ranked('cities', D.cities, th.s[1], { count: true, label: T.nights });
+  }
+
+  function start() {
+    if (typeof Chart === 'undefined') { setTimeout(start, 50); return; }
+    Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+    render();
+    new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  }
+  window.addEventListener('beforeprint', function () { charts.forEach(function (c) { c.resize(); }); });
+  start();
+})();
+</script>
+{% endblock %}

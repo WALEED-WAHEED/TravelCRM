@@ -1,0 +1,46 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Pending Payments" %}{% endblock %}
+{% block content %}
+{% trans "Reject this payment claim?" as js_confirm_reject_payment %}
+<div class="page-header">
+  <h1 class="page-title">{% trans "Pending payments" %}</h1>
+  <p class="page-subtitle">{% trans "Confirm once you've verified the money actually arrived." %}</p>
+</div>
+
+<div class="card">
+  <div class="card-content" style="padding-top:20px;">
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>{% trans "Agency" %}</th><th>{% trans "Plan" %}</th><th>{% trans "Amount" %}</th><th>{% trans "Method" %}</th><th>{% trans "Reference" %}</th><th>{% trans "Submitted" %}</th><th></th></tr></thead>
+        <tbody>
+          {% for p in payments %}
+          <tr>
+            <td class="font-medium">{{ p.agency.name }}</td>
+            <td>{{ p.plan.name }}</td>
+            <td class="tabular-nums">{{ p.currency }} {{ p.amount }}</td>
+            <td class="text-muted text-sm">{{ p.get_method_display }}</td>
+            <td class="text-muted text-sm">{{ p.reference|default:"—" }}</td>
+            <td class="text-muted text-sm tabular-nums">{{ p.submitted_at|date:"Y-m-d H:i" }}</td>
+            <td>
+              <div class="flex gap-2">
+                <form method="post" action="{% url 'platform_admin:confirm-payment' p.id %}">
+                  {% csrf_token %}
+                  <button class="btn btn-primary btn-sm" type="submit">{% trans "Confirm" %}</button>
+                </form>
+                <form method="post" action="{% url 'platform_admin:reject-payment' p.id %}" onsubmit="return confirm('{{ js_confirm_reject_payment|escapejs }}');">
+                  {% csrf_token %}
+                  <button class="btn btn-outline btn-sm" type="submit">{% trans "Reject" %}</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7"><div class="empty-state"><h3>{% trans "Nothing pending" %}</h3></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

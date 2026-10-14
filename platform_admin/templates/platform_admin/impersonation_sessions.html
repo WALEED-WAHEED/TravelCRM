@@ -1,0 +1,33 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Impersonation Sessions" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{% trans "Impersonation sessions" %}</h1>
+  <p class="page-subtitle">{% trans "Every 'log in as this user' support session, most recent 200." %}</p>
+</div>
+
+<div class="card">
+  <div class="card-content" style="padding-top:20px;">
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>{% trans "Super Admin" %}</th><th>{% trans "Target user" %}</th><th>{% trans "Agency" %}</th><th>{% trans "Reason" %}</th><th>{% trans "Started" %}</th><th>{% trans "Status" %}</th></tr></thead>
+        <tbody>
+          {% for s in sessions %}
+          <tr>
+            <td class="font-medium">{{ s.super_admin.username }}</td>
+            <td>{{ s.target_user.username }}</td>
+            <td class="text-muted text-sm"><a href="{% url 'platform_admin:tenant-detail' s.target_agency_id %}">{{ s.target_agency.name }}</a></td>
+            <td class="text-muted text-sm">{{ s.reason|default:"—" }}</td>
+            <td class="text-muted text-sm tabular-nums">{{ s.started_at|date:"Y-m-d H:i" }}</td>
+            <td>{% if s.ended_at %}<span class="badge badge-outline">{% trans "Ended" %}</span>{% else %}<span class="badge badge-success">{% trans "Active" %}</span>{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6"><div class="empty-state"><h3>{% trans "No impersonation sessions yet" %}</h3></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

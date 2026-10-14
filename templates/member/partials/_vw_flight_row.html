@@ -1,0 +1,8 @@
+{% load i18n %}<tr>
+  <td><select class="form-select js-flight w-md" aria-label="{% trans 'Flight' %}"><option value="">{% trans "Select…" %}</option>{% for f in flights_list %}<option value="{{ f.id }}" data-sector="{{ f.sector }}" {% if bf.flight_id == f.id %}selected{% endif %}>{{ f.airline }} {{ f.flight_number|default:'' }}</option>{% endfor %}</select></td>
+  <td class="auto js-sector">{% if bf %}{{ bf.sector }}{% else %}—{% endif %}</td>
+  <td><select class="form-select js-class" aria-label="{% trans 'Class' %}">{% for v, l in flight_classes %}<option value="{{ v }}" {% if bf.flight_class == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></td>
+  <td><input type="datetime-local" class="form-input js-dep w-md" value="{{ bf.departure_at|date:'Y-m-d\TH:i' }}" aria-label="{% trans 'Departure' %}"></td>
+  <td><input type="datetime-local" class="form-input js-arr w-md" value="{{ bf.arrival_at|date:'Y-m-d\TH:i' }}" aria-label="{% trans 'Arrival' %}"></td>
+  <td><button type="button" class="vw-x" aria-label="{% trans 'Remove' %}">&times;</button></td>
+</tr>

@@ -1,0 +1,13 @@
+{% load i18n %}<tr data-nationality="{{ m.nationality|default:'' }}" data-phone="{{ m.phone|default:'' }}" data-email="{{ m.email|default:'' }}" data-family="{{ m.family_label|default:'' }}">
+  <td class="sno">1</td>
+  <td><input class="form-input js-passport w-sm" value="{{ m.passport_number|default:'' }}" placeholder="AB1234567" aria-label="{% trans 'Passport' %}"></td>
+  <td><input class="form-input js-name w-lg" value="{{ m.name|default:'' }}" placeholder="{% trans 'Full name' %}" aria-label="{% trans 'Mutamer name' %}" dir="auto"></td>
+  <td><select class="form-select js-gender w-xs" aria-label="{% trans 'Gender' %}"><option value="">—</option><option value="male" {% if m.gender == 'male' %}selected{% endif %}>M</option><option value="female" {% if m.gender == 'female' %}selected{% endif %}>F</option></select></td>
+  <td><select class="form-select js-pax w-sm" aria-label="{% trans 'PAX' %}"><option value="adult" {% if not m or m.pax_type == 'adult' %}selected{% endif %}>{% trans "Adult" %}</option><option value="child" {% if m.pax_type == 'child' %}selected{% endif %}>{% trans "Child" %}</option><option value="infant" {% if m.pax_type == 'infant' %}selected{% endif %}>{% trans "Infant" %}</option></select></td>
+  <td style="text-align:center;"><input type="checkbox" class="js-bed" {% if not m or m.bed %}checked{% endif %} aria-label="{% trans 'Bed' %}" style="width:18px;height:18px;accent-color:var(--primary);"></td>
+  <td><input class="form-input js-mofa w-sm" value="{{ m.mofa_number|default:'' }}" aria-label="{% trans 'MOFA #' %}"></td>
+  <td><input class="form-input js-grp w-xs" value="{{ m.group_number|default:'' }}" aria-label="{% trans 'GRP #' %}"></td>
+  <td><input class="form-input js-visa w-sm" value="{{ m.visa_number|default:'' }}" aria-label="{% trans 'Visa #' %}"></td>
+  <td><input class="form-input js-pnr w-sm" value="{{ m.pnr|default:'' }}" aria-label="{% trans 'PNR' %}"></td>
+  <td><button type="button" class="vw-x" aria-label="{% trans 'Remove' %}">&times;</button></td>
+</tr>

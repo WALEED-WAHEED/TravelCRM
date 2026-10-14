@@ -1,5 +1,8 @@
 # Use official Python runtime as a parent image
-FROM python:3.11-slim
+# Django==6.0.3 (requirements.txt) requires Python >=3.12 — this was
+# 3.11 and silently unbuildable until Phase 11's docker-compose smoke
+# test actually tried it.
+FROM python:3.12-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -26,8 +29,17 @@ RUN pip install gunicorn
 # Copy project
 COPY . .
 
-# Collect static files
+# Collect static files. Needs Django settings to import cleanly, which
+# (by design — see travelcrm/settings.py's "fails closed" comment) raises
+# ImproperlyConfigured without a real DJANGO_SECRET_KEY whenever DEBUG is
+# False, and neither is available at build time. collectstatic never
+# reads the key's value, so a placeholder scoped to just this layer is
+# safe — unset immediately after so the real image doesn't carry it and
+# a container run without a real key at runtime still fails closed as
+# intended, rather than silently accepting this placeholder.
+ENV DJANGO_SECRET_KEY=build-time-placeholder-unused-by-collectstatic
 RUN python manage.py collectstatic --noinput
+ENV DJANGO_SECRET_KEY=
 
 # Ensure the app starts on port 8000
 EXPOSE 8000

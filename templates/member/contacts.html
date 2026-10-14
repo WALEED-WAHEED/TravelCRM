@@ -1,25 +1,63 @@
 {% extends "base.html" %}
-{% block title %}Contacts{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Contacts" %}{% endblock %}
+{% block extra_head %}
+<style>
+    /* Voucher instructions section (the contacts directory above is unchanged) */
+    .vi-panel { margin-top: 18px; }
+    .vi-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .vi-list { list-style: none; margin: 0 0 16px; padding: 0 6px 0 0; display: grid; gap: 10px; max-height: 420px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted-foreground) 45%, transparent) transparent; }
+    #contacts-table { max-height: 460px; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted-foreground) 45%, transparent) transparent; }
+    #contacts-table thead th { position: sticky; top: 0; z-index: 2; background: var(--muted); box-shadow: 0 1px 0 var(--border); }
+    .vi-list::-webkit-scrollbar, #contacts-table::-webkit-scrollbar { width: 10px; height: 10px; }
+    .vi-list::-webkit-scrollbar-thumb, #contacts-table::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--muted-foreground) 40%, transparent); border-radius: 999px; border: 2px solid var(--card); }
+    .vi-item { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+    .vi-item.is-off { opacity: 0.6; }
+    .page-contacts .hotels-hero, .hotels-hero:has(.add-menu) { overflow: visible; position: relative; z-index: 20; }
+    .add-menu { position: relative; display: inline-block; }
+    .add-menu .btn { display: inline-flex; align-items: center; gap: 8px; }
+    .add-menu__list { position: fixed; z-index: 9000; width: 280px; padding: 6px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); box-shadow: var(--shadow-elevated); }
+    .add-menu__list[hidden] { display: none; }
+    .add-menu__list button { width: 100%; display: block; padding: 10px 12px; border: 0; border-radius: 10px; background: transparent; color: var(--foreground); font: inherit; text-align: start; cursor: pointer; }
+    .add-menu__list button:hover { background: var(--muted); }
+    .add-menu__list b { display: block; font-size: 0.9rem; }
+    .add-menu__list small { display: block; margin-top: 2px; font-size: 0.76rem; color: var(--muted-foreground); }
+    .vi-num { flex: none; width: 26px; height: 26px; border-radius: 999px; display: grid; place-items: center; font-size: 0.8rem; font-weight: 700; color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
+    .vi-body { flex: 1; min-width: 0; }
+    .vi-text { margin: 2px 0 0; font-size: 0.95rem; line-height: 1.7; white-space: pre-line; }
+    .vi-text[dir="rtl"], .vi-text:dir(rtl) { font-family: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", "Segoe UI", Tahoma, sans-serif; font-size: 1.05rem; }
+    .vi-edit { display: grid; gap: 8px; margin-top: 8px; }
+    .vi-edit__actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .vi-actions { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .vi-actions form { display: inline-flex; gap: 2px; margin: 0; }
+    .vi-add { display: grid; gap: 8px; padding-top: 14px; border-top: 1px solid var(--border); }
+    .page-contacts [hidden], #voucher-instructions [hidden] { display: none !important; }
+    @media (max-width: 760px) { .vi-item { flex-wrap: wrap; } .vi-actions { width: 100%; justify-content: flex-end; } }
+</style>
+{% endblock %}
 {% block content %}
 <div class="page-contacts page-hotels">
     <header class="hotels-hero hotels-reveal" style="--d:0ms">
         <div class="hotels-hero__copy">
-            <p class="hotels-eyebrow">CRM</p>
-            <h1 class="page-title hotels-hero__title">Contacts</h1>
-            <p class="page-subtitle hotels-hero__sub">Store city helplines and operational contacts — used inside vouchers for quick access.</p>
+            <p class="hotels-eyebrow">{% trans "CRM" %}</p>
+            <h1 class="page-title hotels-hero__title">{% trans "Contacts" %}</h1>
         </div>
         <div class="hotels-hero__actions hotels-reveal" style="--d:60ms">
-            <button type="button" class="btn btn-primary hotels-cta-btn" onclick="openContactAddModal()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                Add contact
-            </button>
+            <div class="add-menu" id="add-menu">
+                <button type="button" class="btn btn-primary hotels-cta-btn" id="add-menu-btn" aria-haspopup="true" aria-expanded="false">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                    {% trans "Add" %}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+                </button>
+                <div class="add-menu__list" role="menu" hidden>
+                    <button type="button" role="menuitem" onclick="openContactAddModal()"><b>{% trans "Add contact" %}</b><small>{% trans "A helpline or person for a city" %}</small></button>
+                    <button type="button" role="menuitem" onclick="openInstructionAdd()"><b>{% trans "Add instruction" %}</b><small>{% trans "A line printed on every voucher" %}</small></button>
+                </div>
+            </div>
         </div>
     </header>
 
-    <div class="hotels-stat-grid">
+    <div class="hotels-stat-grid" style="grid-template-columns: minmax(0, 1fr);">
         <div class="hotels-stat-card hotels-reveal" style="--d:80ms">
             <div class="hotels-stat-card__icon" aria-hidden="true">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
@@ -28,34 +66,8 @@
                 </svg>
             </div>
             <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Total contacts</span>
+                <span class="hotels-stat-card__label">{% trans "Total contacts" %}</span>
                 <span class="hotels-stat-card__value">{{ contact_stats.total }}</span>
-            </div>
-        </div>
-        <div class="hotels-stat-card hotels-stat-card--accent hotels-reveal" style="--d:120ms">
-            <div class="hotels-stat-card__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <path d="M16 11V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6" />
-                    <path d="M18 11h4" />
-                    <path d="M20 9v4" />
-                </svg>
-            </div>
-            <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Makkah</span>
-                <span class="hotels-stat-card__value">{{ contact_stats.makkah }}</span>
-            </div>
-        </div>
-        <div class="hotels-stat-card hotels-reveal" style="--d:160ms">
-            <div class="hotels-stat-card__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <path d="M16 16c2.761 0 5-2.239 5-5s-2.239-5-5-5c-.772 0-1.503.175-2.155.488" />
-                    <path d="M8 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
-                    <path d="M2 21v-1a6 6 0 0 1 12 0v1" />
-                </svg>
-            </div>
-            <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Madina</span>
-                <span class="hotels-stat-card__value">{{ contact_stats.madina }}</span>
             </div>
         </div>
     </div>
@@ -63,8 +75,7 @@
     <section class="card hotels-panel hotels-reveal" style="--d:200ms">
         <div class="hotels-panel__head">
             <div>
-                <h2 class="hotels-panel__title">Directory</h2>
-                <p class="hotels-panel__hint text-muted text-sm">Search by role, contact name, phone, or notes. Filter by city.</p>
+                <h2 class="hotels-panel__title">{% trans "Directory" %}</h2>
             </div>
         </div>
         <div class="card-content hotels-panel__body">
@@ -76,28 +87,16 @@
                     </svg>
                     <input type="search"
                         name="q"
-                        placeholder="Search contacts…"
+                        placeholder="{% trans 'Search by name, city, role or phone…' %}"
                         value="{{ search_q }}"
                         autocomplete="off"
-                        aria-label="Search contacts"
+                        aria-label="{% trans 'Search contacts' %}"
                         hx-get="{% url 'member-contacts' %}"
                         hx-trigger="keyup changed delay:350ms, search"
                         hx-target="#contacts-table"
-                        hx-push-url="false"
-                        hx-include="#contacts-city-filter">
+                        hx-push-url="false">
                 </div>
-                <select id="contacts-city-filter" name="city" class="form-select" style="width:auto;min-width:200px;"
-                    hx-get="{% url 'member-contacts' %}"
-                    hx-trigger="change"
-                    hx-target="#contacts-table"
-                    hx-push-url="false"
-                    hx-include="[name='q']">
-                    <option value="" {% if not city_filter %}selected{% endif %}>All cities</option>
-                    {% for c in cities %}
-                    <option value="{{ c }}" {% if city_filter == c %}selected{% endif %}>{{ c|title }}</option>
-                    {% endfor %}
-                </select>
-                <span id="contacts-count-display" class="text-sm text-muted hotels-toolbar-count">{{ contacts|length }} contact{{ contacts|length|pluralize }}</span>
+                <span id="contacts-count-display" class="text-sm text-muted hotels-toolbar-count">{% blocktrans count counter=contacts|length %}{{ counter }} contact{% plural %}{{ counter }} contacts{% endblocktrans %}</span>
             </div>
 
             <div class="table-wrapper hotels-table-wrap" id="contacts-table">
@@ -105,16 +104,95 @@
             </div>
         </div>
     </section>
+
+    <section class="card hotels-panel hotels-reveal vi-panel" id="voucher-instructions" style="--d:240ms">
+        <div class="hotels-panel__head vi-head">
+            <div>
+                <h2 class="hotels-panel__title">{% trans "Voucher instructions" %}</h2>
+                <p class="hotels-panel__hint text-muted text-sm">{% trans "Printed, numbered and in this order, at the end of every voucher. Urdu, Arabic and English all work." %}</p>
+            </div>
+            {% if not voucher_instructions %}
+            <form method="post" action="{% url 'instruction-standard' %}">{% csrf_token %}
+                <button type="submit" class="btn btn-outline btn-sm">{% trans "Add standard Umrah instructions" %}</button>
+            </form>
+            {% endif %}
+        </div>
+        <div class="card-content hotels-panel__body">
+            {% if voucher_instructions %}
+            <ol class="vi-list">
+                {% for it in voucher_instructions %}
+                <li class="vi-item{% if not it.is_active %} is-off{% endif %}">
+                    <span class="vi-num" aria-hidden="true">{{ forloop.counter }}</span>
+                    <div class="vi-body">
+                        <p class="vi-text" dir="auto">{{ it.text }}</p>
+                        {% if not it.is_active %}<span class="badge badge-outline">{% trans "Hidden from vouchers" %}</span>{% endif %}
+                        <form method="post" action="{% url 'instruction-update' it.id %}" class="vi-edit" hidden>
+                            {% csrf_token %}
+                            <textarea name="text" class="form-textarea" rows="3" dir="auto" required>{{ it.text }}</textarea>
+                            <div class="vi-edit__actions">
+                                <button type="button" class="btn btn-outline btn-sm" data-vi-cancel>{% trans "Cancel" %}</button>
+                                <button type="submit" class="btn btn-primary btn-sm">{% trans "Save" %}</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="vi-actions">
+                        <form method="post" action="{% url 'instruction-move' it.id %}">{% csrf_token %}
+                            <button type="submit" name="direction" value="up" class="btn btn-ghost btn-icon btn-sm" {% if forloop.first %}disabled{% endif %} aria-label="{% trans 'Move up' %}" title="{% trans 'Move up' %}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="18 15 12 9 6 15"/></svg></button>
+                            <button type="submit" name="direction" value="down" class="btn btn-ghost btn-icon btn-sm" {% if forloop.last %}disabled{% endif %} aria-label="{% trans 'Move down' %}" title="{% trans 'Move down' %}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 12 15 18 9"/></svg></button>
+                        </form>
+                        <button type="button" class="btn btn-outline btn-sm" data-vi-edit>{% trans "Edit" %}</button>
+                        <form method="post" action="{% url 'instruction-update' it.id %}">{% csrf_token %}
+                            <input type="hidden" name="is_active" value="{% if it.is_active %}0{% else %}1{% endif %}">
+                            <button type="submit" class="btn btn-outline btn-sm">{% if it.is_active %}{% trans "Hide" %}{% else %}{% trans "Show" %}{% endif %}</button>
+                        </form>
+                        <form method="post" action="{% url 'instruction-delete' it.id %}" data-vi-delete>{% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">{% trans "Delete" %}</button>
+                        </form>
+                    </div>
+                </li>
+                {% endfor %}
+            </ol>
+            {% else %}
+            <div class="hotels-empty" style="padding:28px 12px;">
+                <h3 class="hotels-empty__title">{% trans "No voucher instructions yet" %}</h3>
+                <p class="hotels-empty__text">{% trans "Add your own below, or start from the standard Umrah instructions and edit them." %}</p>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<div id="modal-instruction" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-instruction-title">
+    <div class="modal-box modal-box--md">
+        <form method="post" action="{% url 'instruction-add' %}">
+            {% csrf_token %}
+            <div class="modal-header">
+                <span id="modal-instruction-title" class="modal-title">{% trans "Add instruction" %}</span>
+                <button type="button" class="modal-close" onclick="closeModal('modal-instruction')" aria-label="{% trans 'Close dialog' %}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label" for="vi-new" style="display:block;margin-bottom:6px;">{% trans "Instruction" %} *</label>
+                <textarea id="vi-new" name="text" class="form-textarea" rows="4" dir="auto" required style="width:100%;" placeholder="{% trans 'e.g. Keep a copy of your hotel voucher with you at all times.' %}"></textarea>
+                <p class="text-sm text-muted" style="margin:8px 0 0;">{% trans "It is printed, numbered, at the end of every voucher. Urdu, Arabic and English all work." %}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-instruction')">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn btn-primary">{% trans "Add instruction" %}</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <div id="modal-contact" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-contact-title" aria-describedby="modal-contact-desc">
-    <div class="modal-box hotels-modal" style="max-width:820px;">
+    <div class="modal-box hotels-modal modal-box--lg">
         <div class="modal-header hotels-modal__header">
             <div>
-                <span id="modal-contact-title" class="modal-title">Add contact</span>
-                <p id="modal-contact-desc" class="hotels-modal-sub">Add city contacts used on vouchers (helplines, management, drivers, etc.).</p>
+                <span id="modal-contact-title" class="modal-title">{% trans "Add contact" %}</span>
+                <p id="modal-contact-desc" class="hotels-modal-sub">{% trans "Add city contacts used on vouchers (helplines, management, drivers, etc.)." %}</p>
             </div>
-            <button type="button" class="modal-close" onclick="closeModal('modal-contact')" aria-label="Close dialog">
+            <button type="button" class="modal-close" onclick="closeModal('modal-contact')" aria-label="{% trans 'Close dialog' %}">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <line x1="18" y1="6" x2="6" y2="18" />
                     <line x1="6" y1="6" x2="18" y2="18" />
@@ -127,54 +205,83 @@
             <div class="modal-body hotels-modal__body">
                 <div class="grid grid-2">
                     <div class="form-group">
-                        <label class="form-label" for="contact-city">City *</label>
+                        <label class="form-label" for="contact-city">{% trans "City *" %}</label>
                         <select id="contact-city" class="form-select" name="city" required>
-                            <option value="">Select city</option>
-                            <option value="Makkah">Makkah</option>
-                            <option value="Madina">Madina</option>
-                            <option value="Jeddah">Jeddah</option>
-                            <option value="Riyadh">Riyadh</option>
-                            <option value="Other">Other</option>
+                            <option value="">{% trans "Select city" %}</option>
+                            <option value="Makkah">{% trans "Makkah" %}</option>
+                            <option value="Madina">{% trans "Madina" %}</option>
+                            <option value="Jeddah">{% trans "Jeddah" %}</option>
+                            <option value="Riyadh">{% trans "Riyadh" %}</option>
+                            <option value="Other">{% trans "Other" %}</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="contact-role">Role *</label>
-                        <input id="contact-role" class="form-input" name="role" required maxlength="100" placeholder="Makkah Management, Madina Helpline, etc.">
+                        <label class="form-label" for="contact-role">{% trans "Role *" %}</label>
+                        <input id="contact-role" class="form-input" name="role" required maxlength="100" placeholder="{% trans 'Makkah Management, Madina Helpline, etc.' %}">
                     </div>
                 </div>
 
                 <div class="grid grid-2">
                     <div class="form-group">
-                        <label class="form-label" for="contact-contact-name">Contact Name *</label>
-                        <input id="contact-contact-name" class="form-input" name="contact_name" required maxlength="255" placeholder="Full name">
+                        <label class="form-label" for="contact-contact-name">{% trans "Contact Name *" %}</label>
+                        <input id="contact-contact-name" class="form-input" name="contact_name" required maxlength="255" placeholder="{% trans 'Full name' %}">
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="contact-phone-number">Phone Number *</label>
+                        <label class="form-label" for="contact-phone-number">{% trans "Phone Number *" %}</label>
                         <input id="contact-phone-number" class="form-input tabular-nums" name="phone_number" required maxlength="50" placeholder="+966 XX XXX XXXX">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="contact-notes">Notes</label>
-                    <textarea id="contact-notes" class="form-textarea" name="notes" rows="3" placeholder="Additional notes or instructions…"></textarea>
+                    <label class="form-label" for="contact-notes">{% trans "Notes" %}</label>
+                    <textarea id="contact-notes" class="form-textarea" name="notes" rows="3" placeholder="{% trans 'Additional notes or instructions…' %}"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline" onclick="closeModal('modal-contact')">Cancel</button>
-                <button type="submit" class="btn btn-primary" id="contact-submit-btn">Save</button>
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-contact')">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn btn-primary" id="contact-submit-btn">{% trans "Save" %}</button>
             </div>
         </form>
     </div>
 </div>
 
-<div id="modal-delete-contact" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-delete-contact-title" aria-describedby="modal-delete-contact-desc">
-    <div class="modal-box hotels-modal" style="max-width:560px;">
+<div id="modal-contact-view" class="modal-overlay drawer-wrap hidden" role="dialog" aria-modal="true" aria-labelledby="modal-contact-view-title">
+    <aside class="drawer">
+        <div class="drawer__head">
+            <span id="modal-contact-view-title" class="modal-title">{% trans "Contact details" %}</span>
+            <button type="button" class="modal-close" onclick="closeModal('modal-contact-view')" aria-label="{% trans 'Close dialog' %}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+        </div>
+        <div class="drawer__body">
+            <div class="drawer-who">
+                <span class="drawer-who__av" id="cv-av" aria-hidden="true"></span>
+                <div>
+                    <p class="drawer-who__name" id="cv-name" dir="auto"></p>
+                    <p class="drawer-who__sub" id="cv-role" dir="auto"></p>
+                </div>
+            </div>
+            <dl class="drawer-list">
+                <div><dt>{% trans "City" %}</dt><dd id="cv-city" dir="auto"></dd></div>
+                <div><dt>{% trans "Phone number" %}</dt><dd id="cv-phone" dir="ltr"></dd></div>
+                <div><dt>{% trans "Notes" %}</dt><dd id="cv-notes" dir="auto"></dd></div>
+            </dl>
+        </div>
+        <div class="drawer__foot">
+            <button type="button" class="btn btn-outline" onclick="closeModal('modal-contact-view')">{% trans "Close" %}</button>
+            <button type="button" class="btn btn-primary" id="cv-edit">{% trans "Edit" %}</button>
+        </div>
+    </aside>
+</div>
+
+<div id="modal-delete-contact" class="modal-overlay modal-overlay--center hidden" role="dialog" aria-modal="true" aria-labelledby="modal-delete-contact-title" aria-describedby="modal-delete-contact-desc">
+    <div class="modal-box hotels-modal modal-box--md">
         <div class="modal-header hotels-modal__header">
             <div>
-                <span id="modal-delete-contact-title" class="modal-title">Delete contact</span>
-                <p id="modal-delete-contact-desc" class="hotels-modal-sub">This action is permanent.</p>
+                <span id="modal-delete-contact-title" class="modal-title">{% trans "Delete contact" %}</span>
+                <p id="modal-delete-contact-desc" class="hotels-modal-sub">{% trans "This action is permanent." %}</p>
             </div>
-            <button type="button" class="modal-close" onclick="closeModal('modal-delete-contact')" aria-label="Close dialog">
+            <button type="button" class="modal-close" onclick="closeModal('modal-delete-contact')" aria-label="{% trans 'Close dialog' %}">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <line x1="18" y1="6" x2="6" y2="18" />
                     <line x1="6" y1="6" x2="18" y2="18" />
@@ -183,20 +290,28 @@
         </div>
         <div class="modal-body hotels-modal__body">
             <div class="form-group">
-                <label class="form-label" for="delete-contact-summary">Contact</label>
+                <label class="form-label" for="delete-contact-summary">{% trans "Contact" %}</label>
                 <input id="delete-contact-summary" class="form-input" type="text" readonly>
                 <input type="hidden" id="delete-contact-id" value="">
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-outline" onclick="closeModal('modal-delete-contact')">Cancel</button>
-            <button type="button" class="btn btn-primary" id="delete-contact-confirm-btn" style="background:var(--destructive);border-color:transparent;">Delete</button>
+            <button type="button" class="btn btn-outline" onclick="closeModal('modal-delete-contact')">{% trans "Cancel" %}</button>
+            <button type="button" class="btn btn-danger" id="delete-contact-confirm-btn">{% trans "Delete" %}</button>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+{% trans "Add contact" as js_contact_add_title %}
+{% trans "Edit contact" as js_contact_edit_title %}
+{% trans "City" as js_contact_city_fallback %}
+{% trans "Unable to save" as js_contact_unable_save %}
+{% trans "Saved" as js_contact_saved %}
+{% trans "Invalid contact" as js_contact_invalid %}
+{% trans "Unable to delete" as js_contact_unable_delete %}
+{% trans "Deleted" as js_contact_deleted %}
 <script>
     (function () {
         var csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
@@ -206,16 +321,62 @@
         var deleteBtn = document.getElementById('delete-contact-confirm-btn');
 
         window.openContactAddModal = function () {
-            document.getElementById('modal-contact-title').textContent = 'Add contact';
+            document.getElementById('modal-contact-title').textContent = '{{ js_contact_add_title|escapejs }}';
             document.getElementById('contact-id').value = '';
             form.reset();
             openModal('modal-contact');
         };
 
+        (function () {
+            var wrap = document.getElementById('add-menu'), btn = document.getElementById('add-menu-btn'), list = wrap.querySelector('.add-menu__list');
+            function place() {
+                var r = btn.getBoundingClientRect(), w = 280, rtl = document.documentElement.dir === 'rtl';
+                list.style.top = (r.bottom + 8) + 'px';
+                list.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, rtl ? r.left : r.right - w)) + 'px';
+            }
+            document.body.appendChild(list);   // outside the animated header, so 'fixed' means the screen
+            function setOpen(open) { list.hidden = !open; if (open) place(); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+            window.addEventListener('resize', function () { if (!list.hidden) place(); });
+            window.addEventListener('scroll', function () { if (!list.hidden) place(); }, true);
+            btn.addEventListener('click', function (e) { e.stopPropagation(); setOpen(list.hidden); });
+            list.addEventListener('click', function () { setOpen(false); });
+            document.addEventListener('click', function (e) { if (!wrap.contains(e.target) && !list.contains(e.target)) setOpen(false); });
+            document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+            window.openInstructionAdd = function () {
+                openModal('modal-instruction');
+                setTimeout(function () { document.getElementById('vi-new').focus(); }, 60);
+            };
+        })();
+        var viewRow = null;
+        window.openContactView = function (btn) {
+            var row = btn.closest('tr');
+            if (!row) return;
+            viewRow = row;
+            var d = row.dataset, name = d.contactName || '';
+            document.getElementById('cv-av').textContent = (name.charAt(0) || '•').toUpperCase();
+            document.getElementById('cv-name').textContent = name;
+            document.getElementById('cv-role').textContent = d.role || '';
+            document.getElementById('cv-city').textContent = d.city || '—';
+            var phone = document.getElementById('cv-phone');
+            phone.textContent = '';
+            if (d.phoneNumber) {
+                var a = document.createElement('a');
+                a.href = 'tel:' + d.phoneNumber.replace(/[^+\d]/g, '');
+                a.textContent = d.phoneNumber;
+                phone.appendChild(a);
+            } else { phone.textContent = '—'; }
+            document.getElementById('cv-notes').textContent = d.notes || '—';
+            openModal('modal-contact-view');
+        };
+        document.getElementById('cv-edit').addEventListener('click', function () {
+            closeModal('modal-contact-view');
+            if (viewRow) window.openContactEditFromRow(viewRow.querySelector('.vx--edit'));
+        });
+
         window.openContactEditFromRow = function (btn) {
             var tr = btn && btn.closest ? btn.closest('tr') : null;
             if (!tr) return;
-            document.getElementById('modal-contact-title').textContent = 'Edit contact';
+            document.getElementById('modal-contact-title').textContent = '{{ js_contact_edit_title|escapejs }}';
             document.getElementById('contact-id').value = tr.dataset.id || '';
             document.getElementById('contact-city').value = tr.dataset.city || '';
             document.getElementById('contact-role').value = tr.dataset.role || '';
@@ -229,7 +390,7 @@
             var tr = btn && btn.closest ? btn.closest('tr') : null;
             if (!tr) return;
             document.getElementById('delete-contact-id').value = tr.dataset.id || '';
-            document.getElementById('delete-contact-summary').value = (tr.dataset.city || 'City') + ' • ' + (tr.dataset.role || '') + ' • ' + (tr.dataset.contactName || '');
+            document.getElementById('delete-contact-summary').value = (tr.dataset.city || '{{ js_contact_city_fallback|escapejs }}') + ' • ' + (tr.dataset.role || '') + ' • ' + (tr.dataset.contactName || '');
             openModal('modal-delete-contact');
         };
 
@@ -246,14 +407,14 @@
                     var res = await fetch(url, { method: 'POST', body: fd });
                     if (!res.ok) {
                         var t = await res.text();
-                        showToast(t || 'Unable to save', 'error');
+                        showToast(t || '{{ js_contact_unable_save|escapejs }}', 'error');
                         return;
                     }
                     closeModal('modal-contact');
-                    showToast('Saved', 'success');
+                    showToast('{{ js_contact_saved|escapejs }}', 'success');
                     window.location.reload();
                 } catch (err) {
-                    showToast('Unable to save', 'error');
+                    showToast('{{ js_contact_unable_save|escapejs }}', 'error');
                 } finally {
                     if (submitBtn) submitBtn.disabled = false;
                 }
@@ -264,24 +425,48 @@
             deleteBtn.addEventListener('click', async function () {
                 try {
                     var id = (document.getElementById('delete-contact-id').value || '').trim();
-                    if (!id) return showToast('Invalid contact', 'error');
+                    if (!id) return showToast('{{ js_contact_invalid|escapejs }}', 'error');
                     var fd = new FormData();
                     fd.append('csrfmiddlewaretoken', csrf);
                     var url = '{% url "member-contact-delete" 0 %}'.replace('/0/', '/' + id + '/');
                     var res = await fetch(url, { method: 'POST', body: fd });
                     if (!res.ok) {
                         var t = await res.text();
-                        showToast(t || 'Unable to delete', 'error');
+                        showToast(t || '{{ js_contact_unable_delete|escapejs }}', 'error');
                         return;
                     }
                     closeModal('modal-delete-contact');
-                    showToast('Deleted', 'success');
+                    showToast('{{ js_contact_deleted|escapejs }}', 'success');
                     window.location.reload();
                 } catch (err) {
-                    showToast('Unable to delete', 'error');
+                    showToast('{{ js_contact_unable_delete|escapejs }}', 'error');
                 }
             });
         }
     })();
+</script>
+<script>
+(function () {
+  var box = document.getElementById('voucher-instructions');
+  if (!box) return;
+  box.addEventListener('click', function (e) {
+    var edit = e.target.closest('[data-vi-edit]'), cancel = e.target.closest('[data-vi-cancel]');
+    if (!edit && !cancel) return;
+    var item = e.target.closest('.vi-item');
+    item.querySelector('.vi-edit').hidden = !!cancel;
+    item.querySelector('.vi-text').hidden = !cancel;
+    if (edit) item.querySelector('.vi-edit textarea').focus();
+  });
+  box.querySelectorAll('[data-vi-delete]').forEach(function (f) {
+    f.addEventListener('submit', function (e) {
+      var btn = f.querySelector('button');
+      if (btn.dataset.armed) return;  // second click confirms
+      e.preventDefault();
+      btn.dataset.armed = '1';
+      btn.textContent = '{% trans "Click again to delete" as t %}{{ t|escapejs }}';
+      setTimeout(function () { delete btn.dataset.armed; btn.textContent = '{% trans "Delete" as t %}{{ t|escapejs }}'; }, 4000);
+    });
+  });
+})();
 </script>
 {% endblock %}

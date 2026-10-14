@@ -7,12 +7,9 @@ echo "Backend Container Starting..."
 echo "=========================================="
 
 # Wait for database to be ready
-# Database wait logic removed for SQLite usage
-DB_READY=0
-# if [ $DB_READY -ne 0 ]; then
-#     echo "FATAL: Database connection failed. Exiting."
-#     exit 1
-# fi
+# No explicit wait loop here: docker-compose's `depends_on: db: condition:
+# service_healthy` already blocks this container from starting until
+# Postgres's own healthcheck (pg_isready) passes.
 
 # Run database migrations
 echo ""

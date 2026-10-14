@@ -1,0 +1,1 @@
+{% load i18n %}<span id="ledger-count-display" class="text-sm text-muted"{% if oob %} hx-swap-oob="true"{% endif %}>{% blocktrans count counter=entry_count %}{{ counter }} entry{% plural %}{{ counter }} entries{% endblocktrans %}</span>

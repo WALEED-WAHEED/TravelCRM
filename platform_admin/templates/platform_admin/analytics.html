@@ -1,0 +1,93 @@
+{% extends "platform_admin/base.html" %}
+{% load static %}
+{% load i18n %}
+{% block title %}{% trans "Analytics" %}{% endblock %}
+{% block content %}
+{% trans "New agencies" as label_new_agencies %}
+<div class="page-header">
+  <h1 class="page-title">{% trans "Analytics" %}</h1>
+  <p class="page-subtitle">{% trans "Cross-tenant growth and revenue, computed live across every agency." %}</p>
+</div>
+
+<div class="card mb-6">
+  <div class="card-content" style="padding-top:20px;">
+    <h2 style="margin:0 0 12px;">{% trans "Agency growth" %}</h2>
+    <p class="text-muted text-sm" style="margin:0 0 16px;">{% trans "New agencies signed up, trailing six months." %}</p>
+    <div style="height:280px;">
+      <canvas id="growthChart" aria-label="{% trans 'Agency growth by month' %}"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-2 mb-6">
+  <div class="card">
+    <div class="card-content" style="padding-top:20px;">
+      <h2 style="margin:0 0 12px;">{% trans "Plan mix" %}</h2>
+      <p class="text-muted text-sm" style="margin:0 0 16px;">{% trans "Active & trialing subscriptions by plan." %}</p>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>{% trans "Plan" %}</th><th>{% trans "Subscriptions" %}</th></tr></thead>
+          <tbody>
+            {% for row in plan_mix %}
+            <tr><td>{{ row.plan|default:"—" }}</td><td class="tabular-nums">{{ row.count }}</td></tr>
+            {% empty %}
+            <tr><td colspan="2">{% trans "No subscriptions yet." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-content" style="padding-top:20px;">
+      <h2 style="margin:0 0 12px;">{% trans "MRR by plan" %}</h2>
+      <p class="text-muted text-sm" style="margin:0 0 16px;">{% trans "Monthly recurring revenue from active subscriptions." %}</p>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>{% trans "Plan" %}</th><th>{% trans "MRR (PKR)" %}</th></tr></thead>
+          <tbody>
+            {% for row in mrr_by_plan %}
+            <tr><td>{{ row.plan }}</td><td class="tabular-nums">{{ row.mrr|floatformat:0 }}</td></tr>
+            {% empty %}
+            <tr><td colspan="2">{% trans "No active subscriptions yet." %}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/chart-theme.js' %}"></script>
+<script>
+(function () {
+    var el = document.getElementById('growthChart');
+    if (!el || typeof Chart === 'undefined') return;
+    var theme = getChartTheme();
+    Chart.defaults.color = theme.text;
+    Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+
+    new Chart(el.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: {{ growth_labels_json|safe }},
+            datasets: [{ label: '{{ label_new_agencies|escapejs }}', data: {{ growth_values_json|safe }}, backgroundColor: theme.primary, borderRadius: 4 }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { backgroundColor: theme.cardBg, titleColor: theme.fgSolid, bodyColor: theme.fgSolid, padding: 12, borderColor: theme.grid, borderWidth: 1, cornerRadius: 8 }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { precision: 0, color: theme.text }, grid: { color: theme.grid, drawBorder: false }, border: { display: false } },
+                x: { grid: { display: false }, border: { display: false }, ticks: { color: theme.text } }
+            }
+        }
+    });
+})();
+</script>
+{% endblock %}

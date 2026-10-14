@@ -1,5 +1,6 @@
 from .models import SAASProductConfig
 
+
 def saas_config(request):
     """
     Context processor to make SAASProductConfig available globally in all templates

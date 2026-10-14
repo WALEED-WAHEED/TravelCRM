@@ -1,6 +1,8 @@
 {% load static %}
+{% load asset_tags %}
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}">
 
 <head>
   <meta charset="UTF-8">
@@ -14,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="stylesheet" href="{% versioned_static 'css/app.css' %}">
   <!-- HTMX -->
   <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
   <!-- Chart.js for dashboards -->
@@ -22,6 +24,15 @@
 </head>
 
 <body>
+  {% if request.session.impersonator_id %}
+  <div style="background:#f2b84b; color:#1a1305; padding:8px 16px; text-align:center; font-size:14px; font-weight:600;">
+    {% blocktrans with username=user.username agency_name=user.agency.name %}Viewing as {{ username }} ({{ agency_name }}) — Super Admin impersonation session.{% endblocktrans %}
+    <form method="post" action="{% url 'platform_admin:impersonate-stop' %}" style="display:inline;">
+      {% csrf_token %}
+      <button type="submit" style="margin-inline-start:10px; padding:2px 10px; border-radius:4px; border:1px solid #1a1305; background:transparent; color:#1a1305; cursor:pointer; font-weight:600;">{% trans "Return to Super Admin" %}</button>
+    </form>
+  </div>
+  {% endif %}
   <div class="app-shell">
     <!-- ── Sidebar ──────────────────────────────────────── -->
     <nav id="sidebar" class="sidebar">
@@ -29,23 +40,26 @@
       <div class="sidebar-logo">
         <a href="{% url 'root-redirect' %}" class="sidebar-logo-link"
           title="{{ saas_config.product_name|default:'Home' }} — Home">
+          {# Product icon (uploaded SaaS logo, else its initial) + product name. #}
           <span class="sidebar-logo-full">
             {% if saas_config.logo %}
-            <img src="{{ saas_config.logo.url }}" class="sidebar-logo-img" alt="{{ saas_config.product_name|default:'Logo' }}">
+            <img src="{{ saas_config.logo.url }}" class="sidebar-logo-icon" alt="">
             {% else %}
-            <span class="sidebar-logo-text">{{ saas_config.product_name|default:"Nahd Travels" }}</span>
+            <span class="sidebar-logo-mark" aria-hidden="true">{{ saas_config.product_name|default:"T"|slice:":1"|upper }}</span>
             {% endif %}
+            <span class="sidebar-logo-text">{{ saas_config.product_name|default:"Travel CRM" }}</span>
           </span>
           <span class="sidebar-logo-compact" aria-hidden="true">
-            <span class="sidebar-logo-mark">{{ saas_config.product_name|default:"N"|slice:":1"|upper }}</span>
+            {% if saas_config.logo %}<img src="{{ saas_config.logo.url }}" class="sidebar-logo-icon" alt="">
+            {% else %}<span class="sidebar-logo-mark">{{ saas_config.product_name|default:"T"|slice:":1"|upper }}</span>{% endif %}
           </span>
         </a>
       </div>
 
       <!-- Navigation -->
-      <div style="flex:1; overflow-y:auto; padding: 8px 0;">
+      <div class="sidebar-scroll" data-sidebar-scroll style="flex:1; overflow-y:auto; padding: 8px 0;">
         {% if user.role == 'member' or user.is_superuser %}
-        <div class="sidebar-group-label">Member Portal</div>
+        <div class="sidebar-group-label">{% trans "Overview" %}</div>
         <a href="{% url 'member-dashboard' %}"
           class="nav-item {% if request.resolver_match.url_name == 'member-dashboard' %}active{% endif %}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -54,8 +68,51 @@
             <rect x="14" y="14" width="7" height="7" />
             <rect x="3" y="14" width="7" height="7" />
           </svg>
-          <span class="nav-label">Dashboard</span>
+          <span class="nav-label">{% trans "Dashboard" %}</span>
         </a>
+        <a href="{% url 'reports-home' %}"
+          class="nav-item {% if 'reports-' in request.resolver_match.url_name %}active{% endif %}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+          <span class="nav-label">{% trans "Reports" %}</span>
+        </a>
+        <a href="{% url 'assistant-chat' %}"
+          class="nav-item {% if 'assistant-' in request.resolver_match.url_name %}active{% endif %}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" /><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z" />
+          </svg>
+          <span class="nav-label">{% trans "AI Assistant" %}</span>
+        </a>
+        <div class="sidebar-group-label">{% trans "Sales" %}</div>
+        <a href="{% url 'member-bookings' %}"
+          class="nav-item {% if request.resolver_match.url_name == 'member-bookings' or request.resolver_match.url_name == 'member-booking-insights' %}active{% endif %}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+          </svg>
+          <span class="nav-label">{% trans "Vouchers" %}</span>
+        </a>
+        <a href="{% url 'member-approvals' %}"
+          class="nav-item {% if request.resolver_match.url_name == 'member-approvals' %}active{% endif %}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 11 12 14 22 4" />
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
+          <span class="nav-label">{% trans "Approvals" %}</span>
+        </a>
+        <a href="{% url 'member-packages' %}"
+          class="nav-item {% if request.resolver_match.url_name == 'member-packages' %}active{% endif %}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 8 12 3 3 8v8l9 5 9-5z" />
+            <path d="M3 8l9 5 9-5" />
+            <path d="M12 13v8" />
+          </svg>
+          <span class="nav-label">{% trans "Packages" %}</span>
+        </a>
+        <div class="sidebar-group-label">{% trans "Inventory" %}</div>
         <a href="{% url 'member-hotels' %}"
           class="nav-item {% if request.resolver_match.url_name == 'member-hotels' %}active{% endif %}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -63,7 +120,7 @@
             <path d="M21 22H3" />
             <path d="M9 22V12h6v10" />
           </svg>
-          <span class="nav-label">Hotels</span>
+          <span class="nav-label">{% trans "Hotels" %}</span>
         </a>
         <a href="{% url 'member-flights' %}"
           class="nav-item {% if request.resolver_match.url_name == 'member-flights' %}active{% endif %}">
@@ -72,7 +129,7 @@
             <path d="M22 2 11 13" />
             <path d="M22 2 15 22 11 13 2 9 22 2z" />
           </svg>
-          <span class="nav-label">Flights</span>
+          <span class="nav-label">{% trans "Flights" %}</span>
         </a>
         <a href="{% url 'member-transports' %}"
           class="nav-item {% if request.resolver_match.url_name == 'member-transports' %}active{% endif %}">
@@ -82,43 +139,9 @@
             <circle cx="5.5" cy="18.5" r="2.5" />
             <circle cx="18.5" cy="18.5" r="2.5" />
           </svg>
-          <span class="nav-label">Transports</span>
+          <span class="nav-label">{% trans "Transports" %}</span>
         </a>
-        <a href="{% url 'member-mutamers' %}"
-          class="nav-item {% if request.resolver_match.url_name == 'member-mutamers' %}active{% endif %}">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-          <span class="nav-label">Mutamers</span>
-        </a>
-        <a href="{% url 'member-bookings' %}"
-          class="nav-item {% if request.resolver_match.url_name == 'member-bookings' %}active{% endif %}">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-          </svg>
-          <span class="nav-label">Bookings</span>
-        </a>
-        <a href="{% url 'member-vouchers' %}"
-          class="nav-item {% if request.resolver_match.url_name == 'member-vouchers' %}active{% endif %}">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-            <polyline points="10 9 9 9 8 9" />
-          </svg>
-          <span class="nav-label">Vouchers</span>
-        </a>
-        <a href="{% url 'member-approvals' %}"
-          class="nav-item {% if request.resolver_match.url_name == 'member-approvals' %}active{% endif %}">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="9 11 12 14 22 4" />
-            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-          </svg>
-          <span class="nav-label">Approvals</span>
-        </a>
+        <div class="sidebar-group-label">{% trans "Finance" %}</div>
         <a href="{% url 'member-ledger' %}"
           class="nav-item {% if request.resolver_match.url_name == 'member-ledger' %}active{% endif %}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -126,16 +149,9 @@
             <line x1="8" y1="21" x2="16" y2="21" />
             <line x1="12" y1="17" x2="12" y2="21" />
           </svg>
-          <span class="nav-label">Ledger</span>
+          <span class="nav-label">{% trans "Ledger" %}</span>
         </a>
-        <a href="{% url 'member-attendance' %}"
-          class="nav-item {% if request.resolver_match.url_name == 'member-attendance' %}active{% endif %}">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-          </svg>
-          <span class="nav-label">Attendance</span>
-        </a>
+        <div class="sidebar-group-label">{% trans "People" %}</div>
         <a href="{% url 'member-contacts' %}"
           class="nav-item {% if request.resolver_match.url_name == 'member-contacts' %}active{% endif %}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -144,11 +160,49 @@
             <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
             <path d="M16 3.13a4 4 0 0 1 0 7.75" />
           </svg>
-          <span class="nav-label">Contacts</span>
+          <span class="nav-label">{% trans "Contacts" %}</span>
+        </a>
+        <a href="{% url 'member-attendance' %}"
+          class="nav-item {% if request.resolver_match.url_name in 'member-attendance,attendance-me,attendance-scan' %}active{% endif %}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span class="nav-label">{% trans "Attendance" %}</span>
+        </a>
+        <a href="{% url 'member-team' %}"
+          class="nav-item {% if request.resolver_match.url_name in 'member-team,member-team-invite,member-roles,member-role-detail' %}active{% endif %}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M9 12l2 2 4-4" />
+          </svg>
+          <span class="nav-label">{% trans "Team & Roles" %}</span>
+        </a>
+        <div class="sidebar-group-label">{% trans "Account" %}</div>
+        <a href="{% url 'member-activity-log' %}"
+          class="nav-item {% if request.resolver_match.url_name == 'member-activity-log' %}active{% endif %}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+          <span class="nav-label">{% trans "Activity Log" %}</span>
+        </a>
+        <a href="{% url 'member-billing' %}"
+          class="nav-item {% if request.resolver_match.url_name in 'member-billing,member-billing-subscribe' %}active{% endif %}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" />
+          </svg>
+          <span class="nav-label">{% trans "Billing" %}</span>
+        </a>
+        <a href="{% url 'settings-home' %}"
+          class="nav-item {% if request.resolver_match.url_name in 'settings-home,attendance-settings,profile,notifications-preferences,language-settings' %}active{% endif %}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+          <span class="nav-label">{% trans "Settings" %}</span>
         </a>
 
         {% elif user.role == 'agent' %}
-        <div class="sidebar-group-label">Agent Tools</div>
+        <div class="sidebar-group-label">{% trans "Agent Tools" %}</div>
         <a href="{% url 'agent-dashboard' %}"
           class="nav-item {% if request.resolver_match.url_name == 'agent-dashboard' %}active{% endif %}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -157,44 +211,34 @@
             <rect x="14" y="14" width="7" height="7" />
             <rect x="3" y="14" width="7" height="7" />
           </svg>
-          <span class="nav-label">Dashboard</span>
-        </a>
-        <a href="{% url 'agent-bookings' %}"
-          class="nav-item {% if request.resolver_match.url_name == 'agent-bookings' %}active{% endif %}">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-          </svg>
-          <span class="nav-label">Bookings</span>
+          <span class="nav-label">{% trans "Dashboard" %}</span>
         </a>
         <a href="{% url 'agent-vouchers' %}"
-          class="nav-item {% if request.resolver_match.url_name == 'agent-vouchers' %}active{% endif %}">
+          class="nav-item {% if request.resolver_match.url_name in 'agent-vouchers,agent-voucher-new,agent-voucher-edit' %}active{% endif %}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <polyline points="14 2 14 8 20 8" />
           </svg>
-          <span class="nav-label">Vouchers</span>
+          <span class="nav-label">{% trans "Vouchers" %}</span>
         </a>
-        <a href="{% url 'agent-mutamers' %}"
-          class="nav-item {% if request.resolver_match.url_name == 'agent-mutamers' %}active{% endif %}">
+        <a href="{% url 'attendance-me' %}"
+          class="nav-item {% if request.resolver_match.url_name in 'attendance-me,attendance-scan' %}active{% endif %}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
           </svg>
-          <span class="nav-label">Mutamers</span>
+          <span class="nav-label">{% trans "My attendance" %}</span>
+        </a>
+        <a href="{% url 'settings-home' %}"
+          class="nav-item {% if request.resolver_match.url_name in 'settings-home,language-settings' %}active{% endif %}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 1v4M12 19v4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M1 12h4M19 12h4M4.2 19.8 7 17M17 7l2.8-2.8" />
+          </svg>
+          <span class="nav-label">{% trans "Settings" %}</span>
         </a>
         {% endif %}
 
-        <!-- Common bottom links -->
-        <div class="sidebar-divider"></div>
-        <a href="{% url 'profile' %}"
-          class="nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-          <span class="nav-label">Profile</span>
-        </a>
       </div>
     </nav>
 
@@ -204,7 +248,7 @@
       <!-- Top Nav -->
       <header class="topnav">
         <div class="topnav-left">
-          <button id="sidebar-toggle" class="sidebar-toggle" aria-label="Toggle sidebar">
+          <button id="sidebar-toggle" class="sidebar-toggle" aria-label="{% trans 'Toggle sidebar' %}">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="3" y1="6" x2="21" y2="6" />
               <line x1="3" y1="12" x2="21" y2="12" />
@@ -213,8 +257,44 @@
           </button>
         </div>
 
+        {# Centre: the signed-in agency's own brand (Settings → Company profile). #}
+        {% if user.agency %}{% with br=user.agency.branding %}
+        <a href="{% url 'root-redirect' %}" class="topnav-brand topnav-brand--company" title="{{ br.company_name|default:user.agency.name }}">
+          {% if br.logo %}<img src="{{ br.logo.url }}" alt="{{ br.company_name|default:user.agency.name }}" class="topnav-brand__logo{% if not br.logo_is_wordmark %} topnav-brand__logo--icon{% endif %}">
+          {% if not br.logo_is_wordmark %}<span class="topnav-brand__name">{{ br.company_name|default:user.agency.name }}</span>{% endif %}
+          {% else %}<span class="topnav-brand__mark" aria-hidden="true">{{ br.company_name|default:user.agency.name|slice:":1"|upper }}</span>
+          <span class="topnav-brand__name">{{ br.company_name|default:user.agency.name }}</span>{% endif %}
+        </a>
+        {% endwith %}{% else %}<span></span>{% endif %}
+
         <div class="topnav-right">
-          <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle light or dark theme">
+          {% if user.role == 'member' or user.is_superuser %}
+          <!-- Notifications (moved here from the sidebar) -->
+          <div class="dropdown">
+            <button type="button" class="topnav-icon-btn{% if request.resolver_match.url_name in 'notifications-preferences,notifications-delivery-log' %} is-active{% endif %}"
+              data-dropdown-trigger aria-label="{% trans 'Notifications' %}" title="{% trans 'Notifications' %}">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+            </button>
+            <div class="dropdown-menu">
+              <div class="dropdown-header">
+                <div class="name">{% trans "Notifications" %}</div>
+                <div class="meta">{% trans "Emails & messages sent to clients" %}</div>
+              </div>
+              <a href="{% url 'notifications-preferences' %}" class="dropdown-item">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+                {% trans "Notification settings" %}
+              </a>
+              <a href="{% url 'notifications-delivery-log' %}" class="dropdown-item">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>
+                {% trans "Sent messages log" %}
+              </a>
+            </div>
+          </div>
+          {% endif %}
+          <button type="button" id="theme-toggle" class="theme-toggle" aria-label="{% trans 'Toggle light or dark theme' %}">
             <svg class="icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <circle cx="12" cy="12" r="5" />
               <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
@@ -228,19 +308,21 @@
             <button type="button" class="user-avatar" data-dropdown-trigger title="{{ user.get_full_name|default:user.username }}">
               {{ user.first_name|first|default:user.username|first|upper }}{{ user.last_name|first|upper }}
             </button>
-            <div class="dropdown-menu">
-              <div class="dropdown-header">
-                <div class="name">{{ user.get_full_name|default:user.username }}</div>
-                <div class="meta">{{ user.email }}</div>
-                <div class="meta" style="text-transform:capitalize;">{{ user.role }}</div>
+            <div class="dropdown-menu user-card-menu">
+              {# Who is signed in — profile/language live under Settings now. #}
+              <div class="user-card">
+                <span class="user-card__avatar" aria-hidden="true">{{ user.first_name|first|default:user.username|first|upper }}{{ user.last_name|first|upper }}</span>
+                <div class="user-card__body">
+                  <div class="user-card__name">{{ user.get_full_name|default:user.username }}</div>
+                  <div class="user-card__role">{% if user.is_superuser %}{% trans "Super Admin" %}{% else %}{{ user.custom_role.name|default:user.get_role_display }}{% endif %}{% if user.agency %} · {{ user.agency.name }}{% endif %}</div>
+                </div>
               </div>
-              <a href="{% url 'profile' %}" class="dropdown-item">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-                Profile
-              </a>
+              <dl class="user-card__facts">
+                <div><dt>{% trans "Username" %}</dt><dd>{{ user.username }}</dd></div>
+                {% if user.email %}<div><dt>{% trans "Email" %}</dt><dd>{{ user.email }}</dd></div>{% endif %}
+                {% if user.phone %}<div><dt>{% trans "Phone" %}</dt><dd dir="ltr">{{ user.phone }}</dd></div>{% endif %}
+                {% if user.last_login %}<div><dt>{% trans "Signed in" %}</dt><dd>{{ user.last_login|timesince }} {% trans "ago" %}</dd></div>{% endif %}
+              </dl>
               <div class="dropdown-divider"></div>
               <form method="post" action="{% url 'logout' %}" class="dropdown-item-form">
                 {% csrf_token %}
@@ -250,13 +332,42 @@
                     <polyline points="16 17 21 12 16 7" />
                     <line x1="21" y1="12" x2="9" y2="12" />
                   </svg>
-                  Log Out
+                  {% trans "Log Out" %}
                 </button>
               </form>
             </div>
           </div>
         </div>
       </header>
+
+      {% if active_announcements %}
+      <div id="pa-announcements">
+        {% for a in active_announcements %}
+        <div class="alert alert-{% if a.severity == 'critical' %}error{% elif a.severity == 'warning' %}warning{% else %}info{% endif %}"
+             data-announcement-id="{{ a.id }}" style="margin:0; border-radius:0; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+          <span><strong>{{ a.title }}</strong> — {{ a.body }}</span>
+          <button type="button" class="pa-announcement-dismiss" data-announcement-id="{{ a.id }}" aria-label="{% trans 'Dismiss' %}" style="background:none; border:none; cursor:pointer; color:inherit; font-size:1.1rem; line-height:1;">&times;</button>
+        </div>
+        {% endfor %}
+      </div>
+      <script>
+        (function () {
+          var seen = JSON.parse(localStorage.getItem('pa_dismissed_announcements') || '[]');
+          document.querySelectorAll('#pa-announcements [data-announcement-id]').forEach(function (el) {
+            if (seen.indexOf(el.getAttribute('data-announcement-id')) !== -1) el.closest('.alert')?.remove();
+          });
+          document.querySelectorAll('.pa-announcement-dismiss').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+              var id = btn.getAttribute('data-announcement-id');
+              var seen = JSON.parse(localStorage.getItem('pa_dismissed_announcements') || '[]');
+              if (seen.indexOf(id) === -1) seen.push(id);
+              localStorage.setItem('pa_dismissed_announcements', JSON.stringify(seen));
+              btn.closest('.alert').remove();
+            });
+          });
+        })();
+      </script>
+      {% endif %}
 
       <!-- Page Content -->
       <main class="page-content">
@@ -276,7 +387,7 @@
   <!-- Toast container -->
   <div id="toast-container" class="toast-container"></div>
 
-  <script src="{% static 'js/app.js' %}"></script>
+  <script src="{% versioned_static 'js/app.js' %}"></script>
   {% block extra_js %}{% endblock %}
 </body>
 

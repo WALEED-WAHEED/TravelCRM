@@ -1,0 +1,8 @@
+# Dev/CI-only tooling (Phase 11) — not installed in production. Install
+# alongside requirements.txt: pip install -r requirements.txt -r requirements-dev.txt
+-r requirements.txt
+
+pytest==9.1.1
+pytest-django==4.13.0
+ruff==0.16.2
+pre-commit==4.6.1

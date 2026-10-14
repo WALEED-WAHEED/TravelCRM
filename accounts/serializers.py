@@ -1,5 +1,6 @@
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from rest_framework import serializers
+
 from agencies.models import Agency
 
 User = get_user_model()
@@ -20,8 +21,8 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            "id", "username", "email", "first_name", "last_name", 
-            "full_name", "role", "phone", "is_active", "agency", 
+            "id", "username", "email", "first_name", "last_name",
+            "full_name", "role", "phone", "is_active", "agency",
             "created_at", "updated_at"
         ]
         read_only_fields = ["id", "username", "role", "created_at", "updated_at"]
@@ -43,26 +44,26 @@ class UserCreateSerializer(serializers.ModelSerializer):
         # If role is member or agent, agency is required
         role = attrs.get('role')
         agency_id = attrs.get('agency_id')
-        
+
         if role in ['member', 'agent'] and not agency_id:
             raise serializers.ValidationError({
                 "agency_id": "Agency is required for member and agent roles"
             })
-        
+
         return attrs
 
     def create(self, validated_data):
         agency_id = validated_data.pop('agency_id', None)
         password = validated_data.pop('password')
-        
+
         # Get agency if provided
         if agency_id:
             try:
                 agency = Agency.objects.get(id=agency_id)
                 validated_data['agency'] = agency
             except Agency.DoesNotExist:
-                raise serializers.ValidationError({"agency_id": "Invalid agency ID"})
-        
+                raise serializers.ValidationError({"agency_id": "Invalid agency ID"}) from None
+
         user = User(**validated_data)
         user.set_password(password)
         user.save()

@@ -1,0 +1,49 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "System Health" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{% trans "System health" %}</h1>
+  <p class="page-subtitle">{% trans "Live dependency checks and last verified backup." %}</p>
+</div>
+
+<div class="grid grid-2 mb-6">
+  <div class="card">
+    <div class="card-content" style="padding-top:20px; display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <div class="kpi-label">{% trans "Database" %}</div>
+        <div class="text-sm text-muted mt-1">PostgreSQL</div>
+      </div>
+      {% if checks.database == 'ok' %}<span class="badge badge-success">{% trans "Reachable" %}</span>{% else %}<span class="badge badge-danger">{% trans "Unreachable" %}</span>{% endif %}
+    </div>
+    {% if checks.database != 'ok' %}<div class="card-content" style="padding-top:0;"><p class="text-sm text-muted">{{ checks.database }}</p></div>{% endif %}
+  </div>
+  <div class="card">
+    <div class="card-content" style="padding-top:20px; display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <div class="kpi-label">{% trans "Redis" %}</div>
+        <div class="text-sm text-muted mt-1">{% trans "Celery broker" %}</div>
+      </div>
+      {% if checks.redis == 'ok' %}<span class="badge badge-success">{% trans "Reachable" %}</span>{% else %}<span class="badge badge-danger">{% trans "Unreachable" %}</span>{% endif %}
+    </div>
+    {% if checks.redis != 'ok' %}<div class="card-content" style="padding-top:0;"><p class="text-sm text-muted">{{ checks.redis }}</p></div>{% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">{% trans "Last backup verification" %}</h2>
+  </div>
+  <div class="card-content">
+    {% if backup_status %}
+    <p class="text-sm" style="margin-bottom:6px;">
+      {% if backup_status.success %}<span class="badge badge-success">{% trans "Passed" %}</span>{% else %}<span class="badge badge-danger">{% trans "Failed" %}</span>{% endif %}
+      <span class="text-muted"> — {{ backup_status.checked_at }}</span>
+    </p>
+    <p class="text-sm text-muted">{{ backup_status.detail }}</p>
+    {% else %}
+    <p class="text-sm text-muted">{% trans "Never run yet. Schedule `python manage.py verify_backup` via cron / Task Scheduler." %}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

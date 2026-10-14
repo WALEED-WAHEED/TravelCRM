@@ -33,13 +33,20 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 /media
+# /staticfiles is the collectstatic BUILD OUTPUT (STATIC_ROOT) — ignored.
+# /static is the hand-authored SOURCE (STATICFILES_DIRS: app.css, app.js)
+# and must stay tracked; it was previously (and wrongly) ignored here too,
+# meaning the entire design system was never actually in version control.
 /staticfiles
-/static
 
 # Environment variables
 .env
 .env.local
 .env.*.local
+.env.staging
+
+# Local docker-compose port remaps, etc. — machine-specific, never shared.
+docker-compose.override.yml
 
 # IDEs
 .vscode/
@@ -105,3 +112,6 @@ $RECYCLE.BIN/
 # */migrations/*.py
 # !*/migrations/__init__.py
 
+
+# Graphify knowledge graph (regenerate with: graphify update .)
+graphify-out/

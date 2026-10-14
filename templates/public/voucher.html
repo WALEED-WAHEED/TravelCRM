@@ -1,15 +1,16 @@
-{% load static %}
+{% load static i18n %}
+{% load asset_tags %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}">
 
 <head>
     <meta charset="UTF-8">
     {% include "partials/theme_init.html" %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voucher {{ voucher.voucher_number }} — Nahd Travels</title>
+    <title>{% blocktrans with vn=voucher.voucher_number %}Voucher {{ vn }} — Nahd Travels{% endblocktrans %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% versioned_static 'css/app.css' %}">
     <style>
         body {
             background: var(--muted);
@@ -201,6 +202,7 @@
 
 <body>
     <div class="voucher-print">
+        {% if preview %}<div class="no-print" style="margin-bottom:14px;padding:10px 14px;border-radius:10px;background:#fff7e0;color:#8a5a00;font-weight:600;font-size:14px;">{% blocktrans with s=voucher.get_status_display %}Preview — this voucher is {{ s }}. Only your team can see this page until it is approved.{% endblocktrans %}</div>{% endif %}
         <div class="no-print flex justify-end" style="margin-bottom:20px;">
             <button class="btn btn-primary" onclick="window.print()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -208,7 +210,7 @@
                     <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
                     <rect x="6" y="14" width="12" height="8" />
                 </svg>
-                Print Voucher
+                {% trans "Print Voucher" %}
             </button>
         </div>
 
@@ -230,16 +232,16 @@
                 {% if branding and branding.logo %}
                 <img class="voucher-logo" src="{{ branding.logo.url }}" alt="">
                 {% else %}
-                <span class="text-sm text-muted">Official voucher</span>
+                <span class="text-sm text-muted">{% trans "Official voucher" %}</span>
                 {% endif %}
             </div>
             <div class="voucher-col-right">
-                <p class="shirka-heading">Shirka company</p>
+                <p class="shirka-heading">{% trans "Shirka company" %}</p>
                 {% if branding %}
                     {% if branding.shirka_company_name or branding.shirka_company_country or branding.shirka_company_whatsapp %}
                         {% if branding.shirka_company_name %}<div>{{ branding.shirka_company_name }}</div>{% endif %}
                         {% if branding.shirka_company_country %}<div>{{ branding.shirka_company_country }}</div>{% endif %}
-                        {% if branding.shirka_company_whatsapp %}<div>WhatsApp: {{ branding.shirka_company_whatsapp }}</div>{% endif %}
+                        {% if branding.shirka_company_whatsapp %}<div>{% blocktrans with wa=branding.shirka_company_whatsapp %}WhatsApp: {{ wa }}{% endblocktrans %}</div>{% endif %}
                     {% else %}
                         <span class="text-muted text-sm">—</span>
                     {% endif %}
@@ -249,45 +251,44 @@
             </div>
         </div>
         <div class="voucher-header-meta">
-            <p class="tagline">Official service voucher</p>
+            <p class="tagline">{% trans "Official service voucher" %}</p>
             <div class="meta-numbers">
                 <h2>{{ voucher.voucher_number }}</h2>
-                <p class="text-sm font-medium" style="margin:8px 0 0;">Status: <span
-                        class="badge {% if voucher.status == 'approved' %}badge-success{% else %}badge-warning{% endif %}">{{
-                        voucher.get_status_display }}</span></p>
-                <p class="text-xs text-muted" style="margin-top:4px;">Issued: {{ voucher.created_at|date:"d M Y" }}</p>
+                <p class="text-sm font-medium" style="margin:8px 0 0;">{% trans "Status:" %} <span
+                        class="badge {% if voucher.status == 'approved' %}badge-success{% else %}badge-warning{% endif %}">{{ voucher.get_status_display }}</span></p>
+                <p class="text-xs text-muted" style="margin-top:4px;">{% trans "Issued:" %} {{ voucher.created_at|date:"d M Y" }}</p>
             </div>
         </div>
 
-        <h3 class="section-title">Pilgrim Information</h3>
+        <h3 class="section-title">{% trans "Pilgrim Information" %}</h3>
         <div class="data-grid">
             <div class="data-item">
-                <div class="label">Full Name</div>
-                <div class="val">{{ voucher.mutamer.name }}</div>
+                <div class="label">{% trans "Full Name" %}</div>
+                <div class="val">{{ voucher.mutamer_name }}</div>
             </div>
             <div class="data-item">
-                <div class="label">Passport Number</div>
-                <div class="val" style="font-family:monospace;">{{ voucher.mutamer.passport_number }}</div>
+                <div class="label">{% trans "Passport Number" %}</div>
+                <div class="val" style="font-family:monospace;">{{ voucher.mutamer_passport_number|default:"—" }}</div>
             </div>
             <div class="data-item">
-                <div class="label">Nationality</div>
-                <div class="val">{{ voucher.mutamer.nationality }}</div>
+                <div class="label">{% trans "Nationality" %}</div>
+                <div class="val">{{ voucher.mutamer_nationality|default:"—" }}</div>
             </div>
             <div class="data-item">
-                <div class="label">Gender</div>
-                <div class="val">{{ voucher.mutamer.gender|title }}</div>
+                <div class="label">{% trans "Gender" %}</div>
+                <div class="val">{{ voucher.mutamer_gender|title|default:"—" }}</div>
             </div>
         </div>
 
-        <h3 class="section-title">Included Services</h3>
+        <h3 class="section-title">{% trans "Included Services" %}</h3>
         {% if voucher.services.exists %}
         <table>
             <thead>
                 <tr>
-                    <th>Type</th>
-                    <th>Description</th>
-                    <th>Service Date</th>
-                    <th>Notes</th>
+                    <th>{% trans "Type" %}</th>
+                    <th>{% trans "Description" %}</th>
+                    <th>{% trans "Service Date" %}</th>
+                    <th>{% trans "Notes" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -302,17 +303,24 @@
             </tbody>
         </table>
         {% else %}
-        <p class="text-muted text-sm" style="margin-bottom:32px;">No specific services listed on this voucher.</p>
+        <p class="text-muted text-sm" style="margin-bottom:32px;">{% trans "No specific services listed on this voucher." %}</p>
+        {% endif %}
+
+        {% if voucher_instructions %}
+        <div style="margin-top:32px;">
+            <h2 style="font-size:1rem;margin:0 0 10px;">{% trans "Important instructions" %}</h2>
+            <ol style="margin:0;padding-inline-start:22px;display:grid;gap:8px;line-height:1.7;">
+                {% for it in voucher_instructions %}<li dir="auto">{{ it.text|linebreaksbr }}</li>{% endfor %}
+            </ol>
+        </div>
         {% endif %}
 
         <div style="margin-top:60px;padding-top:24px;border-top:1px dashed var(--border);text-align:center;">
-            <p class="text-sm font-medium">This is a system-generated official voucher. Please present this document
-                upon request.</p>
-            <p class="text-xs text-muted" style="margin-top:8px;">For support, contact your issuing agent: {{
-                voucher.agent.get_full_name|default:voucher.agent.username }}</p>
+            <p class="text-sm font-medium">{% trans "This is a system-generated official voucher. Please present this document upon request." %}</p>
+            <p class="text-xs text-muted" style="margin-top:8px;">{% blocktrans with agent=voucher.agent.get_full_name|default:voucher.agent.username %}For support, contact your issuing agent: {{ agent }}{% endblocktrans %}</p>
         </div>
     </div>
-    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-floating" aria-label="Toggle light or dark theme">
+    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-floating" aria-label="{% trans "Toggle light or dark theme" %}">
         <svg class="icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="12" cy="12" r="5" />
             <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
@@ -321,7 +329,7 @@
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
         </svg>
     </button>
-    <script src="{% static 'js/app.js' %}"></script>
+    <script src="{% versioned_static 'js/app.js' %}"></script>
     <script>
       (function () {
         try {

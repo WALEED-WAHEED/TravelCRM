@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Add teammate" %}{% endblock %}
+{% block content %}
+<div class="page-contacts">
+  <header class="hotels-hero hotels-reveal" style="--d:0ms">
+    <div class="hotels-hero__copy">
+      <p class="hotels-eyebrow">{% trans "Team" %}</p>
+      <h1 class="page-title hotels-hero__title">{% trans "Add a teammate" %}</h1>
+      <p class="page-subtitle hotels-hero__sub">{% blocktrans with agency_name=request.user.agency.name %}They'll be added to {{ agency_name }} with the role you choose below.{% endblocktrans %}</p>
+    </div>
+  </header>
+
+
+  <section class="card hotels-panel hotels-reveal" style="--d:80ms; max-width:520px;">
+    <div class="card-content hotels-panel__body">
+      <form method="post" style="display:flex; flex-direction:column; gap:16px;">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label" for="username">{% trans "Username" %}</label>
+          <input class="form-input" type="text" id="username" name="username" value="{{ form_data.username|default:'' }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="email">{% trans "Email" %}</label>
+          <input class="form-input" type="email" id="email" name="email" value="{{ form_data.email|default:'' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">{% trans "Temporary password" %}</label>
+          <input class="form-input" type="text" id="password" name="password" placeholder="{% trans 'At least 8 characters' %}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="role_id">{% trans "Role" %}</label>
+          <select class="form-select" id="role_id" name="role_id" required>
+            {% for r in roles %}
+            <option value="{{ r.id }}">{{ r.name }}{% if r.is_template %} — {% trans "template" %}{% endif %}</option>
+            {% endfor %}
+          </select>
+          <p class="form-hint">{% trans "Need something different?" %} <a href="{% url 'member-roles' %}" class="text-primary">{% trans "Create a custom role" %}</a> {% trans "first." %}</p>
+        </div>
+        <div class="flex gap-3 mt-2">
+          <button type="submit" class="btn btn-primary">{% trans "Add teammate" %}</button>
+          <a href="{% url 'member-team' %}" class="btn btn-outline">{% trans "Cancel" %}</a>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>
+{% endblock %}

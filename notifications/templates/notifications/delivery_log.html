@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Sent messages" %}{% endblock %}
+{% block extra_head %}
+<style>
+    .dl-stat-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .dl-panel { padding: 20px 22px 22px; }
+    .dl-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+    .dl-filters .nice-select { flex: 0 1 200px; }
+    .dl-filters .nice-select__btn { width: 100%; }
+    .dl-filters .nice-select__chev { margin-inline-start: auto; }
+    .dl-clear { font-size: 0.85rem; font-weight: 600; color: var(--primary); text-decoration: none; }
+    .dl-box { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+    .dl-box .hotels-data-table { margin: 0; }
+    .dl-box .hotels-data-table td { vertical-align: top; }
+    .dl-box tbody tr:hover td { background: color-mix(in srgb, var(--primary) 4%, transparent); }
+    .dl-when { white-space: nowrap; }
+    .dl-when small, .dl-sub { display: block; font-size: 0.78rem; color: var(--muted-foreground); }
+    .dl-detail { max-width: 360px; font-size: 0.82rem; color: var(--muted-foreground); }
+    .dl-pager { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 14px; font-size: 0.85rem; color: var(--muted-foreground); }
+    .dl-pager span:last-child { display: flex; gap: 8px; }
+    .dl-dev { padding: 10px 14px; margin-bottom: 14px; border-radius: var(--radius); border: 1px solid color-mix(in srgb, var(--warning) 45%, var(--border)); background: color-mix(in srgb, var(--warning) 9%, var(--card)); font-size: 0.85rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-contacts page-hotels">
+    <header class="hotels-hero hotels-reveal" style="--d:0ms">
+        <div class="hotels-hero__copy">
+            <p class="hotels-eyebrow">{% trans "Notifications" %}</p>
+            <h1 class="page-title hotels-hero__title">{% trans "Sent messages" %}</h1>
+            <p class="page-subtitle hotels-hero__sub">{% trans "Every automatic email and SMS — sent, failed, or skipped and why." %}</p>
+        </div>
+        <div class="hotels-hero__actions">
+            <a href="{% url 'notifications-preferences' %}" class="btn btn-outline">{% trans "Notification settings" %}</a>
+        </div>
+    </header>
+
+    <div class="hotels-stat-grid dl-stat-grid">
+        <div class="hotels-stat-card hotels-stat-card--success hotels-reveal" style="--d:80ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg></div>
+            <div class="hotels-stat-card__meta"><span class="hotels-stat-card__label">{% trans "Sent" %}</span><span class="hotels-stat-card__value">{{ counts.sent }}</span></div>
+        </div>
+        <div class="hotels-stat-card hotels-stat-card--danger hotels-reveal" style="--d:110ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+            <div class="hotels-stat-card__meta"><span class="hotels-stat-card__label">{% trans "Failed" %}</span><span class="hotels-stat-card__value">{{ counts.failed }}</span></div>
+        </div>
+        <div class="hotels-stat-card hotels-stat-card--warning hotels-reveal" style="--d:140ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+            <div class="hotels-stat-card__meta"><span class="hotels-stat-card__label">{% trans "Skipped" %}</span><span class="hotels-stat-card__value">{{ counts.skipped }}</span></div>
+        </div>
+    </div>
+
+    <section class="card dl-panel hotels-reveal" style="--d:180ms">
+        {% if email_mode == 'console' %}<div class="dl-dev">&#9888; {% trans "Development mode: emails marked Sent were printed in the server console, not delivered. Configure SMTP in .env for real delivery." %}</div>{% endif %}
+        <form method="get" class="dl-filters" id="dl-filters">
+            <select name="status" class="form-select" data-nice-select data-prefix="{% trans 'Status' %}" aria-label="{% trans 'Status' %}">
+                <option value="">{% trans "Any" %}</option>
+                {% for v, l in status_choices %}<option value="{{ v }}" {% if f.status == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+            </select>
+            <select name="event" class="form-select" data-nice-select data-prefix="{% trans 'Event' %}" aria-label="{% trans 'Event' %}">
+                <option value="">{% trans "Any" %}</option>
+                {% for v, l in event_choices %}<option value="{{ v }}" {% if f.event == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+            </select>
+            <select name="channel" class="form-select" data-nice-select data-prefix="{% trans 'Channel' %}" aria-label="{% trans 'Channel' %}">
+                <option value="">{% trans "Any" %}</option>
+                {% for v, l in channel_choices %}<option value="{{ v }}" {% if f.channel == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+            </select>
+            {% if filtered %}<a class="dl-clear" href="{% url 'notifications-delivery-log' %}">{% trans "Clear filters" %}</a>{% endif %}
+        </form>
+
+        <div class="dl-box">
+            {% if rows %}
+            <table class="hotels-data-table">
+                <thead><tr><th>{% trans "When" %}</th><th>{% trans "Message" %}</th><th>{% trans "Booking" %}</th><th>{% trans "To" %}</th><th>{% trans "Status" %}</th><th>{% trans "Detail" %}</th></tr></thead>
+                <tbody>
+                    {% for r in rows %}
+                    <tr class="hotels-row" style="--row-i: {{ forloop.counter0 }}">
+                        <td class="dl-when">{{ r.when_date }}<small>{{ r.when_time }}</small></td>
+                        <td><span class="font-medium">{{ r.e.get_event_type_display }}</span><span class="dl-sub">{{ r.e.get_channel_display }}{% if r.e.subject %} · {{ r.e.subject|truncatechars:50 }}{% endif %}</span></td>
+                        <td>{% if r.e.booking %}<a href="{% url 'member-booking-detail' r.e.booking_id %}">{{ r.e.booking.voucher_number }}</a><span class="dl-sub">{{ r.e.booking.client_company|default:"" }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                        <td class="text-sm">{{ r.e.recipient|default:"—" }}</td>
+                        <td><span class="badge {% if r.e.status == 'sent' %}badge-success{% elif r.e.status == 'failed' %}badge-danger{% else %}badge-outline{% endif %}">{{ r.e.get_status_display }}</span></td>
+                        <td class="dl-detail">{{ r.e.detail|default:"—"|truncatechars:160 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="hotels-empty">
+                <div class="hotels-empty__glow" aria-hidden="true"></div>
+                {% if filtered %}
+                <h3 class="hotels-empty__title">{% trans "No matching messages" %}</h3>
+                <a class="btn btn-outline hotels-empty__btn" href="{% url 'notifications-delivery-log' %}">{% trans "Clear filters" %}</a>
+                {% else %}
+                <h3 class="hotels-empty__title">{% trans "Nothing sent yet" %}</h3>
+                <p class="hotels-empty__text">{% trans "Messages appear here when bookings are confirmed or cancelled, and when payments are recorded." %}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        {% if page.paginator.num_pages > 1 %}
+        <nav class="dl-pager" aria-label="{% trans 'Pages' %}">
+            <span>{% blocktrans with a=page.start_index b=page.end_index n=page.paginator.count %}Showing {{ a }}–{{ b }} of {{ n }}{% endblocktrans %}</span>
+            <span>
+                {% if page.has_previous %}<a class="btn btn-outline btn-sm" href="?{{ query }}{% if query %}&amp;{% endif %}page={{ page.previous_page_number }}">{% trans "Previous" %}</a>{% endif %}
+                {% if page.has_next %}<a class="btn btn-outline btn-sm" href="?{{ query }}{% if query %}&amp;{% endif %}page={{ page.next_page_number }}">{% trans "Next" %}</a>{% endif %}
+            </span>
+        </nav>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  var f = document.getElementById('dl-filters');
+  if (f) f.addEventListener('change', function () { f.submit(); });
+})();
+</script>
+{% endblock %}

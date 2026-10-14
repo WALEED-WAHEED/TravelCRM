@@ -1,20 +1,30 @@
-from django.contrib import admin
-from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.shortcuts import redirect
+from django.contrib import admin
+from django.urls import include, path
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from drf_spectacular.views import (
-    SpectacularAPIView,
-    SpectacularSwaggerView,
-    SpectacularRedocView,
-)
+
 from accounts.views import current_user
 from member.views import root_redirect
-from .health import health_check
+
+from .health import health_check, readiness_check
+
+
+class ThrottledTokenObtainPairView(TokenObtainPairView):
+    """Brute-force protection on the JWT login endpoint — same 'login'
+    scope/rate as the session login view's own rate limiter."""
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'login'
+
 
 urlpatterns = [
     # Root redirect (automatically handles unauthenticated -> /login/ and routes roles dynamically)
@@ -22,13 +32,20 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
     path('health/', health_check, name='health-check'),
+    path('health/ready/', readiness_check, name='readiness-check'),
 
     # === TEMPLATE-SERVING VIEWS (Django + HTMX) ===
     path('', include('member.urls')),
     path('', include('agent.urls')),
+    path('platform-admin/', include('platform_admin.urls')),
+    path('member/notifications/', include('notifications.urls')),
+    path('', include('billing.urls')),
+    path('', include('payments.urls')),
+    path('', include('reports.urls')),
+    path('', include('assistant.urls')),
 
     # === REST API (JWT — for external/API use) ===
-    path("api/v1/auth/login/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/v1/auth/login/", ThrottledTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/v1/auth/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/v1/auth/user/", current_user, name="current-user"),
     path("api/v1/accounts/", include("accounts.urls")),
@@ -38,7 +55,7 @@ urlpatterns = [
     path("api/v1/hotels/", include("member.api_urls")),
     path("api/v1/flights/", include("member.flight_api_urls")),
     path("api/v1/transports/", include("member.transport_api_urls")),
-    path("api/v1/mutamers/", include("member.mutamer_api_urls")),
+    path("api/v1/packages/", include("member.package_api_urls")),
     path("api/v1/vouchers/", include("member.voucher_api_urls")),
     path("api/v1/ledger/", include("member.ledger_api_urls")),
 

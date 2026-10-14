@@ -1,348 +1,644 @@
 {% extends "base.html" %}
-{% load currency_tags %}
-{% block title %}Member Dashboard{% endblock %}
-
+{% load i18n static currency_tags %}
+{% block title %}{% trans "Member Dashboard" %}{% endblock %}
 {% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-{% endblock %}
+<style>
+    .page-dash [hidden] { display: none !important; }
+    .dash-sec-label { margin: 22px 0 10px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-foreground); }
 
+    /* Greeting card: live clock, Hijri date, own check-in */
+    .page-dash .hotels-hero { align-items: center; }
+    .hero-today { display: flex; flex-wrap: wrap; align-items: stretch; gap: 14px; }
+    .hero-cell { display: flex; align-items: center; gap: 14px; padding: 11px 26px 11px 14px; min-width: 190px; border: 1px solid var(--border); border-radius: 14px; background: color-mix(in srgb, var(--card) 85%, transparent); color: var(--foreground); text-decoration: none; min-width: 0; }
+    .hero-cell--link { transition: border-color .15s, transform .15s, box-shadow .15s; }
+    .hero-cell--link:hover { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); transform: translateY(-1px); box-shadow: var(--shadow-soft); }
+    .hero-cell__icon { flex: none; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; }
+    .hero-cell__text { display: flex; flex-direction: column; line-height: 1.25; }
+    [dir="rtl"] .hero-cell { padding: 11px 14px 11px 26px; }
+    .hero-cell__text strong { font-size: 0.98rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .hero-cell__text small { font-size: 0.75rem; color: var(--muted-foreground); white-space: nowrap; }
+    @media (max-width: 960px) { .hero-today { width: 100%; } .hero-cell { flex: 1 1 180px; } }
+
+    /* ── AI box ───────────────────────────────────────────── */
+    .ai-box { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; padding: 18px; margin-top: 16px; border: 1px solid var(--border); border-radius: calc(var(--radius-lg) + 4px); background: var(--card); box-shadow: var(--shadow-card); }
+    .ai-box__left { display: flex; flex-direction: column; gap: 14px; padding: 4px; }
+    .ai-head { display: flex; align-items: center; gap: 14px; }
+    .ai-logo { flex: none; width: 50px; height: 50px; border-radius: 14px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 55%, #7c3aed)); box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 30%, transparent); }
+    .ai-head h2 { margin: 0; font-size: 1.2rem; }
+    .ai-head p { margin: 2px 0 0; font-size: 0.875rem; color: var(--muted-foreground); }
+    .ai-ask { display: flex; align-items: center; gap: 6px; padding: 6px 6px 6px 18px; border: 1px solid var(--border); border-radius: 999px; background: var(--muted); }
+    [dir="rtl"] .ai-ask { padding: 6px 18px 6px 6px; }
+    .ai-ask:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent); }
+    .ai-ask input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 0.95rem; color: var(--foreground); padding: 8px 0; }
+    .ai-btn { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 16px; border: 0; border-radius: 999px; font: inherit; font-size: 0.875rem; font-weight: 600; cursor: pointer; color: #fff; background: var(--primary); }
+    .ai-btn:disabled { opacity: .6; cursor: default; }
+    .ai-btn--ghost { color: var(--foreground); background: var(--card); border: 1px solid var(--border); }
+    .ai-btn--ghost[data-listening="true"] { color: #fff; background: var(--destructive); border-color: var(--destructive); }
+    .ai-chips { display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+    .ai-chips::-webkit-scrollbar { display: none; }
+    .ai-chip { flex: none; white-space: nowrap; padding: 7px 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font: inherit; font-size: 0.82rem; font-weight: 500; color: var(--foreground); cursor: pointer; transition: all .15s; }
+    .ai-chip:hover { border-color: var(--primary); color: var(--primary); background: color-mix(in srgb, var(--primary) 6%, var(--card)); }
+    .ai-box__right { display: flex; flex-direction: column; gap: 10px; min-height: 220px; padding: 16px; border-radius: var(--radius-lg); background: color-mix(in srgb, var(--muted) 75%, var(--card)); }
+    .ai-idle { flex: 1; display: grid; place-items: center; padding: 24px; text-align: center; font-size: 0.95rem; color: var(--muted-foreground); }
+    .ai-thread { flex: 1; display: flex; flex-direction: column; gap: 10px; max-height: 260px; overflow-y: auto; }
+    .ai-msg { max-width: 88%; padding: 10px 14px; border-radius: 16px; font-size: 0.9rem; line-height: 1.5; white-space: pre-line; word-wrap: break-word; }
+    .ai-msg--user { align-self: flex-end; color: #fff; background: var(--primary); border-end-end-radius: 4px; font-weight: 500; }
+    .ai-msg--assistant { align-self: flex-start; background: var(--card); border: 1px solid var(--border); border-end-start-radius: 4px; }
+    .ai-msg--hint { color: var(--muted-foreground); }
+    .ai-typing span { display: inline-block; width: 6px; height: 6px; margin: 0 2px; border-radius: 999px; background: var(--muted-foreground); animation: aiDot 1s infinite ease-in-out; }
+    .ai-typing span:nth-child(2) { animation-delay: .15s; } .ai-typing span:nth-child(3) { animation-delay: .3s; }
+    @keyframes aiDot { 0%, 80%, 100% { opacity: .25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+    .ai-continue { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; color: var(--primary); text-decoration: none; }
+    .ai-continue:hover { text-decoration: underline; }
+    [dir="rtl"] .ai-continue svg { transform: scaleX(-1); }
+
+    /* ── KPIs ─────────────────────────────────────────────── */
+    .dash-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .dash-kpi { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); box-shadow: var(--shadow-soft); color: inherit; text-decoration: none; transition: border-color .15s, transform .15s; }
+    .dash-kpi__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .dash-kpi__label { font-size: 0.78rem; font-weight: 600; color: var(--muted-foreground); }
+    .dash-kpi__icon { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; }
+    .dash-kpi__value { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+    .dash-kpi__sub { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted-foreground); }
+    .tone-blue { color: #2a78d6; background: color-mix(in srgb, #2a78d6 12%, transparent); }
+    .tone-green { color: #1baf7a; background: color-mix(in srgb, #1baf7a 12%, transparent); }
+    .tone-amber { color: #c98500; background: color-mix(in srgb, #eda100 14%, transparent); }
+    .tone-orange { color: #eb6834; background: color-mix(in srgb, #eb6834 12%, transparent); }
+    .tone-purple { color: #7c3aed; background: color-mix(in srgb, #7c3aed 12%, transparent); }
+    .tone-red { color: var(--destructive); background: color-mix(in srgb, var(--destructive) 12%, transparent); }
+    .delta { display: inline-flex; align-items: center; gap: 3px; padding: 1px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; background: var(--muted); color: var(--muted-foreground); }
+    .delta--good { color: var(--success); background: color-mix(in srgb, var(--success) 12%, transparent); }
+    .delta--bad { color: var(--destructive); background: color-mix(in srgb, var(--destructive) 10%, transparent); }
+
+    /* ── Quick actions ────────────────────────────────────── */
+    .dash-actions { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
+    .qa { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 8px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); color: var(--foreground); text-decoration: none; text-align: center; font-size: 0.82rem; font-weight: 600; line-height: 1.25; transition: all .15s; }
+    .qa:hover { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); box-shadow: var(--shadow-soft); transform: translateY(-1px); }
+    .qa__icon { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; }
+    .qa__badge { position: absolute; top: 8px; inset-inline-end: 8px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; display: grid; place-items: center; font-size: 0.7rem; font-weight: 800; color: #fff; background: var(--destructive); }
+
+    /* ── Panels ───────────────────────────────────────────── */
+    .dash-row { display: grid; gap: 14px; margin-top: 14px; }
+    .dash-row--2 { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+    .dash-row--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .panel { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); box-shadow: var(--shadow-soft); min-width: 0; }
+    .panel__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 16px 18px 6px; }
+    .panel__head h2 { margin: 0; font-size: 1rem; }
+    .panel__head p { margin: 2px 0 0; font-size: 0.8rem; color: var(--muted-foreground); }
+    .panel__link { flex: none; font-size: 0.8rem; font-weight: 600; color: var(--primary); text-decoration: none; white-space: nowrap; }
+    .panel__link:hover { text-decoration: underline; }
+    .panel__body { padding: 10px 18px 16px; flex: 1; }
+    .dash-sec-link { margin-inline-start: 10px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--primary); text-decoration: none; }
+    .dash-sec-link:hover { text-decoration: underline; }
+    .flow-dot { flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font-weight: 800; }
+    .text-success { color: var(--success); }
+    .text-out { color: #eb6834; }
+    .flow-in, .flow-out { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .flow-in { color: var(--success); } .flow-out { color: #eb6834; }
+    .act-time { flex: none; width: 62px; font-size: 0.74rem; font-weight: 600; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+    .all-clear--quiet { min-height: 140px; max-width: 360px; margin: 0 auto; }
+    .all-clear.all-clear--quiet svg { color: var(--muted-foreground); opacity: .6; }
+    .date-tile--back { color: var(--muted-foreground); background: var(--muted); }
+    .trip-when { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+    .trip-when small { font-size: 0.74rem; font-weight: 500; color: var(--muted-foreground); }
+    .away-pill { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; color: #1baf7a; background: color-mix(in srgb, #1baf7a 12%, transparent); white-space: nowrap; }
+    .away-pill i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: away-pulse 1.8s ease-in-out infinite; }
+    @keyframes away-pulse { 50% { opacity: .35; } }
+    .list-more { padding-top: 8px; font-size: 0.78rem; color: var(--muted-foreground); text-align: center; }
+    .chart-legend { display: flex; gap: 14px; font-size: 0.8rem; color: var(--muted-foreground); }
+    .chart-legend i { display: inline-block; width: 10px; height: 10px; margin-inline-end: 5px; border-radius: 3px; vertical-align: -1px; }
+    .chart-wrap { position: relative; height: 250px; }
+    .attn { display: flex; flex-direction: column; gap: 8px; }
+    .attn a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); color: inherit; text-decoration: none; font-size: 0.875rem; transition: background .15s; }
+    .attn a:hover { background: var(--muted); }
+    .attn__n { flex: none; min-width: 34px; height: 34px; padding: 0 8px; border-radius: 10px; display: grid; place-items: center; font-weight: 800; }
+    .attn__go { margin-inline-start: auto; color: var(--muted-foreground); }
+    [dir="rtl"] .attn__go { transform: scaleX(-1); }
+    .all-clear { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; height: 100%; min-height: 160px; text-align: center; color: var(--muted-foreground); font-size: 0.875rem; }
+    .all-clear svg { color: var(--success); }
+    .list { display: flex; flex-direction: column; }
+    .list__row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 0.875rem; color: inherit; text-decoration: none; }
+    .list__row:last-child { border-bottom: 0; }
+    .list__main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .list__main strong { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .list__main span { font-size: 0.78rem; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .list__end { flex: none; text-align: end; font-variant-numeric: tabular-nums; font-weight: 600; }
+    .date-tile { flex: none; width: 42px; padding: 4px 0; border-radius: 10px; text-align: center; line-height: 1.1; color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, transparent); }
+    .date-tile b { display: block; font-size: 1rem; } .date-tile small { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; }
+    .empty-mini { padding: 24px 0; text-align: center; font-size: 0.85rem; color: var(--muted-foreground); }
+    .att-meter { display: flex; height: 10px; margin: 6px 0 12px; overflow: hidden; border-radius: 999px; background: var(--muted); }
+    .att-meter span { height: 100%; }
+    .att-meter span + span { border-inline-start: 2px solid var(--card); }
+    .att-legend { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 12px; margin-bottom: 8px; font-size: 0.82rem; }
+    .att-legend div { display: flex; align-items: center; gap: 6px; }
+    .att-legend i { width: 10px; height: 10px; border-radius: 3px; }
+    .att-legend b { margin-inline-start: auto; font-variant-numeric: tabular-nums; }
+    .att-big { font-size: 1.6rem; font-weight: 800; } .att-big small { font-size: 0.85rem; font-weight: 500; color: var(--muted-foreground); }
+    .av { flex: none; width: 30px; height: 30px; border-radius: 999px; display: grid; place-items: center; font-size: 0.72rem; font-weight: 700; color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
+
+    @media (max-width: 1200px) { .dash-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); } .dash-row--3 { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 960px) { .ai-box, .dash-row--2, .dash-row--3 { grid-template-columns: minmax(0, 1fr); } .dash-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 520px) { .dash-kpis, .dash-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+    /* ── Stable layout: every box keeps its size; extra data scrolls inside it ── */
+    .page-dash { min-width: 0; max-width: 100%; }
+    .page-dash .hotels-hero__copy { min-width: 0; }
+    .ai-box__left, .ai-box__right { min-width: 0; }
+    .page-dash .hotels-eyebrow, .page-dash .hotels-hero__title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ai-box { align-items: center; }
+    .ai-box__left { justify-content: center; }
+    .ai-box__right { height: 178px; min-height: 0; padding: 12px 14px; align-self: stretch; }
+    .ai-idle { padding: 12px; }
+    @media (max-width: 960px) { .ai-box__right { height: 220px; } }
+    .ai-thread { min-height: 0; max-height: none; }
+    .dash-kpi { min-width: 0; }
+    .dash-kpi__label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dash-kpi__value { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: clamp(1.15rem, 1.6vw, 1.55rem); }
+    .dash-kpi__sub { flex-wrap: nowrap; white-space: nowrap; overflow: hidden; }
+    .qa { min-width: 0; } .qa > :last-child { max-width: 100%; }
+    .dash-row .panel { height: 340px; overflow: hidden; }
+    .dash-row .panel__body { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted-foreground) 35%, transparent) transparent; }
+    .dash-row .panel__body::-webkit-scrollbar { width: 6px; }
+    .dash-row .panel__body::-webkit-scrollbar-thumb { border-radius: 999px; background: color-mix(in srgb, var(--muted-foreground) 35%, transparent); }
+    .dash-row .panel__head { flex: none; }
+    .dash-row .panel__head > div { min-width: 0; }
+    .dash-row .panel__head p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .attn a > span:nth-child(2) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .list__end { max-width: 40%; }
+    .dash-row .panel__body > * { flex: none; }
+    .dash-row .panel__body > .list, .dash-row .panel__body > .all-clear { flex: 1 0 auto; }
+    .dash-row .all-clear { flex: 1 0 auto; height: auto; min-height: 120px; }
+    @media (max-width: 960px) { .dash-row .panel { height: 320px; } }
+
+    /* ── Light panels: fewer boxes, softer lines, quieter type ── */
+    .dash-row .panel { box-shadow: none; }
+    .dash-row .panel__head { padding: 16px 18px 4px; }
+    .dash-row .panel__head h2 { font-size: 0.95rem; font-weight: 650; }
+    .dash-row .panel__head p { font-size: 0.76rem; }
+    .dash-row .panel__body { padding: 6px 18px 12px; }
+    .dash-row .list__row { gap: 12px; padding: 10px 0; border-bottom-color: color-mix(in srgb, var(--border) 55%, transparent); }
+    .dash-row .list__main strong { font-weight: 550; font-size: 0.86rem; }
+    .dash-row .list__main span { font-size: 0.75rem; }
+    .dash-row .list__end { font-size: 0.85rem; font-weight: 600; }
+    .act-time { width: 56px; font-size: 0.72rem; font-weight: 500; opacity: .85; }
+    .act-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: color-mix(in srgb, #7c3aed 55%, var(--border)); }
+    .act-dot--in { background: #1baf7a; } .act-dot--out { background: #eb6834; } .act-dot--booking { background: #2a78d6; }
+    .attn { gap: 0; }
+    .attn a { gap: 12px; padding: 11px 2px; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--border) 55%, transparent); border-radius: 0; font-size: 0.85rem; }
+    .attn a:last-child { border-bottom: 0; }
+    .attn a:hover { background: transparent; color: var(--primary); }
+    .attn__n { min-width: 26px; height: 24px; padding: 0 7px; border-radius: 999px; font-size: 0.76rem; font-weight: 700; }
+    .date-tile { width: 38px; padding: 3px 0; border-radius: 9px; }
+    .date-tile b { font-size: 0.9rem; } .date-tile small { font-size: 0.6rem; }
+    .trip-when { gap: 1px; }
+    .trip-kind { font-size: 0.78rem; font-weight: 600; color: var(--muted-foreground); }
+    .trip-kind--out { color: var(--primary); }
+    .away-pill { padding: 3px 9px; font-size: 0.72rem; }
+    .att-meter { height: 6px; margin: 8px 0 12px; }
+    .att-legend { gap: 4px 14px; font-size: 0.78rem; color: var(--muted-foreground); }
+    .att-legend b { color: var(--foreground); font-weight: 600; }
+    .att-legend i { width: 8px; height: 8px; border-radius: 50%; }
+    .av { width: 26px; height: 26px; font-size: 0.66rem; }
+    .team-state { font-size: 0.78rem; font-weight: 600; }
+    .team-state--late { color: #c98500; } .team-state--absent { color: var(--destructive); }
+    .all-clear { font-size: 0.82rem; }
+    .all-clear svg { width: 28px; height: 28px; }
+
+    /* ── Inline charts ── */
+    .kspark { margin-top: 8px; }
+    .kspark svg { display: block; width: 100%; height: 30px; overflow: visible; }
+    .kspark__cap { display: block; margin-top: 3px; font-size: 0.66rem; color: var(--muted-foreground); opacity: .8; }
+    .kspark__hit { fill: transparent; cursor: default; }
+    .kspark__base { stroke: var(--border); stroke-width: 1; vector-effect: non-scaling-stroke; }
+    .kspark__in { fill: #1baf7a; opacity: .45; } .kspark__out { fill: #eb6834; opacity: .45; }
+    .kspark__bar { fill: #2a78d6; opacity: .35; }
+    .kspark__col.is-today .kspark__in, .kspark__col.is-today .kspark__out, .kspark__col.is-today .kspark__bar { opacity: 1; }
+    .kspark__col:hover .kspark__in, .kspark__col:hover .kspark__out, .kspark__col:hover .kspark__bar { opacity: .85; }
+    .kspark__line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+    .kspark--recv .kspark__line { stroke: #eda100; } .kspark--recv .kspark__area { fill: color-mix(in srgb, #eda100 14%, transparent); }
+    .kspark--pay .kspark__line { stroke: #7c3aed; } .kspark--pay .kspark__area { fill: color-mix(in srgb, #7c3aed 12%, transparent); }
+    .tstrip { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)) auto; align-items: end; gap: 6px; margin: 4px 18px 6px; padding: 10px 12px 8px; border-radius: var(--radius); background: color-mix(in srgb, var(--muted) 55%, transparent); }
+    .tstrip__col { display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: default; }
+    .tstrip__bar { width: 100%; max-width: 22px; height: 46px; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; border-radius: 5px; }
+    .tstrip__bar span { display: block; width: 100%; min-height: 3px; border-radius: 4px; }
+    .tstrip__out { background: #2a78d6; } .tstrip__back { background: color-mix(in srgb, var(--muted-foreground) 45%, transparent); }
+    .tstrip__col small { font-size: 0.62rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: .03em; }
+    .tstrip__col b { font-size: 0.78rem; font-weight: 600; line-height: 1; }
+    .tstrip__col.is-today b, .tstrip__col.is-today small { color: var(--primary); }
+    .tstrip__col:hover .tstrip__bar { background: color-mix(in srgb, var(--primary) 8%, transparent); }
+    .tstrip__key { display: flex; flex-direction: column; gap: 4px; padding-inline-start: 8px; font-size: 0.7rem; color: var(--muted-foreground); align-self: center; }
+    .tstrip__key span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .tstrip__key i { width: 8px; height: 8px; border-radius: 2px; } .k-out { background: #2a78d6; } .k-back { background: color-mix(in srgb, var(--muted-foreground) 45%, transparent); }
+    .att-viz { display: flex; align-items: center; gap: 18px; margin: 6px 0 8px; }
+    .att-viz .att-legend { flex: 1; margin: 0; }
+    .donut { position: relative; flex: none; width: 84px; height: 84px; }
+    .donut svg { width: 100%; height: 100%; transform: rotate(0deg); }
+    .donut circle { transition: stroke-dasharray .6s ease; }
+    .donut__c { position: absolute; inset: 0; display: flex; align-items: baseline; justify-content: center; padding-top: 30px; gap: 1px; }
+    .donut__c b { font-size: 1.15rem; font-weight: 800; } .donut__c small { font-size: 0.72rem; color: var(--muted-foreground); }
+    .dash-tip { position: fixed; z-index: 60; pointer-events: none; padding: 7px 10px; border-radius: 9px; background: var(--foreground); color: var(--background); font-size: 0.74rem; line-height: 1.45; box-shadow: 0 8px 24px rgba(15, 23, 42, .18); opacity: 0; transform: translateY(4px); transition: opacity .12s, transform .12s; white-space: nowrap; }
+    .dash-tip.is-on { opacity: 1; transform: none; }
+    .dash-tip b { display: block; font-weight: 700; }
+    @media (max-width: 520px) { .tstrip__key { display: none; } .tstrip { grid-template-columns: repeat(8, minmax(0, 1fr)); } }
+</style>
+{% endblock %}
 {% block content %}
-<div class="page-dashboard">
+<div class="page-dash">
     <header class="hotels-hero hotels-reveal" style="--d:0ms">
         <div class="hotels-hero__copy">
-            <p class="hotels-eyebrow">Overview</p>
-            <h1 class="page-title hotels-hero__title">Dashboard</h1>
-            <p class="page-subtitle hotels-hero__sub">Bookings, vouchers, and team signals in one place—aligned with how the rest of your workspace looks and feels.</p>
+            <p class="hotels-eyebrow">{% now "l, F j" %} · {{ request.user.agency.name }}</p>
+            <h1 class="page-title hotels-hero__title">{{ greeting }}, {{ request.user.first_name|default:request.user.username }}</h1>
         </div>
-        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms">
-            <a href="{% url 'member-bookings' %}" class="btn btn-primary hotels-cta-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                New booking
+        {% if office_tz %}
+        {# Right side: live office clock, Hijri date and your own check-in. #}
+        <div class="hero-today" data-tz="{{ office_tz }}">
+            <div class="hero-cell">
+                <span class="hero-cell__icon tone-blue" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+                <span class="hero-cell__text"><strong id="hero-time">--:--</strong><small>{{ office_tz }}</small></span>
+            </div>
+            <div class="hero-cell">
+                <span class="hero-cell__icon tone-green" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+                <span class="hero-cell__text"><strong id="hero-hijri">—</strong><small>{% trans "Hijri date" %}</small></span>
+            </div>
+            {% if me_att.tracked %}
+            <a class="hero-cell hero-cell--link" href="{% url 'attendance-me' %}">
+                {% if me_att.out %}
+                <span class="hero-cell__icon tone-purple" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
+                <span class="hero-cell__text"><strong>{% blocktrans with t=me_att.out %}Checked out {{ t }}{% endblocktrans %}</strong><small>{% blocktrans with t=me_att.in %}in at {{ t }}{% endblocktrans %}</small></span>
+                {% elif me_att.in %}
+                <span class="hero-cell__icon {% if me_att.log.status == 'late' %}tone-amber{% else %}tone-green{% endif %}" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="20 6 9 17 4 12"/></svg></span>
+                <span class="hero-cell__text"><strong>{% blocktrans with t=me_att.in %}Checked in {{ t }}{% endblocktrans %}</strong><small>{% if me_att.log.status == 'late' %}{% trans "Late" %}{% else %}{% trans "On time" %}{% endif %} · {% trans "Check out" %} ›</small></span>
+                {% else %}
+                <span class="hero-cell__icon tone-red" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+                <span class="hero-cell__text"><strong>{% trans "Not checked in" %}</strong><small>{% trans "Check in" %} ›</small></span>
+                {% endif %}
             </a>
+            {% endif %}
         </div>
+        {% endif %}
     </header>
 
-    <div class="hotels-stat-grid hotels-stat-grid--4">
-        <div class="hotels-stat-card hotels-reveal" style="--d:80ms">
-            <div class="hotels-stat-card__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                </svg>
+    {% if ai_session %}
+    {# ── AI assistant box: ask here, carry on in the full assistant page ── #}
+    <section class="ai-box hotels-reveal" style="--d:60ms" id="ai-box"
+             data-send-url="{% url 'assistant-send' %}" data-session-id="{{ ai_session.id }}" data-voice-provider="{{ voice_provider|default:'web-speech' }}">
+        <div class="ai-box__left">
+            <div class="ai-head">
+                <span class="ai-logo" aria-hidden="true">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/><path d="M5 2l.6 1.4L7 4l-1.4.6L5 6l-.6-1.4L3 4l1.4-.6z"/></svg>
+                </span>
+                <div>
+                    <h2>{% trans "AI Assistant" %}</h2>
+                    <p>{% trans "Ask about bookings, revenue & balances" %}</p>
+                </div>
             </div>
-            <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Total bookings</span>
-                <span class="hotels-stat-card__value">{{ total_bookings }}</span>
-            </div>
-        </div>
-        <div class="hotels-stat-card hotels-stat-card--accent hotels-reveal" style="--d:100ms">
-            <div class="hotels-stat-card__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-            </div>
-            <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Mutamers</span>
-                <span class="hotels-stat-card__value">{{ total_mutamers }}</span>
-            </div>
-        </div>
-        <div class="hotels-stat-card hotels-reveal" style="--d:120ms">
-            <div class="hotels-stat-card__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                </svg>
-            </div>
-            <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Pending vouchers</span>
-                <span class="hotels-stat-card__value">{{ pending_vouchers }}</span>
+            <form class="ai-ask" id="ai-form" autocomplete="off">
+                {% csrf_token %}
+                <input id="ai-input" type="text" placeholder="{% trans 'Ask anything…' %}" aria-label="{% trans 'Ask the AI Assistant' %}">
+                <button type="button" class="ai-btn ai-btn--ghost" id="ai-mic" data-listening="false" hidden>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+                    {% trans "Voice" %}
+                </button>
+                <button type="submit" class="ai-btn" id="ai-send" aria-label="{% trans 'Send' %}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                </button>
+            </form>
+            <div class="ai-chips">
+                {% trans "Summarise today for me" as q1 %}{% trans "Who owes me the most?" as q2 %}{% trans "How much do I owe my suppliers?" as q3 %}
+                {% trans "Which installments are due this week?" as q4 %}{% trans "How many bookings this month?" as q5 %}
+                <button type="button" class="ai-chip" data-q="{{ q1 }}">{% trans "Today's summary" %}</button>
+                <button type="button" class="ai-chip" data-q="{{ q2 }}">{% trans "Who owes me?" %}</button>
+                <button type="button" class="ai-chip" data-q="{{ q3 }}">{% trans "Supplier dues" %}</button>
+                <button type="button" class="ai-chip" data-q="{{ q4 }}">{% trans "Installments due" %}</button>
+                <button type="button" class="ai-chip" data-q="{{ q5 }}">{% trans "Bookings this month" %}</button>
             </div>
         </div>
-        <div class="hotels-stat-card hotels-reveal" style="--d:140ms">
-            <div class="hotels-stat-card__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                </svg>
+        <div class="ai-box__right">
+            <div class="ai-idle" id="ai-idle">{% trans "Ask a question or tap a quick action to get started." %}</div>
+            <div class="ai-thread" id="ai-thread" aria-live="polite" hidden></div>
+            <a class="ai-continue" id="ai-continue" href="{% url 'assistant-chat' %}?session={{ ai_session.id }}" hidden>
+                {% trans "Continue in AI Assistant" %}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if k %}
+    {# ── Today at a glance (week / month / year are in Reports) ── #}
+    <p class="dash-sec-label">{% trans "Today" %} <a class="dash-sec-link" href="{% url 'reports-home' %}">{% trans "Week, month & year in Reports" %} ›</a></p>
+    {% trans "in" as t_in %}{% trans "out" as t_out %}
+    <div class="dash-kpis">
+        <div class="dash-kpi">
+            <div class="dash-kpi__top"><span class="dash-kpi__label">{% trans "Cash today" %}</span><span class="dash-kpi__icon {% if k.net < 0 %}tone-orange{% else %}tone-green{% endif %}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></span></div>
+            <span class="dash-kpi__value">{% if k.net < 0 %}&minus;{% endif %}Rs. <span data-count="{{ k.net_abs|floatformat:0 }}">{{ k.net_abs|amt }}</span></span>
+            <span class="dash-kpi__sub"><span class="flow-in">&#8595; {{ k.cash_in|amt }} {% trans "in" %}</span> · <span class="flow-out">&#8593; {{ k.cash_out|amt }} {% trans "out" %}</span></span>
+            <div class="kspark">
+                <svg viewBox="0 0 {{ spark.w }} {{ spark.h }}" preserveAspectRatio="none" role="img" aria-label="{% trans 'Money in and out, last 14 days' %}">
+                    <line class="kspark__base" x1="0" x2="{{ spark.w }}" y1="{{ spark.half }}" y2="{{ spark.half }}"/>
+                    {% for c in spark.cash %}<g class="kspark__col{% if c.today %} is-today{% endif %}" data-tip="{{ c.day }}|&#8595; {{ c.in|amt }} {{ t_in }}|&#8593; {{ c.out|amt }} {{ t_out }}">
+                        <rect class="kspark__hit" x="{{ c.x }}" y="0" width="{{ c.w }}" height="{{ spark.h }}"/>
+                        {% if c.in_h %}<rect class="kspark__in" x="{{ c.x }}" y="{{ c.in_y }}" width="{{ c.w }}" height="{{ c.in_h }}" rx="1"/>{% endif %}
+                        {% if c.out_h %}<rect class="kspark__out" x="{{ c.x }}" y="{{ c.out_y }}" width="{{ c.w }}" height="{{ c.out_h }}" rx="1"/>{% endif %}
+                    </g>{% endfor %}
+                </svg><span class="kspark__cap">{% trans "Last 14 days" %}</span>
             </div>
-            <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Active agents</span>
-                <span class="hotels-stat-card__value">{{ active_agents }}</span>
+        </div>
+        <div class="dash-kpi">
+            <div class="dash-kpi__top"><span class="dash-kpi__label">{% trans "Parties owe you" %}</span><span class="dash-kpi__icon tone-amber"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span></div>
+            <span class="dash-kpi__value">Rs. <span data-count="{{ receivable_total|floatformat:0 }}">{{ receivable_total|amt }}</span></span>
+            <span class="dash-kpi__sub">{% blocktrans count n=receivable_count %}from {{ n }} party{% plural %}from {{ n }} parties{% endblocktrans %}</span>
+            <div class="kspark kspark--recv">
+                <svg viewBox="0 0 {{ spark.w }} {{ spark.h }}" preserveAspectRatio="none" role="img" aria-label="{% trans 'Parties owe you, last 14 days' %}">
+                    <polygon class="kspark__area" points="{{ spark.recv.area }}"/>
+                    <polyline class="kspark__line" points="{{ spark.recv.line }}"/>
+                    {% for pt in spark.recv.points %}<rect class="kspark__hit" x="{{ pt.hx }}" y="0" width="{{ pt.hw }}" height="{{ spark.h }}" data-tip="{{ pt.day }}|Rs. {{ pt.v|amt }}"/>{% endfor %}
+                </svg><span class="kspark__cap">{% trans "Last 14 days" %}</span>
+            </div>
+        </div>
+        <div class="dash-kpi">
+            <div class="dash-kpi__top"><span class="dash-kpi__label">{% trans "You owe parties" %}</span><span class="dash-kpi__icon tone-purple"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg></span></div>
+            <span class="dash-kpi__value">Rs. <span data-count="{{ payable_total|floatformat:0 }}">{{ payable_total|amt }}</span></span>
+            <span class="dash-kpi__sub">{% blocktrans count n=payable_count %}to {{ n }} party{% plural %}to {{ n }} parties{% endblocktrans %}</span>
+            <div class="kspark kspark--pay">
+                <svg viewBox="0 0 {{ spark.w }} {{ spark.h }}" preserveAspectRatio="none" role="img" aria-label="{% trans 'You owe parties, last 14 days' %}">
+                    <polygon class="kspark__area" points="{{ spark.pay.area }}"/>
+                    <polyline class="kspark__line" points="{{ spark.pay.line }}"/>
+                    {% for pt in spark.pay.points %}<rect class="kspark__hit" x="{{ pt.hx }}" y="0" width="{{ pt.hw }}" height="{{ spark.h }}" data-tip="{{ pt.day }}|Rs. {{ pt.v|amt }}"/>{% endfor %}
+                </svg><span class="kspark__cap">{% trans "Last 14 days" %}</span>
+            </div>
+        </div>
+        <div class="dash-kpi">
+            <div class="dash-kpi__top"><span class="dash-kpi__label">{% trans "New bookings today" %}</span><span class="dash-kpi__icon tone-blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span></div>
+            <span class="dash-kpi__value" data-count="{{ k.new_bookings }}">{{ k.new_bookings }}</span>
+            <span class="dash-kpi__sub">{% include "member/partials/_delta.html" with delta=d.new_bookings good="up" %} {% trans "vs yesterday" %}</span>
+            <div class="kspark kspark--book">
+                <svg viewBox="0 0 {{ spark.w }} {{ spark.h }}" preserveAspectRatio="none" role="img" aria-label="{% trans 'New bookings per day, last 14 days' %}">
+                    {% for b in spark.bookings %}<g class="kspark__col{% if b.today %} is-today{% endif %}" data-tip="{{ b.day }}|{% blocktrans count n=b.v %}{{ n }} booking{% plural %}{{ n }} bookings{% endblocktrans %}">
+                        <rect class="kspark__hit" x="{{ b.x }}" y="0" width="{{ b.w }}" height="{{ spark.h }}"/>
+                        <rect class="kspark__bar" x="{{ b.x }}" y="{{ b.y }}" width="{{ b.w }}" height="{{ b.h }}" rx="1"/>
+                    </g>{% endfor %}
+                </svg><span class="kspark__cap">{% trans "Last 14 days" %}</span>
             </div>
         </div>
     </div>
 
-    <div class="dash-charts-grid">
-        <section class="card hotels-panel hotels-reveal dash-chart-card" style="--d:180ms">
-            <div class="hotels-panel__head">
-                <div class="flex justify-between items-start gap-4 flex-wrap">
-                    <div>
-                        <h2 class="hotels-panel__title">Booking volume</h2>
-                        <p class="hotels-panel__hint text-muted text-sm">Trailing six months (estimated activity from new bookings).</p>
-                    </div>
-                    <span class="badge badge-primary" style="align-self:center;">6 months</span>
-                </div>
-            </div>
-            <div class="card-content hotels-panel__body">
-                <div class="dash-chart-canvas-wrap">
-                    <canvas id="revenueChart" aria-label="Booking volume chart"></canvas>
-                </div>
-            </div>
-        </section>
-
-        <div class="dash-charts-stack">
-            <section class="card hotels-panel hotels-reveal" style="--d:220ms">
-                <div class="hotels-panel__head">
-                    <h2 class="hotels-panel__title">Voucher mix</h2>
-                    <p class="hotels-panel__hint text-muted text-sm">Status distribution</p>
-                </div>
-                <div class="card-content hotels-panel__body">
-                    <div class="dash-chart-canvas-wrap dash-chart-canvas-wrap--compact">
-                        <canvas id="voucherChart" aria-label="Voucher status chart"></canvas>
-                    </div>
-                </div>
-            </section>
-
-            <section class="card hotels-panel hotels-reveal dash-pending-card" style="--d:260ms">
-                <div class="hotels-panel__head">
-                    <h2 class="hotels-panel__title">Needs attention</h2>
-                    <p class="hotels-panel__hint text-muted text-sm">Vouchers waiting on approval</p>
-                </div>
-                <div class="card-content hotels-panel__body" style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;">
-                    <div class="dash-pending-value">{{ pending_vouchers }}</div>
-                    <a href="{% url 'member-approvals' %}" class="btn btn-outline btn-sm">Open queue</a>
-                </div>
-            </section>
-        </div>
+    {# ── Quick actions ── #}
+    <p class="dash-sec-label">{% trans "Quick actions" %}</p>
+    <div class="dash-actions">
+        <a class="qa" href="{% url 'member-booking-new' %}"><span class="qa__icon tone-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>{% trans "New booking" %}</a>
+        <a class="qa" href="{% url 'member-ledger' %}?add=new"><span class="qa__icon tone-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>{% trans "Record transaction" %}</a>
+        <a class="qa" href="{% url 'member-bookings' %}"><span class="qa__icon tone-orange"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></span>{% trans "Vouchers" %}</a>
+        <a class="qa" href="{% url 'member-approvals' %}">{% if pending_vouchers %}<span class="qa__badge">{{ pending_vouchers }}</span>{% endif %}<span class="qa__icon tone-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>{% trans "Approvals" %}</a>
+        <a class="qa" href="{% url 'member-contacts' %}"><span class="qa__icon tone-purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></span>{% trans "Contacts" %}</a>
+        <a class="qa" href="{% url 'member-attendance' %}"><span class="qa__icon tone-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>{% trans "Attendance" %}</a>
+        <a class="qa" href="{% url 'reports-home' %}"><span class="qa__icon tone-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>{% trans "Reports" %}</a>
     </div>
 
-    <div class="dash-bottom-grid">
-        <section class="card hotels-panel hotels-reveal" style="--d:300ms">
-            <div class="hotels-panel__head">
-                <h2 class="hotels-panel__title">Shortcuts</h2>
-                <p class="hotels-panel__hint text-muted text-sm">Jump to common tasks</p>
-            </div>
-            <div class="card-content hotels-panel__body">
-                <div class="dash-quick-links">
-                    <a href="{% url 'member-ledger' %}" class="quick-action">
-                        <div>
-                            <div class="quick-action-title">Financial ledger</div>
-                            <div class="quick-action-desc">Transactions &amp; balances</div>
-                        </div>
+    {# ── Today's activity + what needs attention ── #}
+    <div class="dash-row dash-row--2">
+        <section class="panel">
+            <div class="panel__head"><div><h2>{% trans "Today's activity" %}</h2><p>{% blocktrans count n=activity_counts.entries %}{{ n }} transaction{% plural %}{{ n }} transactions{% endblocktrans %} · {% blocktrans count n=activity_counts.bookings %}{{ n }} booking{% plural %}{{ n }} bookings{% endblocktrans %}</p></div></div>
+            <div class="panel__body">
+                <div class="list">
+                    {% for a in activity %}
+                    {% if a.kind == "booking" %}{% with b=a.obj %}
+                    <a class="list__row" href="{% url 'member-booking-detail' b.id %}">
+                        <span class="act-time">{{ a.time }}</span>
+                        <span class="act-dot act-dot--booking" aria-hidden="true"></span>
+                        <span class="list__main"><strong dir="auto">{{ b.client_company|default:b.voucher_number }}</strong><span dir="auto">{% trans "New booking" %} · {{ b.get_status_display }}{% if b.package_name %} · {{ b.package_name }}{% endif %}</span></span>
+                        <span class="list__end">{{ b.total_price|amt }}</span>
                     </a>
-                    <a href="{% url 'member-approvals' %}" class="quick-action">
-                        <div>
-                            <div class="quick-action-title">Approvals</div>
-                            <div class="quick-action-desc">Review pending vouchers</div>
-                        </div>
-                    </a>
-                    <a href="{% url 'member-hotels' %}" class="quick-action">
-                        <div>
-                            <div class="quick-action-title">Hotels</div>
-                            <div class="quick-action-desc">Inventory &amp; rates</div>
-                        </div>
-                    </a>
-                    <a href="{% url 'member-vouchers' %}" class="quick-action">
-                        <div>
-                            <div class="quick-action-title">Vouchers</div>
-                            <div class="quick-action-desc">All voucher records</div>
-                        </div>
-                    </a>
+                    {% endwith %}{% else %}{% with e=a.obj %}
+                    <div class="list__row">
+                        <span class="act-time">{{ a.time }}</span>
+                        <span class="act-dot {% if e.flow == 'in' %}act-dot--in{% elif e.flow == 'out' %}act-dot--out{% endif %}" aria-hidden="true"></span>
+                        <span class="list__main"><strong dir="auto">{{ e.counterparty_name|default:e.get_transaction_type_display }}</strong><span dir="auto">{{ e.description|default:e.get_transaction_type_display|truncatechars:70 }}</span></span>
+                        <span class="list__end {% if e.flow == 'in' %}text-success{% elif e.flow == 'out' %}text-out{% endif %}">{% if e.flow == 'in' %}+{% elif e.flow == 'out' %}&minus;{% endif %}{{ e.amount|amt }}</span>
+                    </div>
+                    {% endwith %}{% endif %}
+                    {% empty %}
+                    <div class="all-clear all-clear--quiet">
+                        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        {% trans "Nothing recorded yet today. New bookings and ledger entries will show up here as they happen." %}
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </section>
-
-        <section class="card hotels-panel hotels-reveal dash-recent-table" style="--d:320ms">
-            <div class="hotels-panel__head">
-                <div class="flex justify-between items-center gap-4 flex-wrap">
-                    <div>
-                        <h2 class="hotels-panel__title">Recent bookings</h2>
-                        <p class="hotels-panel__hint text-muted text-sm">Latest activity in your agency</p>
-                    </div>
-                    <a href="{% url 'member-bookings' %}" class="btn btn-outline btn-sm">View all</a>
-                </div>
-            </div>
-            <div class="card-content hotels-panel__body" style="padding-top:0;">
-                {% if recent_bookings %}
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Voucher</th>
-                                <th>Client</th>
-                                <th>Status</th>
-                                <th>Total (PKR)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for b in recent_bookings %}
-                            <tr>
-                                <td>
-                                    <span class="font-medium" style="font-family:ui-monospace,monospace;color:var(--primary);">{{ b.voucher_number }}</span>
-                                    {% if b.package_name %}<br><span class="text-xs text-muted">{{ b.package_name }}</span>{% endif %}
-                                </td>
-                                <td class="text-sm">{{ b.client_company|default:"—" }}</td>
-                                <td>
-                                    <span class="badge {% if b.status == 'confirmed' or b.status == 'completed' %}badge-success{% elif b.status == 'cancelled' %}badge-danger{% elif b.status == 'draft' %}badge-default{% else %}badge-warning{% endif %}">{{ b.get_status_display }}</span>
-                                </td>
-                                <td class="font-medium" style="font-variant-numeric:tabular-nums;">{{ b.total_price|pkr }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+        <section class="panel">
+            <div class="panel__head"><div><h2>{% trans "Needs attention" %}</h2><p>{% trans "Things waiting on you" %}</p></div></div>
+            <div class="panel__body">
+                {% if attention %}
+                <div class="attn">
+                    {% for a in attention %}
+                    <a href="{{ a.href }}">
+                        <span class="attn__n {% if a.tone == 'danger' %}tone-red{% elif a.tone == 'warning' %}tone-amber{% else %}tone-blue{% endif %}">{{ a.count }}</span>
+                        <span>{{ a.label }}</span>
+                        <svg class="attn__go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                    </a>
+                    {% endfor %}
                 </div>
                 {% else %}
-                <div class="empty-state" style="padding:40px 20px;">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-                    </svg>
-                    <h3>No bookings yet</h3>
-                    <p>Create a booking to see it listed here.</p>
-                    <a href="{% url 'member-bookings' %}" class="btn btn-primary" style="margin-top:16px;">Go to bookings</a>
+                <div class="all-clear">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    {% trans "All clear — nothing is waiting on you." %}
                 </div>
                 {% endif %}
             </div>
         </section>
     </div>
+
+    {# ── Trips this week + team today ── #}
+    <div class="dash-row dash-row--2">
+        <section class="panel">
+            <div class="panel__head"><div><h2>{% trans "Trips this week" %}</h2><p>{% trans "Departures and returns in the next 7 days" %}</p></div>
+                {% if away.groups %}<span class="away-pill"><i></i>{% blocktrans count n=away.groups with p=away.pax %}{{ n }} group travelling now · {{ p }} PAX{% plural %}{{ n }} groups travelling now · {{ p }} PAX{% endblocktrans %}</span>{% endif %}
+            </div>
+            {% if trips %}
+            <div class="tstrip" role="img" aria-label="{% trans 'Travellers departing and returning each day' %}">
+                {% for c in trips_strip %}
+                <div class="tstrip__col{% if c.today %} is-today{% endif %}" data-tip="{{ c.date|date:'D j M' }}|{% blocktrans with n=c.out %}{{ n }} departing{% endblocktrans %}|{% blocktrans with n=c.back %}{{ n }} returning{% endblocktrans %}">
+                    <div class="tstrip__bar">{% if c.back %}<span class="tstrip__back" style="height:{{ c.back_pct }}%"></span>{% endif %}{% if c.out %}<span class="tstrip__out" style="height:{{ c.out_pct }}%"></span>{% endif %}</div>
+                    <small>{{ c.date|date:"D" }}</small><b>{{ c.date|date:"j" }}</b>
+                </div>
+                {% endfor %}
+                <div class="tstrip__key"><span><i class="k-out"></i>{% trans "Departing" %}</span><span><i class="k-back"></i>{% trans "Returning" %}</span></div>
+            </div>
+            {% endif %}
+            <div class="panel__body">
+                <div class="list">
+                    {% for t in trips %}
+                    <a class="list__row" href="{% url 'member-booking-detail' t.b.id %}">
+                        <span class="date-tile {% if t.kind == 'back' %}date-tile--back{% endif %}"><b>{{ t.date|date:"j" }}</b><small>{{ t.date|date:"M" }}</small></span>
+                        <span class="list__main"><strong dir="auto">{{ t.b.client_company|default:t.b.voucher_number }}</strong><span dir="auto">{{ t.b.package_name|default:t.b.voucher_number }} · {{ t.pax }} {% trans "PAX" %}</span></span>
+                        <span class="list__end trip-when">
+                            <span class="trip-kind {% if t.kind == 'out' %}trip-kind--out{% endif %}">{% if t.kind == 'out' %}{% trans "Departs" %}{% else %}{% trans "Returns" %}{% endif %}</span>
+                            <small>{% if t.in_days == 0 %}{% trans "Today" %}{% elif t.in_days == 1 %}{% trans "Tomorrow" %}{% else %}{% blocktrans count n=t.in_days %}in {{ n }} day{% plural %}in {{ n }} days{% endblocktrans %}{% endif %}</small>
+                        </span>
+                    </a>
+                    {% empty %}
+                    <div class="all-clear all-clear--quiet">
+                        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+                        {% trans "No confirmed departures or returns in the next 7 days." %}
+                    </div>
+                    {% endfor %}
+                    {% if trips_more %}<div class="list-more">{% blocktrans count n=trips_more %}+ {{ n }} more this week{% plural %}+ {{ n }} more this week{% endblocktrans %}</div>{% endif %}
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel__head"><div><h2>{% trans "Team today" %}</h2><p>{% if att.total %}{% blocktrans with a=att.in t=att.total %}{{ a }} of {{ t }} staff checked in{% endblocktrans %}{% elif not att.work_day %}{% trans "Day off" %}{% else %}{% trans "Attendance" %}{% endif %}</p></div></div>
+            <div class="panel__body">
+                {% if att.total %}
+                <div class="att-viz">
+                    <div class="donut" role="img" aria-label="{% blocktrans with a=att.in t=att.total %}{{ a }} of {{ t }} staff checked in{% endblocktrans %}">
+                        <svg viewBox="0 0 42 42">
+                            <circle cx="21" cy="21" r="15.915" fill="none" stroke="var(--muted)" stroke-width="5"/>
+                            {% for a in att_donut %}<circle cx="21" cy="21" r="15.915" fill="none" stroke="{{ a.colour }}" stroke-width="5" stroke-dasharray="{{ a.dash }}" stroke-dashoffset="{{ a.offset }}"/>{% endfor %}
+                        </svg>
+                        <span class="donut__c"><b>{{ att.in }}</b><small>/ {{ att.total }}</small></span>
+                    </div>
+                    <div class="att-legend">
+                        <div><i style="background:#1baf7a"></i>{% trans "On time" %}<b>{{ att.present }}</b></div>
+                        <div><i style="background:#eda100"></i>{% trans "Late" %}<b>{{ att.late }}</b></div>
+                        <div><i style="background:#d93a3a"></i>{% trans "Absent" %}<b>{{ att.absent }}</b></div>
+                        {% if att.leave %}<div><i style="background:#2a78d6"></i>{% trans "On leave" %}<b>{{ att.leave }}</b></div>{% endif %}
+                        <div><i style="background:var(--border)"></i>{% trans "Not in yet" %}<b>{{ att.not_in }}</b></div>
+                    </div>
+                </div>
+                {% for r in att.late_rows %}
+                <div class="list__row">
+                    <span class="av" aria-hidden="true">{{ r.user.first_name|first|default:r.user.username|first|upper }}{{ r.user.last_name|first|upper }}</span>
+                    <span class="list__main"><strong>{{ r.user.full_name }}</strong></span>
+                    <span class="team-state {% if r.state == 'late' %}team-state--late{% else %}team-state--absent{% endif %}">{% if r.state == 'late' %}{% trans "Late" %}{% else %}{% trans "Absent" %}{% endif %}</span>
+                </div>
+                {% endfor %}
+                {% elif not att.work_day %}
+                <div class="all-clear all-clear--quiet">
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    {% trans "Today is a day off — no attendance expected." %}
+                </div>
+                {% else %}
+                <div class="empty-mini">{% trans "No staff are tracked yet." %} <a href="{% url 'attendance-settings' %}">{% trans "Attendance settings" %}</a></div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    (function () {
-        var revEl = document.getElementById('revenueChart');
-        var vouchEl = document.getElementById('voucherChart');
-        if (!revEl || !vouchEl || typeof Chart === 'undefined') return;
+(function () {
+  // One shared tooltip for every [data-tip] chart mark: "Title|line|line".
+  var tip = document.createElement('div');
+  tip.className = 'dash-tip';
+  tip.setAttribute('role', 'tooltip');
+  document.body.appendChild(tip);
+  function show(el, x, y) {
+    var parts = el.getAttribute('data-tip').split('|');
+    tip.innerHTML = '';
+    parts.forEach(function (t, i) { var n = document.createElement(i ? 'span' : 'b'); n.textContent = t; tip.appendChild(n); if (i) tip.appendChild(document.createElement('br')); });
+    var r = tip.getBoundingClientRect();
+    var left = Math.min(Math.max(8, x - r.width / 2), window.innerWidth - r.width - 8);
+    var top = y - r.height - 12;
+    if (top < 8) top = y + 16;
+    tip.style.left = left + 'px'; tip.style.top = top + 'px';
+    tip.classList.add('is-on');
+  }
+  document.addEventListener('mousemove', function (e) {
+    var el = e.target.closest && e.target.closest('[data-tip]');
+    if (el) show(el, e.clientX, e.clientY); else tip.classList.remove('is-on');
+  });
+  document.addEventListener('scroll', function () { tip.classList.remove('is-on'); }, true);
+})();
+</script>
+{% trans "Thinking…" as t_thinking %}
+{% trans "Something went wrong — try again." as t_err %}
+{% trans "Listening…" as t_listening %}
+{% trans "This needs your confirmation — open the AI Assistant to confirm it." as t_confirm %}
+<script src="{% static 'js/voice/voice.js' %}"></script>
+<script src="{% static 'js/voice/web-speech-provider.js' %}"></script>
+<script>
+(function () {
+  // ── Greeting card: live office clock + Hijri date ──
+  var hero = document.querySelector('.hero-today');
+  if (hero) {
+    var tz = hero.dataset.tz, lang = (document.documentElement.lang || 'en').slice(0, 2);
+    var tick = function () {
+      var now = new Date();
+      try {
+        document.getElementById('hero-time').textContent =
+          new Intl.DateTimeFormat(lang, { hour: 'numeric', minute: '2-digit', timeZone: tz }).format(now);
+        document.getElementById('hero-hijri').textContent =
+          new Intl.DateTimeFormat(lang + '-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric', timeZone: tz }).format(now);
+      } catch (e) { /* unknown timezone in old browsers — keep placeholders */ }
+    };
+    tick();
+    setInterval(tick, 15000);
+  }
 
-        var root = getComputedStyle(document.documentElement);
-        var primaryStr = (root.getPropertyValue('--primary').trim()) || 'hsl(202, 100%, 59%)';
-        var textColor = (root.getPropertyValue('--muted-foreground').trim()) || 'rgba(255, 255, 255, 0.7)';
-        var gridColor = (root.getPropertyValue('--border').trim()) || 'rgba(255, 255, 255, 0.08)';
-        var fgSolid = (root.getPropertyValue('--foreground').trim()) || '#fff';
-        var cardBg = document.documentElement.getAttribute('data-theme') === 'light' ? 'rgba(255,255,255,0.96)' : 'rgba(15, 23, 42, 0.92)';
-        var draftSlice = document.documentElement.getAttribute('data-theme') === 'light' ? 'hsla(222, 47%, 11%, 0.08)' : 'rgba(255,255,255,0.12)';
-        var legendLabelColor = fgSolid;
-        var warningColor = (root.getPropertyValue('--warning').trim()) || 'hsl(38, 92%, 55%)';
-        var destructiveColor = (root.getPropertyValue('--destructive').trim()) || 'hsl(0, 84%, 60%)';
-        var pointFill = (root.getPropertyValue('--card').trim()) || '#ffffff';
+  // ── AI box ─────────────────────────────────────────────────────────
+  var box = document.getElementById('ai-box');
+  if (!box) return;
+  var form = document.getElementById('ai-form'), input = document.getElementById('ai-input');
+  var send = document.getElementById('ai-send'), thread = document.getElementById('ai-thread');
+  var csrf = form.querySelector('[name=csrfmiddlewaretoken]').value;
 
-        Chart.defaults.color = textColor;
-        Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+  function bubble(role, text) {
+    document.getElementById('ai-idle').hidden = true;
+    thread.hidden = false;
+    document.getElementById('ai-continue').hidden = false;
+    var b = document.createElement('div');
+    b.className = 'ai-msg ai-msg--' + role;
+    b.textContent = text;
+    thread.appendChild(b);
+    thread.scrollTop = thread.scrollHeight;
+    return b;
+  }
+  function ask(text) {
+    text = (text || '').trim();
+    if (!text || send.disabled) return;
+    // Keep the box short: only the latest question and answer are shown here.
+    thread.innerHTML = '';
+    bubble('user', text);
+    var wait = bubble('assistant', '');
+    wait.innerHTML = '<span class="ai-typing" aria-label="{{ t_thinking|escapejs }}"><span></span><span></span><span></span></span>';
+    input.value = ''; send.disabled = true;
+    fetch(box.dataset.sendUrl, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'session_id=' + encodeURIComponent(box.dataset.sessionId) + '&message=' + encodeURIComponent(text)
+    }).then(function (r) { return r.json(); }).then(function (data) {
+      wait.textContent = data.text || '{{ t_err|escapejs }}';
+      if (data.type === 'confirmation_needed') bubble('assistant', '{{ t_confirm|escapejs }}').classList.add('ai-msg--hint');
+    }).catch(function () { wait.textContent = '{{ t_err|escapejs }}'; })
+      .finally(function () { send.disabled = false; thread.scrollTop = thread.scrollHeight; });
+  }
+  form.addEventListener('submit', function (e) { e.preventDefault(); ask(input.value); });
+  box.querySelectorAll('[data-q]').forEach(function (c) { c.addEventListener('click', function () { ask(c.dataset.q); }); });
 
-        var revCtx = revEl.getContext('2d');
-        var revGradient = revCtx.createLinearGradient(0, 0, 0, 280);
-        revGradient.addColorStop(0, 'hsla(202, 100%, 59%, 0.35)');
-        revGradient.addColorStop(1, 'hsla(202, 100%, 59%, 0)');
-
-        new Chart(revCtx, {
-            type: 'line',
-            data: {
-                labels: {{ month_labels_json|safe }},
-                datasets: [{
-                    label: 'Volume index',
-                    data: {{ monthly_revenue_json|safe }},
-                    borderColor: primaryStr,
-                    backgroundColor: revGradient,
-                    borderWidth: 2,
-                    tension: 0.35,
-                    fill: true,
-                    pointBackgroundColor: pointFill,
-                    pointBorderColor: primaryStr,
-                    pointBorderWidth: 2,
-                    pointRadius: 4,
-                    pointHoverRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: cardBg,
-                        titleColor: fgSolid,
-                        bodyColor: fgSolid,
-                        padding: 12,
-                        borderColor: primaryStr,
-                        borderWidth: 1,
-                        displayColors: false,
-                        cornerRadius: 8,
-                        boxPadding: 4
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: gridColor, drawBorder: false },
-                        border: { display: false },
-                        ticks: { color: textColor, padding: 8, maxTicksLimit: 6, font: { weight: 500 } }
-                    },
-                    x: {
-                        grid: { display: false },
-                        border: { display: false },
-                        ticks: { color: textColor, padding: 8, font: { weight: 500 } }
-                    }
-                },
-                interaction: { intersect: false, mode: 'index' }
-            }
-        });
-
-        var vouchCtx = vouchEl.getContext('2d');
-        new Chart(vouchCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Pending', 'Approved', 'Rejected', 'Draft'],
-                datasets: [{
-                    data: [
-                        parseInt('{{ pending_vouchers|default:0 }}', 10),
-                        parseInt('{{ approved_vouchers|default:0 }}', 10),
-                        parseInt('{{ rejected_vouchers|default:0 }}', 10),
-                        parseInt('{{ draft_vouchers|default:0 }}', 10)
-                    ],
-                    backgroundColor: [warningColor, primaryStr, destructiveColor, draftSlice],
-                    borderColor: 'transparent',
-                    borderWidth: 0,
-                    hoverOffset: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '70%',
-                layout: { padding: 8 },
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: {
-                            color: legendLabelColor,
-                            padding: 14,
-                            usePointStyle: true,
-                            pointStyle: 'circle',
-                            boxWidth: 8,
-                            font: { size: 12, weight: 500 }
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: cardBg,
-                        titleColor: fgSolid,
-                        bodyColor: fgSolid,
-                        padding: 12,
-                        borderColor: gridColor,
-                        borderWidth: 1,
-                        cornerRadius: 8
-                    }
-                }
-            }
-        });
-    })();
+  // Voice input — same Web Speech provider as the full assistant page.
+  var provider = window.getVoiceProvider ? getVoiceProvider(box.dataset.voiceProvider) : null;
+  var mic = document.getElementById('ai-mic');
+  if (provider && provider.isSupported().stt) {
+    mic.hidden = false;
+    mic.addEventListener('click', function () {
+      if (provider.isListening()) { provider.stopListening(); return; }
+      mic.dataset.listening = 'true';
+      input.placeholder = '{{ t_listening|escapejs }}';
+      provider.startListening({
+        lang: voiceLanguageTag(document.documentElement.lang || 'en'),
+        onInterim: function (t) { input.value = t; },
+        onFinal: function (t) { input.value = t; ask(t); },
+        onError: function () { mic.dataset.listening = 'false'; },
+        onEnd: function () { mic.dataset.listening = 'false'; input.placeholder = ''; }
+      });
+    });
+  }
+})();
 </script>
 {% endblock %}

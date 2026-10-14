@@ -1,0 +1,45 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "System Configuration" %}{% endblock %}
+{% block content %}
+{% trans "Delete this setting?" as js_confirm_delete %}
+<div class="page-header">
+  <h1 class="page-title">{% trans "System configuration" %}</h1>
+  <p class="page-subtitle">{% trans "Global key/value settings, platform-wide." %}</p>
+</div>
+
+<div class="mb-4">
+  <a href="{% url 'platform_admin:system-config-create' %}" class="btn btn-primary">{% trans "New setting" %}</a>
+</div>
+
+<div class="card">
+  <div class="card-content" style="padding-top:20px;">
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>{% trans "Key" %}</th><th>{% trans "Value" %}</th><th>{% trans "Description" %}</th><th>{% trans "Status" %}</th><th></th></tr></thead>
+        <tbody>
+          {% for config in configs %}
+          <tr>
+            <td class="font-medium">{{ config.key }}</td>
+            <td class="text-muted text-sm" style="max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ config.value }}</td>
+            <td class="text-muted text-sm">{{ config.description|default:"—" }}</td>
+            <td>{% if config.is_active %}<span class="badge badge-success">{% trans "Active" %}</span>{% else %}<span class="badge badge-outline">{% trans "Inactive" %}</span>{% endif %}</td>
+            <td>
+              <div class="flex gap-2">
+                <a class="btn btn-outline btn-sm" href="{% url 'platform_admin:system-config-edit' config.id %}">{% trans "Edit" %}</a>
+                <form method="post" action="{% url 'platform_admin:system-config-delete' config.id %}" onsubmit="return confirm('{{ js_confirm_delete|escapejs }}');">
+                  {% csrf_token %}
+                  <button class="btn btn-outline btn-sm" type="submit">{% trans "Delete" %}</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5"><div class="empty-state"><h3>{% trans "No settings yet" %}</h3></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

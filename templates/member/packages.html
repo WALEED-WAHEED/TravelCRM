@@ -1,0 +1,551 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load currency_tags %}
+{% block title %}{% trans "Packages" %}{% endblock %}
+{% block extra_head %}
+<style>
+    .page-packages [hidden], #modal-package [hidden] { display: none !important; }
+    .pkg-stat-row { display: flex; flex-wrap: wrap; gap: 12px; }
+    .pkg-stat-row .hotels-spotlight-stat { flex: 1 1 100%; }
+    .pkg-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .pkg-toolbar .hotels-search { flex: 1 1 260px; }
+    .pkg-toolbar .form-select { width: auto; min-width: 170px; }
+    .pkg-type { font-size: 0.72rem; }
+    .pkg-code { font-family: ui-monospace, monospace; font-weight: 700; color: var(--primary); }
+    .pkg-sub { display: block; font-size: 0.76rem; line-height: 1.4; color: var(--muted-foreground); }
+    .pkg-sub em { font-style: normal; color: var(--destructive); }
+    .pkg-line { display: block; font-size: 0.85rem; line-height: 1.5; }
+    .pkg-line b { font-weight: 700; }
+    .pkg-dim { color: var(--muted-foreground); font-size: 0.78rem; }
+    .pkg-prices-mini { display: grid; grid-template-columns: repeat(2, auto); justify-content: start; gap: 1px 14px; margin-top: 4px; font-size: 0.74rem; color: var(--muted-foreground); }
+    .pkg-prices-mini span { white-space: nowrap; }
+    .pkg-prices-mini b { color: var(--foreground); font-weight: 600; font-variant-numeric: tabular-nums; }
+    .pkg-dates { display: block; margin-top: 2px; font-size: 0.78rem; color: var(--muted-foreground); }
+    .pkg-stay { font-size: 0.85rem; line-height: 1.45; }
+    .pkg-stay span { color: var(--muted-foreground); }
+    .pkg-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+    .pkg-chip { font-size: 0.7rem; white-space: nowrap; padding: 2px 8px; border-radius: 999px; background: var(--muted); color: var(--foreground); border: 1px solid var(--border); }
+    .pkg-price { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .pkg-price-list { display: block; margin-top: 3px; font-size: 0.74rem; line-height: 1.5; color: var(--muted-foreground); }
+    .pkg-margin { display: block; font-size: 0.74rem; color: var(--success); }
+    /* View: a drawer that slides in from the side */
+    .pkg-drawer-wrap { align-items: stretch; justify-content: flex-end; padding: 0; overflow: hidden; }
+    .pkg-drawer { width: min(580px, 100%); height: 100%; display: flex; flex-direction: column; background: var(--card); box-shadow: -18px 0 50px rgba(15, 23, 42, .25); border-start-start-radius: 20px; border-end-start-radius: 20px; animation: pkgDrawerIn .22s ease-out; }
+    [dir="rtl"] .pkg-drawer-wrap { justify-content: flex-start; }
+    [dir="rtl"] .pkg-drawer { animation-name: pkgDrawerInRtl; }
+    @keyframes pkgDrawerIn { from { transform: translateX(40px); opacity: 0; } }
+    @keyframes pkgDrawerInRtl { from { transform: translateX(-40px); opacity: 0; } }
+    .pkg-drawer__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 24px; border-bottom: 1px solid var(--border); }
+    .pkg-drawer__body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+    .pkg-drawer__foot { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 24px; border-top: 1px solid var(--border); background: var(--muted); }
+    /* View pop-up */
+    .pkd-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+    .pkd-code { font-size: 0.78rem; font-weight: 700; color: var(--primary); font-family: ui-monospace, monospace; }
+    .pkd-code em { font-style: normal; color: var(--destructive); }
+    .pkd-name { margin: 2px 0 0; font-size: 1.25rem; }
+    .pkd-leader { margin-top: 4px; font-size: 0.85rem; color: var(--muted-foreground); }
+    .pkd-leader b { color: var(--foreground); }
+    .pkd-from { text-align: end; flex: none; }
+    .pkd-from span { display: block; font-size: 0.74rem; color: var(--muted-foreground); }
+    .pkd-from b { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+    .pkd-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 16px 0; padding: 12px 14px; border-radius: 14px; background: var(--muted); }
+    .pkd-facts span, .pkd-prices span { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted-foreground); }
+    .pkd-facts b { font-size: 0.92rem; }
+    .pkd-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .pkd-box { padding: 12px 14px; border: 1px solid var(--border); border-radius: 14px; }
+    .pkd-box h4 { margin: 0 0 6px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-foreground); }
+    .pkd-box p { margin: 2px 0 0; font-size: 0.84rem; color: var(--muted-foreground); }
+    .pkd-box p b { color: var(--foreground); }
+    .pkd-title { margin: 18px 0 8px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-foreground); }
+    .pkd-prices { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+    .pkd-prices > div { padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; }
+    .pkd-prices b { font-size: 1rem; font-variant-numeric: tabular-nums; }
+    .pkd-cost b { color: var(--success); }
+    .pkd-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pkd-chips span { padding: 4px 12px; border-radius: 999px; font-size: 0.8rem; background: var(--muted); border: 1px solid var(--border); }
+    .pkd-notes { margin: 0; font-size: 0.86rem; color: var(--muted-foreground); }
+    @media (max-width: 640px) { .pkd-grid { grid-template-columns: 1fr; } .pkd-head { flex-direction: column; } .pkd-from { text-align: start; } }
+    /* Add / Edit form: a short 3-step wizard */
+    .pkg-progress { flex: none; display: flex; align-items: center; padding: 14px 24px; border-bottom: 1px solid var(--border); background: var(--card); }
+    .pkg-prog { display: inline-flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none; font: inherit; font-size: 0.86rem; font-weight: 600; color: var(--muted-foreground); cursor: pointer; white-space: nowrap; }
+    .pkg-prog i { width: 28px; height: 28px; display: inline-grid; place-items: center; border-radius: 50%; font-style: normal; font-size: 0.8rem; font-weight: 800; background: var(--muted); color: var(--muted-foreground); transition: background .15s, color .15s; }
+    .pkg-prog.is-on { color: var(--foreground); }
+    .pkg-prog.is-on i { background: var(--primary); color: #fff; }
+    .pkg-prog.is-done i { background: color-mix(in srgb, var(--primary) 16%, var(--card)); color: var(--primary); }
+    .pkg-bar { flex: 1 1 24px; height: 2px; margin: 0 12px; border-radius: 2px; background: var(--border); }
+    .pkg-pane .grid { gap: 14px; }
+    .pkg-pane .grid .form-group { margin-bottom: 0; }
+    .pkg-label { margin: 6px 0 10px; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-foreground); }
+    .pkg-label small { margin-inline-start: 8px; font-size: 0.78rem; font-weight: 400; text-transform: none; letter-spacing: 0; }
+    .pkg-pane > .pkg-label:not(:first-child) { margin-top: 22px; }
+    .pkg-stay { display: grid; grid-template-columns: 64px minmax(0, 1fr) 76px 104px 56px; gap: 8px 10px; align-items: center; }
+    .pkg-stay__hd { font-size: 0.72rem; color: var(--muted-foreground); }
+    .pkg-stay__city { font-size: 0.86rem; }
+    .pkg-switch { position: relative; display: inline-block; width: 38px; height: 22px; cursor: pointer; }
+    .pkg-switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+    .pkg-switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--border); transition: background .15s; }
+    .pkg-switch span::after { content: ""; position: absolute; top: 3px; inset-inline-start: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: transform .15s; }
+    .pkg-switch input:checked + span { background: var(--primary); }
+    .pkg-switch input:checked + span::after { transform: translateX(16px); }
+    [dir="rtl"] .pkg-switch input:checked + span::after { transform: translateX(-16px); }
+    .pkg-switch input:focus-visible + span { outline: 2px solid var(--ring); outline-offset: 2px; }
+    .pkg-more { margin: 16px 0 12px; border: 1px solid var(--border); border-radius: 12px; padding: 0 14px; }
+    .pkg-more summary { padding: 11px 0; font-size: 0.86rem; font-weight: 600; cursor: pointer; }
+    .pkg-more[open] summary { border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+    .pkg-more .form-group { margin-bottom: 12px; }
+    .pkg-foot { display: flex; align-items: center; gap: 8px; }
+    .pkg-foot__spacer { flex: 1; }
+    @media (max-width: 700px) { .pkg-prog span { display: none; } .pkg-stay { grid-template-columns: 1fr 1fr; } .pkg-stay__hd { display: none; } .pkg-stay__city { grid-column: 1 / -1; margin-top: 6px; } .pkg-stay select { grid-column: 1 / -1; } }
+    /* Modal */
+    #modal-package .hotels-modal-sub { max-width: none; }
+    .pkg-section { margin: 18px 0 10px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); }
+    .pkg-section:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+    .pkg-includes { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pkg-includes label { position: relative; cursor: pointer; }
+    .pkg-includes input { position: absolute; opacity: 0; pointer-events: none; }
+    .pkg-includes span { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--border); border-radius: 999px; font-size: 0.85rem; transition: var(--transition-fast); }
+    .pkg-includes span::before { content: ""; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--border); }
+    .pkg-includes input:checked + span { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, var(--card)); }
+    .pkg-includes input:checked + span::before { background: var(--primary); border-color: var(--primary); box-shadow: inset 0 0 0 2px var(--card); }
+    .pkg-includes input:focus-visible + span { outline: 2px solid var(--ring); outline-offset: 2px; }
+    .pkg-prices { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .pkg-city { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: start; }
+    .pkg-check { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 0.8rem; color: var(--muted-foreground); cursor: pointer; }
+    .pkg-city-title { margin: 4px 0 6px; font-size: 0.82rem; font-weight: 700; }
+    .pkg-hint { margin: -4px 0 10px; font-size: 0.8rem; color: var(--muted-foreground); }
+    .pkg-total-nights { font-size: 0.8rem; color: var(--muted-foreground); margin: -6px 0 10px; }
+    .pkg-active { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; cursor: pointer; }
+    @media (max-width: 760px) { .pkg-prices { grid-template-columns: 1fr 1fr; } .pkg-city { grid-template-columns: 1fr 1fr; } .pkg-city > :first-child { grid-column: 1 / -1; } }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-packages page-transports">
+    <header class="hotels-hero hotels-reveal" style="--d:0ms">
+        <div class="hotels-hero__copy">
+            <p class="hotels-eyebrow">{% trans "Inventory" %}</p>
+            <h1 class="page-title hotels-hero__title">{% trans "Packages" %}</h1>
+        </div>
+        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms; display:flex; flex-wrap:wrap; gap:10px;">
+            <a href="{% url 'member-inventory-insights' 'packages' %}" class="btn btn-outline"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>{% trans "Package insights" %}</a>
+            <button type="button" class="btn btn-primary hotels-cta-btn" onclick="openPackageAddModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                {% trans "Add package" %}
+            </button>
+        </div>
+    </header>
+
+    <div class="pkg-stat-row">
+        <div class="hotels-spotlight-stat hotels-reveal" style="--d:80ms">
+            <div class="hotels-spotlight-stat__icon" aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M21 8 12 3 3 8v8l9 5 9-5z" /><path d="M3 8l9 5 9-5" /><path d="M12 13v8" /></svg>
+            </div>
+            <div class="hotels-spotlight-stat__meta">
+                <span class="hotels-spotlight-stat__label">{% trans "Total packages" %}</span>
+                <span class="hotels-spotlight-stat__value">{{ package_stats.total }}</span>
+            </div>
+        </div>
+    </div>
+
+    <section class="card hotels-panel hotels-reveal" style="--d:200ms">
+        <div class="hotels-panel__head">
+            <div>
+                <h2 class="hotels-panel__title">{% trans "Package catalogue" %}</h2>
+            </div>
+        </div>
+        <div class="card-content hotels-panel__body">
+            <form class="pkg-toolbar" hx-get="{% url 'member-packages' %}" hx-target="#package-table" hx-trigger="submit, change, keyup changed delay:350ms from:#pkg-q" onsubmit="return false;">
+                <div class="search-bar hotels-search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                    <input type="search" id="pkg-q" name="q" placeholder="{% trans 'Search packages…' %}" value="{{ search_q }}" autocomplete="off" aria-label="{% trans 'Search packages' %}">
+                </div>
+            </form>
+
+            <div class="table-wrapper hotels-table-wrap" id="package-table" style="margin-top:14px;">
+                {% include "member/partials/packages_table.html" %}
+            </div>
+        </div>
+    </section>
+</div>
+
+<div id="modal-package" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-package-title">
+    <div class="modal-box hotels-modal" style="max-width:760px;">
+        <div class="modal-header hotels-modal__header">
+            <div>
+                <span id="modal-package-title" class="modal-title">{% trans "Add package" %}</span>
+                
+            </div>
+            <button type="button" class="modal-close" onclick="closeModal('modal-package')" aria-label="{% trans 'Close dialog' %}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+        </div>
+        <form id="package-form" class="hotels-modal-form" novalidate>
+            {% csrf_token %}
+            <nav class="pkg-progress" aria-label="{% trans 'Package steps' %}">
+                <button type="button" class="pkg-prog is-on" data-step="1"><i>1</i><span>{% trans "Package" %}</span></button>
+                <span class="pkg-bar" aria-hidden="true"></span>
+                <button type="button" class="pkg-prog" data-step="2"><i>2</i><span>{% trans "Trip" %}</span></button>
+                <span class="pkg-bar" aria-hidden="true"></span>
+                <button type="button" class="pkg-prog" data-step="3"><i>3</i><span>{% trans "Price & services" %}</span></button>
+            </nav>
+            <div class="modal-body hotels-modal__body">
+
+                <section class="pkg-pane" data-step="1">
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label" for="pkg-name">{% trans "Package name" %} *</label>
+                            <input id="pkg-name" class="form-input" name="name" required placeholder="{% trans 'e.g. 21 Days Umrah Package — October 2026' %}" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="pkg-type">{% trans "Type" %} *</label>
+                            <select id="pkg-type" class="form-select" name="package_type">
+                                {% for value, label in type_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="pkg-dep">{% trans "Departure" %}</label>
+                            <input id="pkg-dep" class="form-input" name="departure_date" type="date">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="pkg-ret">{% trans "Return" %}</label>
+                            <input id="pkg-ret" class="form-input" name="return_date" type="date">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="pkg-leader">{% trans "Group leader" %}</label>
+                            <input id="pkg-leader" class="form-input" name="group_leader" maxlength="150" placeholder="{% trans 'Optional' %}" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="pkg-seats">{% trans "Seats" %}</label>
+                            <input id="pkg-seats" class="form-input" name="total_seats" type="number" min="0" inputmode="numeric" placeholder="{% trans 'e.g. 40' %}">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="pkg-pane" data-step="2" hidden>
+                    <p class="pkg-label">{% trans "Stay" %}</p>
+                    <div class="pkg-stay">
+                        <span class="pkg-stay__hd"></span>
+                        <span class="pkg-stay__hd">{% trans "Hotel" %}</span>
+                        <span class="pkg-stay__hd">{% trans "Nights" %}</span>
+                        <span class="pkg-stay__hd">{% trans "Distance (m)" %}</span>
+                        <span class="pkg-stay__hd">{% trans "Shuttle" %}</span>
+
+                        <b class="pkg-stay__city">{% trans "Makkah" %}</b>
+                        <select id="pkg-mk-hotel" class="form-select" name="makkah_hotel" aria-label="{% trans 'Makkah hotel' %}">
+                            <option value="">{% trans "— None —" %}</option>
+                            {% for h in hotels %}<option value="{{ h.id }}">{{ h.name }}{% if h.city %} · {{ h.city }}{% endif %}</option>{% endfor %}
+                        </select>
+                        <input id="pkg-mk-nights" class="form-input" name="makkah_nights" type="number" min="0" value="0" inputmode="numeric" aria-label="{% trans 'Nights in Makkah' %}">
+                        <input id="pkg-mk-dist" class="form-input" name="makkah_distance" type="number" min="0" inputmode="numeric" placeholder="700" aria-label="{% trans 'Makkah hotel distance in metres' %}">
+                        <label class="pkg-switch"><input type="checkbox" name="makkah_shuttle" id="pkg-mk-shuttle" value="true" aria-label="{% trans 'Makkah shuttle needed' %}"><span></span></label>
+
+                        <b class="pkg-stay__city">{% trans "Madina" %}</b>
+                        <select id="pkg-md-hotel" class="form-select" name="madina_hotel" aria-label="{% trans 'Madina hotel' %}">
+                            <option value="">{% trans "— None —" %}</option>
+                            {% for h in hotels %}<option value="{{ h.id }}">{{ h.name }}{% if h.city %} · {{ h.city }}{% endif %}</option>{% endfor %}
+                        </select>
+                        <input id="pkg-md-nights" class="form-input" name="madina_nights" type="number" min="0" value="0" inputmode="numeric" aria-label="{% trans 'Nights in Madina' %}">
+                        <input id="pkg-md-dist" class="form-input" name="madina_distance" type="number" min="0" inputmode="numeric" placeholder="200" aria-label="{% trans 'Madina hotel distance in metres' %}">
+                        <label class="pkg-switch"><input type="checkbox" name="madina_shuttle" id="pkg-md-shuttle" value="true" aria-label="{% trans 'Madina shuttle needed' %}"><span></span></label>
+                    </div>
+                    <p class="pkg-total-nights" id="pkg-total-nights" aria-live="polite"></p>
+                    {% if not hotels %}<p class="pkg-hint">{% trans "No hotels yet — add them on the Hotels page to pick them here." %}</p>{% endif %}
+
+                    <p class="pkg-label">{% trans "Travel" %}</p>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label" for="pkg-flight">{% trans "Departure flight" %}</label>
+                            <select id="pkg-flight" class="form-select" name="flight">
+                                <option value="">{% trans "— None —" %}</option>
+                                {% for fl in flights %}<option value="{{ fl.id }}">{{ fl.airline }}{% if fl.flight_number %} {{ fl.flight_number }}{% endif %} · {{ fl.departure_city }} → {{ fl.arrival_city }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="pkg-flight-back">{% trans "Return flight" %}</label>
+                            <select id="pkg-flight-back" class="form-select" name="return_flight">
+                                <option value="">{% trans "— None —" %}</option>
+                                {% for fl in flights %}<option value="{{ fl.id }}">{{ fl.airline }}{% if fl.flight_number %} {{ fl.flight_number }}{% endif %} · {{ fl.departure_city }} → {{ fl.arrival_city }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="pkg-baggage">{% trans "Baggage" %}</label>
+                            <input id="pkg-baggage" class="form-input" name="baggage" maxlength="60" placeholder="{% trans 'e.g. 23 kg, or 23 + 23 kg' %}" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="pkg-transport">{% trans "Transport" %}</label>
+                            <select id="pkg-transport" class="form-select" name="transport">
+                                <option value="">{% trans "— None —" %}</option>
+                                {% for t in transports %}<option value="{{ t.id }}">{{ t.name }} · {{ t.get_transport_type_display }}</option>{% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="pkg-pane" data-step="3" hidden>
+                    <p class="pkg-label">{% trans "Price per person (Rs.)" %} <small>{% trans "Fill only the room sharings you sell." %}</small></p>
+                    <div class="pkg-prices">
+                        <div class="form-group"><label class="form-label" for="pkg-p1">{% trans "Sharing" %}</label><input id="pkg-p1" class="form-input" name="price_sharing" type="number" step="0.01" min="0" inputmode="decimal"></div>
+                        <div class="form-group"><label class="form-label" for="pkg-p2">{% trans "Double (2)" %}</label><input id="pkg-p2" class="form-input" name="price_double" type="number" step="0.01" min="0" inputmode="decimal"></div>
+                        <div class="form-group"><label class="form-label" for="pkg-p3">{% trans "Triple (3)" %}</label><input id="pkg-p3" class="form-input" name="price_triple" type="number" step="0.01" min="0" inputmode="decimal"></div>
+                        <div class="form-group"><label class="form-label" for="pkg-p4">{% trans "Quad (4)" %}</label><input id="pkg-p4" class="form-input" name="price_quad" type="number" step="0.01" min="0" inputmode="decimal"></div>
+                        <div class="form-group"><label class="form-label" for="pkg-p5">{% trans "Quint (5)" %}</label><input id="pkg-p5" class="form-input" name="price_quint" type="number" step="0.01" min="0" inputmode="decimal"></div>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label" for="pkg-child">{% trans "Child without bed" %}</label>
+                            <input id="pkg-child" class="form-input" name="price_child" type="number" step="0.01" min="0" inputmode="decimal">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="pkg-infant">{% trans "Infant" %}</label>
+                            <input id="pkg-infant" class="form-input" name="price_infant" type="number" step="0.01" min="0" inputmode="decimal">
+                        </div>
+                    </div>
+
+                    <p class="pkg-label">{% trans "What's included" %}</p>
+                    <div class="pkg-includes">
+                        {% for value, label in inclusion_choices %}
+                        <label><input type="checkbox" name="inclusions" value="{{ value }}"><span>{{ label }}</span></label>
+                        {% endfor %}
+                    </div>
+
+                    <details class="pkg-more">
+                        <summary>{% trans "More options" %}</summary>
+                        <div class="form-group">
+                            <label class="form-label" for="pkg-extra">{% trans "Other services" %}</label>
+                            <textarea id="pkg-extra" class="form-textarea" name="extra_services" rows="2" placeholder="{% trans 'One per line, e.g. Local ziyarat by bus' %}"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="pkg-cost">{% trans "Your cost per person (optional)" %}</label>
+                            <input id="pkg-cost" class="form-input" name="cost_price" type="number" step="0.01" min="0" inputmode="decimal" placeholder="{% trans 'Used to show your margin' %}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="pkg-notes">{% trans "Notes" %}</label>
+                            <textarea id="pkg-notes" class="form-textarea" name="notes" rows="2" placeholder="{% trans 'e.g. Meal plan, Ziyarat schedule' %}"></textarea>
+                        </div>
+                    </details>
+                </section>
+            </div>
+            <div class="modal-footer pkg-foot">
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-package')">{% trans "Cancel" %}</button>
+                <span class="pkg-foot__spacer"></span>
+                <button type="button" class="btn btn-outline" id="pkg-back" hidden>{% trans "Back" %}</button>
+                <button type="button" class="btn btn-primary" id="pkg-next">{% trans "Next" %}</button>
+                <button type="submit" class="btn btn-outline" id="pkg-submit">{% trans "Save package" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modal-package-view" class="modal-overlay pkg-drawer-wrap hidden" role="dialog" aria-modal="true" aria-labelledby="modal-package-view-title">
+    <aside class="pkg-drawer">
+        <div class="pkg-drawer__head">
+            <span id="modal-package-view-title" class="modal-title">{% trans "Package details" %}</span>
+            <button type="button" class="modal-close" onclick="closeModal('modal-package-view')" aria-label="{% trans 'Close dialog' %}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+        </div>
+        <div class="pkg-drawer__body" id="package-view-body"></div>
+        <div class="pkg-drawer__foot">
+            <button type="button" class="btn btn-outline" onclick="closeModal('modal-package-view')">{% trans "Close" %}</button>
+            <button type="button" class="btn btn-primary" id="package-view-edit">{% trans "Edit" %}</button>
+        </div>
+    </aside>
+</div>
+
+<div id="modal-delete-package" class="modal-overlay modal-overlay--center hidden" role="dialog" aria-modal="true" aria-labelledby="modal-delete-package-title">
+    <div class="modal-box hotels-modal">
+        <div class="modal-header hotels-modal__header">
+            <div>
+                <span id="modal-delete-package-title" class="modal-title">{% trans "Delete package?" %}</span>
+                <p class="hotels-modal-sub">{% trans "This removes the package from your catalogue. Hotels, flights and transport stay in your inventory. This cannot be undone." %}</p>
+            </div>
+            <button type="button" class="modal-close" onclick="closeModal('modal-delete-package')" aria-label="{% trans 'Close dialog' %}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('modal-delete-package')">{% trans "Cancel" %}</button>
+            <button type="button" class="btn btn-danger" id="pkg-delete-confirm">{% trans "Delete" %}</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% trans "Add package" as t_add %}
+{% trans "Edit package" as t_edit %}
+{% trans "Save package" as t_save %}
+{% trans "Update package" as t_update %}
+{% trans "Could not load the package." as t_load_failed %}
+{% trans "Save failed" as t_save_failed %}
+{% trans "Delete failed" as t_delete_failed %}
+{% trans "Package saved" as t_saved %}
+{% trans "Package deleted" as t_deleted %}
+{% trans "Total stay:" as t_total %}
+{% trans "Enter a package name." as t_need_name %}
+{% trans "nights" as t_nights %}
+<script>
+(function () {
+  var form = document.getElementById('package-form');
+  var $ = function (id) { return document.getElementById(id); };
+  var editingId = null;
+  var currentActive = true;
+  var deleteId = null;
+  var PRICE_FIELDS = ['price_sharing', 'price_double', 'price_triple', 'price_quad', 'price_quint', 'price_child', 'price_infant', 'cost_price'];
+
+  function csrf() {
+    var el = form.querySelector('input[name="csrfmiddlewaretoken"]');
+    return el ? el.value : '';
+  }
+  // Wizard: one short screen at a time.
+  var step = 1, LAST = 3;
+  var panes = [].slice.call(form.querySelectorAll('.pkg-pane'));
+  var progs = [].slice.call(form.querySelectorAll('.pkg-prog'));
+  var bars = [].slice.call(form.querySelectorAll('.pkg-bar'));
+  function showStep(n) {
+    step = Math.max(1, Math.min(LAST, n));
+    panes.forEach(function (pane) { pane.hidden = parseInt(pane.getAttribute('data-step'), 10) !== step; });
+    progs.forEach(function (b) {
+      var s = parseInt(b.getAttribute('data-step'), 10);
+      b.classList.toggle('is-on', s === step);
+      b.classList.toggle('is-done', s < step);
+    });
+    bars.forEach(function (bar, i) { bar.style.background = i + 1 < step ? 'var(--primary)' : ''; });
+    $('pkg-back').hidden = step === 1;
+    $('pkg-next').hidden = step === LAST;
+    $('pkg-submit').className = 'btn ' + (step === LAST ? 'btn-primary' : 'btn-outline');
+    var body = form.querySelector('.modal-body');
+    if (body) body.scrollTop = 0;
+  }
+  progs.forEach(function (b) { b.addEventListener('click', function () { showStep(parseInt(b.getAttribute('data-step'), 10)); }); });
+  $('pkg-next').addEventListener('click', function () { showStep(step + 1); });
+  $('pkg-back').addEventListener('click', function () { showStep(step - 1); });
+  function goToField(name) {
+    var el = form.elements.namedItem(name);
+    var pane = el && el.closest ? el.closest('.pkg-pane') : null;
+    if (pane) showStep(parseInt(pane.getAttribute('data-step'), 10));
+  }
+  function resetSteps() { showStep(1); }
+
+  function updateNights() {
+    var n = (parseInt($('pkg-mk-nights').value, 10) || 0) + (parseInt($('pkg-md-nights').value, 10) || 0);
+    $('pkg-total-nights').textContent = n ? '{{ t_total|escapejs }} ' + n + ' {{ t_nights|escapejs }}' : '';
+  }
+  ['pkg-mk-nights', 'pkg-md-nights'].forEach(function (id) { $(id).addEventListener('input', updateNights); });
+
+  function setTitle(editing) {
+    $('modal-package-title').textContent = editing ? '{{ t_edit|escapejs }}' : '{{ t_add|escapejs }}';
+    $('pkg-submit').textContent = editing ? '{{ t_update|escapejs }}' : '{{ t_save|escapejs }}';
+  }
+
+  window.openPackageAddModal = function () {
+    form.reset();
+    editingId = null;
+    currentActive = true;
+    setTitle(false);
+    updateNights();
+    openModal('modal-package');
+    resetSteps();
+  };
+
+  window.openPackageEditModal = async function (id) {
+    try {
+      var r = await fetch('/api/v1/packages/' + id + '/', { credentials: 'same-origin', headers: { Accept: 'application/json' } });
+      if (!r.ok) throw new Error('load');
+      var p = await r.json();
+      form.reset();
+      editingId = id;
+      ['name', 'package_type', 'group_leader', 'makkah_nights', 'madina_nights', 'makkah_distance', 'madina_distance', 'departure_date', 'return_date', 'total_seats', 'baggage', 'extra_services', 'notes'].forEach(function (k) {
+        form.elements.namedItem(k).value = p[k] != null ? p[k] : '';
+      });
+      ['makkah_hotel', 'madina_hotel', 'flight', 'return_flight', 'transport'].forEach(function (k) {
+        form.elements.namedItem(k).value = p[k] != null ? String(p[k]) : '';
+      });
+      PRICE_FIELDS.forEach(function (k) { form.elements.namedItem(k).value = p[k] != null ? p[k] : ''; });
+      form.querySelectorAll('input[name="inclusions"]').forEach(function (cb) { cb.checked = (p.inclusions || []).indexOf(cb.value) !== -1; });
+      $('pkg-mk-shuttle').checked = !!p.makkah_shuttle;
+      $('pkg-md-shuttle').checked = !!p.madina_shuttle;
+      currentActive = !!p.is_active;
+      setTitle(true);
+      updateNights();
+      openModal('modal-package');
+      resetSteps();
+    } catch (e) {
+      showToast('{{ t_load_failed|escapejs }}', 'error');
+    }
+  };
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    if (e.submitter !== $('pkg-submit')) { if (step < LAST) showStep(step + 1); return; }
+    if (!$('pkg-name').value.trim()) { showStep(1); $('pkg-name').focus(); showToast('{{ t_need_name|escapejs }}', 'error'); return; }
+    var fd = new FormData(form);
+    fd.set('is_active', currentActive ? 'true' : 'false');
+    if (!$('pkg-mk-shuttle').checked) fd.set('makkah_shuttle', 'false');
+    if (!$('pkg-md-shuttle').checked) fd.set('madina_shuttle', 'false');
+    var btn = $('pkg-submit');
+    btn.disabled = true;
+    try {
+      var r = await fetch('/api/v1/packages/' + (editingId ? editingId + '/' : ''), {
+        method: editingId ? 'PUT' : 'POST',
+        body: fd,
+        credentials: 'same-origin',
+        headers: { 'X-CSRFToken': csrf() }
+      });
+      if (r.ok) {
+        try { sessionStorage.setItem('pkgToast', '{{ t_saved|escapejs }}'); } catch (_) {}
+        location.reload();
+        return;
+      }
+      var msg = '{{ t_save_failed|escapejs }}';
+      try {
+        var data = await r.json();
+        var first = Object.keys(data)[0];
+        if (first) msg = Array.isArray(data[first]) ? data[first][0] : (data[first].detail || data[first]);
+        if (first) goToField(first);
+      } catch (_) {}
+      showToast(msg, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  var viewId = null;
+  window.openPackageView = async function (id) {
+    viewId = id;
+    var box = $('package-view-body');
+    box.innerHTML = '';
+    try {
+      var r = await fetch('/member/packages/' + id + '/', { credentials: 'same-origin' });
+      if (!r.ok) throw new Error('load');
+      box.innerHTML = await r.text();
+      openModal('modal-package-view');
+    } catch (e) {
+      showToast('{{ t_load_failed|escapejs }}', 'error');
+    }
+  };
+  $('package-view-edit').addEventListener('click', function () {
+    closeModal('modal-package-view');
+    if (viewId) window.openPackageEditModal(viewId);
+  });
+
+  window.deletePackage = function (id) { deleteId = id; openModal('modal-delete-package'); };
+  $('pkg-delete-confirm').addEventListener('click', async function () {
+    if (!deleteId) return;
+    var r = await fetch('/api/v1/packages/' + deleteId + '/', {
+      method: 'DELETE', credentials: 'same-origin', headers: { 'X-CSRFToken': csrf() }
+    });
+    if (r.ok) {
+      try { sessionStorage.setItem('pkgToast', '{{ t_deleted|escapejs }}'); } catch (_) {}
+      location.reload();
+    } else {
+      showToast('{{ t_delete_failed|escapejs }}', 'error');
+    }
+  });
+
+  try {
+    var pending = sessionStorage.getItem('pkgToast');
+    if (pending) { sessionStorage.removeItem('pkgToast'); showToast(pending, 'success'); }
+  } catch (_) {}
+})();
+</script>
+{% endblock %}

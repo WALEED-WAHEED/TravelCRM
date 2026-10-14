@@ -1,0 +1,39 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Plans" %}{% endblock %}
+{% block content %}
+{% trans "Unlimited" as label_unlimited %}
+<div class="page-header">
+  <h1 class="page-title">{% trans "Plans" %}</h1>
+  <p class="page-subtitle">{% trans "What agencies can subscribe to." %}</p>
+</div>
+
+<div class="mb-4">
+  <a href="{% url 'platform_admin:plan-create' %}" class="btn btn-primary">{% trans "New plan" %}</a>
+</div>
+
+<div class="card">
+  <div class="card-content" style="padding-top:20px;">
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Price" %}</th><th>{% trans "Seats" %}</th><th>{% trans "Bookings/mo" %}</th><th>{% trans "Trial" %}</th><th>{% trans "Status" %}</th><th></th></tr></thead>
+        <tbody>
+          {% for plan in plans %}
+          <tr>
+            <td class="font-medium">{{ plan.name }} {% if plan.is_default_trial %}<span class="badge badge-primary">{% trans "Default trial" %}</span>{% endif %}</td>
+            <td class="tabular-nums">{{ plan.currency }} {{ plan.price_amount }}/{{ plan.get_billing_interval_display|lower }}</td>
+            <td class="text-muted text-sm">{{ plan.max_seats|default:label_unlimited }}</td>
+            <td class="text-muted text-sm">{{ plan.max_bookings_per_month|default:label_unlimited }}</td>
+            <td class="text-muted text-sm">{% blocktrans with days=plan.trial_days %}{{ days }} days{% endblocktrans %}</td>
+            <td>{% if plan.is_active %}<span class="badge badge-success">{% trans "Active" %}</span>{% else %}<span class="badge badge-outline">{% trans "Hidden" %}</span>{% endif %}</td>
+            <td><a class="btn btn-outline btn-sm" href="{% url 'platform_admin:plan-edit' plan.id %}">{% trans "Edit" %}</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7"><div class="empty-state"><h3>{% trans "No plans yet" %}</h3><p>{% trans "Create one to enable signups." %}</p></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

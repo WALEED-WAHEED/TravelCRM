@@ -1,0 +1,75 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% if plan %}{% trans "Edit Plan" %}{% else %}{% trans "New Plan" %}{% endif %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{% if plan %}{% blocktrans with name=plan.name %}Edit {{ name }}{% endblocktrans %}{% else %}{% trans "New plan" %}{% endif %}</h1>
+</div>
+
+<div class="card" style="max-width:640px;">
+  <div class="card-content" style="padding-top:20px;">
+    <form method="post" style="display:flex; flex-direction:column; gap:16px;">
+      {% csrf_token %}
+      <div class="grid grid-2">
+        <div class="form-group">
+          <label class="form-label" for="name">{% trans "Name" %}</label>
+          <input class="form-input" type="text" id="name" name="name" value="{% firstof plan.name form_data.name '' %}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="slug">{% trans "Slug" %}</label>
+          <input class="form-input" type="text" id="slug" name="slug" value="{% firstof plan.slug form_data.slug '' %}" placeholder="{% trans 'e.g. growth' %}" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="description">{% trans "Description" %}</label>
+        <input class="form-input" type="text" id="description" name="description" value="{{ plan.description|default:'' }}">
+      </div>
+      <div class="grid grid-2">
+        <div class="form-group">
+          <label class="form-label" for="price_amount">{% trans "Price" %}</label>
+          <input class="form-input" type="number" step="0.01" id="price_amount" name="price_amount" value="{{ plan.price_amount|default:'0' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="currency">{% trans "Currency" %}</label>
+          <input class="form-input" type="text" id="currency" name="currency" value="{{ plan.currency|default:'PKR' }}">
+        </div>
+      </div>
+      <div class="grid grid-2">
+        <div class="form-group">
+          <label class="form-label" for="billing_interval">{% trans "Billing interval" %}</label>
+          <select class="form-select" id="billing_interval" name="billing_interval">
+            <option value="monthly" {% if plan.billing_interval == 'monthly' or not plan %}selected{% endif %}>{% trans "Monthly" %}</option>
+            <option value="yearly" {% if plan.billing_interval == 'yearly' %}selected{% endif %}>{% trans "Yearly" %}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="trial_days">{% trans "Trial length (days)" %}</label>
+          <input class="form-input" type="number" id="trial_days" name="trial_days" value="{{ plan.trial_days|default:'14' }}">
+        </div>
+      </div>
+      <div class="grid grid-2">
+        <div class="form-group">
+          <label class="form-label" for="max_seats">{% trans "Max staff seats" %}</label>
+          <input class="form-input" type="number" id="max_seats" name="max_seats" value="{{ plan.max_seats|default:'' }}" placeholder="{% trans 'Blank = unlimited' %}">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="max_bookings_per_month">{% trans "Max bookings / month" %}</label>
+          <input class="form-input" type="number" id="max_bookings_per_month" name="max_bookings_per_month" value="{{ plan.max_bookings_per_month|default:'' }}" placeholder="{% trans 'Blank = unlimited' %}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="sort_order">{% trans "Sort order" %}</label>
+        <input class="form-input" type="number" id="sort_order" name="sort_order" value="{{ plan.sort_order|default:'0' }}" style="max-width:120px;">
+      </div>
+      <div class="flex gap-4">
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_active" {% if plan.is_active or not plan %}checked{% endif %}> {% trans "Visible for signup/upgrade" %}</label>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_default_trial" {% if plan.is_default_trial %}checked{% endif %}> {% trans "Default trial plan" %}</label>
+      </div>
+      <div class="flex gap-3 mt-2">
+        <button type="submit" class="btn btn-primary">{% trans "Save plan" %}</button>
+        <a href="{% url 'platform_admin:plans' %}" class="btn btn-outline">{% trans "Cancel" %}</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

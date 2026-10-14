@@ -1,69 +1,50 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load currency_tags %}
-{% block title %}Flights{% endblock %}
+{% block title %}{% trans "Flights" %}{% endblock %}
 {% block content %}
 <div class="page-flights">
     <header class="hotels-hero hotels-reveal" style="--d:0ms">
         <div class="hotels-hero__copy">
-            <p class="hotels-eyebrow">Inventory</p>
-            <h1 class="page-title hotels-hero__title">Flights</h1>
-            <p class="page-subtitle hotels-hero__sub">Manage schedules, fares, and seat inventory for your Umrah &amp; Hajj programs.</p>
+            <p class="hotels-eyebrow">{% trans "Inventory" %}</p>
+            <h1 class="page-title hotels-hero__title">{% trans "Flights" %}</h1>
         </div>
-        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms">
+        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms; display:flex; flex-wrap:wrap; gap:10px;">
+            <a href="{% url 'member-inventory-insights' 'flights' %}" class="btn btn-outline"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>{% trans "Flight insights" %}</a>
             <button type="button" class="btn btn-primary hotels-cta-btn" onclick="openFlightAddModal()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <line x1="12" y1="5" x2="12" y2="19" />
                     <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
-                Add flight
+                {% trans "Add flight" %}
             </button>
         </div>
     </header>
 
-    <div class="hotels-stat-grid">
-        <div class="hotels-stat-card hotels-reveal" style="--d:80ms">
-            <div class="hotels-stat-card__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <path d="M22 2 11 13" />
-                    <path d="M22 2 15 22 11 13 2 9 22 2z" />
-                </svg>
-            </div>
-            <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Total flights</span>
-                <span class="hotels-stat-card__value">{{ flight_stats.total }}</span>
-            </div>
+    <div class="hotels-spotlight-stat hotels-reveal" style="--d:80ms">
+        <div class="hotels-spotlight-stat__icon" aria-hidden="true">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                <path d="M22 2 11 13" />
+                <path d="M22 2 15 22 11 13 2 9 22 2z" />
+            </svg>
         </div>
-        <div class="hotels-stat-card hotels-stat-card--accent hotels-reveal" style="--d:120ms">
-            <div class="hotels-stat-card__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                </svg>
-            </div>
-            <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Scheduled</span>
-                <span class="hotels-stat-card__value">{{ flight_stats.scheduled }}</span>
-            </div>
+        <div class="hotels-spotlight-stat__meta">
+            <span class="hotels-spotlight-stat__label">{% trans "Total flights" %}</span>
+            <span class="hotels-spotlight-stat__value">{{ flight_stats.total }}</span>
         </div>
-        <div class="hotels-stat-card hotels-reveal" style="--d:160ms">
-            <div class="hotels-stat-card__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <line x1="12" y1="1" x2="12" y2="23" />
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
-            </div>
-            <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Avg. sale fare (PKR)</span>
-                <span class="hotels-stat-card__value">{% if flight_stats.avg_sale %}{{ flight_stats.avg_sale|pkr }}{% else %}—{% endif %}</span>
-            </div>
-        </div>
+        {% if flight_stats.airlines %}
+        <span class="hotels-spotlight-stat__chip">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+            {% blocktrans count n=flight_stats.airlines %}{{ n }} airline{% plural %}{{ n }} airlines{% endblocktrans %}
+        </span>
+        {% endif %}
     </div>
 
     <section class="card hotels-panel hotels-reveal" style="--d:200ms">
         <div class="hotels-panel__head">
             <div>
-                <h2 class="hotels-panel__title">Schedule</h2>
-                <p class="hotels-panel__hint text-muted text-sm">Search by airline, flight number, cities, or PNR. Updates as you type.</p>
+                <h2 class="hotels-panel__title">{% trans "Schedule" %}</h2>
+                <p class="hotels-panel__hint text-muted text-sm">{% trans "Search by airline, flight number, cities, or PNR. Updates as you type." %}</p>
             </div>
         </div>
         <div class="card-content hotels-panel__body">
@@ -75,16 +56,16 @@
                     </svg>
                     <input type="search"
                         name="q"
-                        placeholder="Search flights…"
+                        placeholder="{% trans 'Search flights…' %}"
                         value="{{ search_q }}"
                         autocomplete="off"
-                        aria-label="Search flights"
+                        aria-label="{% trans 'Search flights' %}"
                         hx-get="{% url 'member-flights' %}"
                         hx-trigger="keyup changed delay:350ms, search"
                         hx-target="#flight-table"
                         hx-push-url="false">
                 </div>
-                <span id="flight-count-display" class="text-sm text-muted hotels-toolbar-count">{{ flights|length }} flight{{ flights|length|pluralize }}</span>
+                <span id="flight-count-display" class="text-sm text-muted hotels-toolbar-count">{% blocktrans count counter=flights|length %}{{ counter }} flight{% plural %}{{ counter }} flights{% endblocktrans %}</span>
             </div>
 
             <div class="table-wrapper hotels-table-wrap" id="flight-table">
@@ -98,10 +79,10 @@
     <div class="modal-box hotels-modal">
         <div class="modal-header hotels-modal__header">
             <div>
-                <span id="modal-add-flight-title" class="modal-title">Add flight</span>
-                <p id="modal-add-flight-desc" class="hotels-modal-sub">Create a flight record with routing and PKR pricing for packages and vouchers.</p>
+                <span id="modal-add-flight-title" class="modal-title">{% trans "Add flight" %}</span>
+                <p id="modal-add-flight-desc" class="hotels-modal-sub">{% trans "Create a flight record with routing and PKR pricing for packages and vouchers." %}</p>
             </div>
-            <button type="button" class="modal-close" onclick="closeModal('modal-add-flight')" aria-label="Close dialog">
+            <button type="button" class="modal-close" onclick="closeModal('modal-add-flight')" aria-label="{% trans 'Close dialog' %}">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <line x1="18" y1="6" x2="6" y2="18" />
                     <line x1="6" y1="6" x2="18" y2="18" />
@@ -112,63 +93,63 @@
             {% csrf_token %}
             <div class="modal-body hotels-modal__body">
                 <div class="form-group">
-                    <label class="form-label" for="flight-airline">Airline *</label>
+                    <label class="form-label" for="flight-airline">{% trans "Airline *" %}</label>
                     <input id="flight-airline" class="form-input" name="airline" required maxlength="100"
-                        placeholder="Saudia" autocomplete="organization" spellcheck="false">
+                        placeholder="{% trans 'Saudia' %}" autocomplete="organization" spellcheck="false">
                 </div>
                 <div class="grid grid-2">
                     <div class="form-group">
-                        <label class="form-label" for="flight-number">Flight number <span class="text-muted">(optional)</span></label>
+                        <label class="form-label" for="flight-number">{% trans "Flight number" %} <span class="text-muted">({% trans "optional" %})</span></label>
                         <input id="flight-number" class="form-input tabular-nums" name="flight_number" maxlength="20"
                             placeholder="SV456" autocomplete="off" spellcheck="false">
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="flight-pnr">PNR <span class="text-muted">(optional)</span></label>
+                        <label class="form-label" for="flight-pnr">{% trans "PNR" %} <span class="text-muted">({% trans "optional" %})</span></label>
                         <input id="flight-pnr" class="form-input tabular-nums" name="pnr_number" maxlength="20"
-                            placeholder="Booking reference" autocomplete="off" spellcheck="false">
+                            placeholder="{% trans 'Booking reference' %}" autocomplete="off" spellcheck="false">
                     </div>
                 </div>
                 <div class="grid grid-2">
                     <div class="form-group">
-                        <label class="form-label" for="flight-dep-city">From *</label>
+                        <label class="form-label" for="flight-dep-city">{% trans "From *" %}</label>
                         <input id="flight-dep-city" class="form-input" name="departure_city" required maxlength="100"
-                            placeholder="Jeddah" autocomplete="address-level2" aria-label="Departure city, required">
+                            placeholder="{% trans 'Jeddah' %}" autocomplete="address-level2" aria-label="{% trans 'Departure city, required' %}">
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="flight-arr-city">To *</label>
+                        <label class="form-label" for="flight-arr-city">{% trans "To *" %}</label>
                         <input id="flight-arr-city" class="form-input" name="arrival_city" required maxlength="100"
-                            placeholder="Islamabad" autocomplete="address-level2" aria-label="Arrival city, required">
+                            placeholder="{% trans 'Islamabad' %}" autocomplete="address-level2" aria-label="{% trans 'Arrival city, required' %}">
                     </div>
                 </div>
                 <div class="grid grid-2">
                     <div class="form-group">
-                        <label class="form-label" for="flight-sale">Sale price (PKR) *</label>
+                        <label class="form-label" for="flight-sale">{% trans "Sale price (PKR) *" %}</label>
                         <input id="flight-sale" class="form-input" name="sale_price" type="number" step="0.01" min="0"
                             required placeholder="0.00" inputmode="decimal">
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="flight-purchase">Purchase price (PKR) *</label>
+                        <label class="form-label" for="flight-purchase">{% trans "Purchase price (PKR) *" %}</label>
                         <input id="flight-purchase" class="form-input" name="purchase_price" type="number" step="0.01" min="0"
                             required placeholder="0.00" inputmode="decimal">
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-flight')">Cancel</button>
-                <button type="submit" class="btn btn-primary" id="modal-flight-submit">Save flight</button>
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-flight')">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn btn-primary" id="modal-flight-submit">{% trans "Save flight" %}</button>
             </div>
         </form>
     </div>
 </div>
 
-<div id="modal-delete-flight" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-delete-flight-title" aria-describedby="modal-delete-flight-desc">
+<div id="modal-delete-flight" class="modal-overlay modal-overlay--center hidden" role="dialog" aria-modal="true" aria-labelledby="modal-delete-flight-title" aria-describedby="modal-delete-flight-desc">
     <div class="modal-box hotels-modal">
         <div class="modal-header hotels-modal__header">
             <div>
-                <span id="modal-delete-flight-title" class="modal-title">Delete flight?</span>
-                <p id="modal-delete-flight-desc" class="hotels-modal-sub">This removes the flight from your inventory. Links from bookings that used this flight will be removed. This cannot be undone.</p>
+                <span id="modal-delete-flight-title" class="modal-title">{% trans "Delete flight?" %}</span>
+                <p id="modal-delete-flight-desc" class="hotels-modal-sub">{% trans "This removes the flight from your inventory. Draft bookings using it will drop the line item; already-confirmed or completed bookings and their vouchers keep their historical record unchanged. This cannot be undone." %}</p>
             </div>
-            <button type="button" class="modal-close" onclick="cancelFlightDelete()" aria-label="Close dialog">
+            <button type="button" class="modal-close" onclick="cancelFlightDelete()" aria-label="{% trans 'Close dialog' %}">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <line x1="18" y1="6" x2="6" y2="18" />
                     <line x1="6" y1="6" x2="18" y2="18" />
@@ -176,14 +157,23 @@
             </button>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-outline" onclick="cancelFlightDelete()">Cancel</button>
-            <button type="button" class="btn btn-danger" id="modal-delete-flight-confirm">Delete</button>
+            <button type="button" class="btn btn-outline" onclick="cancelFlightDelete()">{% trans "Cancel" %}</button>
+            <button type="button" class="btn btn-danger" id="modal-delete-flight-confirm">{% trans "Delete" %}</button>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+{% trans "Add flight" as js_add_flight %}
+{% trans "Create a flight record with routing and PKR pricing for packages and vouchers." as js_add_flight_desc %}
+{% trans "Save flight" as js_save_flight %}
+{% trans "Edit flight" as js_edit_flight %}
+{% trans "Update routing and PKR pricing." as js_edit_flight_desc %}
+{% trans "Update flight" as js_update_flight %}
+{% trans "Could not load flight." as js_load_flight_failed %}
+{% trans "Save failed" as js_save_failed %}
+{% trans "Delete failed" as js_delete_failed %}
 <script>
 (function () {
   var FLIGHT_MODAL = 'modal-add-flight';
@@ -202,9 +192,9 @@
     var title = document.getElementById('modal-add-flight-title');
     var desc = document.getElementById('modal-add-flight-desc');
     var submit = document.getElementById('modal-flight-submit');
-    if (title) title.textContent = 'Add flight';
-    if (desc) desc.textContent = 'Create a flight record with routing and PKR pricing for packages and vouchers.';
-    if (submit) submit.textContent = 'Save flight';
+    if (title) title.textContent = '{{ js_add_flight|escapejs }}';
+    if (desc) desc.textContent = '{{ js_add_flight_desc|escapejs }}';
+    if (submit) submit.textContent = '{{ js_save_flight|escapejs }}';
     openModal(FLIGHT_MODAL);
   };
 
@@ -229,12 +219,12 @@
       var title = document.getElementById('modal-add-flight-title');
       var desc = document.getElementById('modal-add-flight-desc');
       var submit = document.getElementById('modal-flight-submit');
-      if (title) title.textContent = 'Edit flight';
-      if (desc) desc.textContent = 'Update routing and PKR pricing.';
-      if (submit) submit.textContent = 'Update flight';
+      if (title) title.textContent = '{{ js_edit_flight|escapejs }}';
+      if (desc) desc.textContent = '{{ js_edit_flight_desc|escapejs }}';
+      if (submit) submit.textContent = '{{ js_update_flight|escapejs }}';
       openModal(FLIGHT_MODAL);
     } catch (e) {
-      if (typeof showToast === 'function') showToast('Could not load flight.', 'error');
+      if (typeof showToast === 'function') showToast('{{ js_load_flight_failed|escapejs }}', 'error');
     }
   };
 
@@ -257,7 +247,7 @@
         location.reload();
         return;
       }
-      var msg = 'Save failed';
+      var msg = '{{ js_save_failed|escapejs }}';
       try {
         var data = await r.json();
         if (typeof data === 'object' && data !== null) {
@@ -297,7 +287,7 @@
           location.reload();
           return;
         }
-        var msg = 'Delete failed';
+        var msg = '{{ js_delete_failed|escapejs }}';
         try {
           var data = await r.json();
           if (typeof data === 'object' && data !== null && data.detail) {
@@ -306,7 +296,7 @@
         } catch (err) { /* ignore */ }
         if (typeof showToast === 'function') showToast(msg, 'error');
       } catch (e) {
-        if (typeof showToast === 'function') showToast('Delete failed', 'error');
+        if (typeof showToast === 'function') showToast('{{ js_delete_failed|escapejs }}', 'error');
       }
     });
   }

@@ -1,15 +1,16 @@
+{% load i18n %}
 {% load currency_tags %}
 {% if bookings %}
 <table class="hotels-data-table">
     <thead>
         <tr>
-            <th>Voucher #</th>
-            <th>Client</th>
-            <th>PAX</th>
-            <th>Status</th>
-            <th>Total (PKR)</th>
-            <th>Date</th>
-            <th class="hotels-col-actions" scope="col"><span class="sr-only">Actions</span></th>
+            <th>{% trans "Voucher #" %}</th>
+            <th>{% trans "Family head" %}</th>
+            <th>{% trans "Package" %}</th>
+            <th>{% trans "PAX" %}</th>
+            <th>{% trans "Stay" %}</th>
+            <th>{% trans "Status" %}</th>
+            <th class="hotels-col-actions" scope="col"><span class="sr-only">{% trans "Actions" %}</span></th>
         </tr>
     </thead>
     <tbody>
@@ -17,32 +18,54 @@
         <tr class="hotels-row" style="--row-i: {{ forloop.counter0 }}">
             <td>
                 <div class="hotels-cell-name">
-                    <span class="hotels-cell-name__title font-medium" style="font-family:ui-monospace,monospace;color:var(--primary);">{{ b.voucher_number }}</span>
-                    {% if b.package_name %}
-                    <span class="hotels-cell-name__code text-xs text-muted">{{ b.package_name }}</span>
-                    {% endif %}
+                    <a href="{% url 'member-booking-detail' b.id %}" class="hotels-cell-name__title font-medium" style="font-family:ui-monospace,monospace;color:var(--primary);text-decoration:none;">{{ b.voucher_number }}</a>
+                    <span class="hotels-cell-name__code text-xs text-muted">{{ b.created_at|date:"d M Y" }}{% if b.agent.role == 'agent' %} · <span dir="auto" style="color:#7c4dd6;font-weight:600;">{{ b.agent.get_full_name|default:b.agent.username }}</span>{% endif %}</span>
                 </div>
             </td>
             <td>
                 <div class="hotels-cell-name">
-                    <span class="hotels-cell-name__title font-medium">{{ b.client_company|default:"—" }}</span>
-                    {% if b.client_country %}
-                    <span class="hotels-cell-name__code text-xs text-muted">{{ b.client_country }}</span>
+                    {% if b.head %}
+                    <span class="hotels-cell-name__title font-medium" dir="auto">{{ b.head.name }}</span>
+                    <span class="hotels-cell-name__code text-xs text-muted">{% if b.head.passport_number %}{{ b.head.passport_number }}{% endif %}{% if b.more_travellers %}{% if b.head.passport_number %} · {% endif %}{% blocktrans count n=b.more_travellers %}+{{ n }} more{% plural %}+{{ n }} more{% endblocktrans %}{% endif %}</span>
+                    {% else %}
+                    <span class="hotels-cell-name__title text-muted">—</span>
                     {% endif %}
                 </div>
             </td>
-            <td class="text-sm">{{ b.pax_adults }}A{% if b.pax_children %} {{ b.pax_children }}C{% endif %}{% if b.pax_infants %} {{ b.pax_infants }}I{% endif %}</td>
+            <td dir="auto">
+                {% if b.package_name %}{{ b.package_name }}
+                {% else %}
+                <div class="hotels-cell-name">
+                    <span class="hotels-cell-name__title text-muted" style="font-style:italic;">{% trans "Custom trip" %}</span>
+                    {% if b.cities %}<span class="hotels-cell-name__code text-xs text-muted">{{ b.cities|join:" · " }}</span>{% endif %}
+                </div>
+                {% endif %}
+            </td>
             <td>
-                <span class="badge {% if b.status == 'confirmed' or b.status == 'completed' %}badge-success{% elif b.status == 'cancelled' %}badge-danger{% elif b.status == 'draft' %}badge-default{% else %}badge-warning{% endif %}">
-                    {{ b.get_status_display }}
+                <span class="hotels-loc">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+                    {{ b.pax_adults }}A{% if b.pax_children %} {{ b.pax_children }}C{% endif %}{% if b.pax_infants %} {{ b.pax_infants }}I{% endif %}
                 </span>
             </td>
-            <td class="font-medium">{{ b.total_price|pkr }}</td>
-            <td class="text-muted text-sm">{{ b.created_at|date:"d M Y" }}</td>
+            <td>
+                {% if b.stay_from %}
+                <div class="hotels-cell-name">
+                    <span class="hotels-cell-name__title font-medium">{{ b.stay_from|date:"d M" }} → {{ b.stay_to|date:"d M Y" }}</span>
+                    <span class="hotels-cell-name__code text-xs text-muted">{% blocktrans count n=b.stay_nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}</span>
+                </div>
+                {% else %}<span class="text-muted">—</span>{% endif %}
+            </td>
+            <td>
+                <span class="badge {% if b.status_group == 'saved' %}badge-success{% elif b.status_group == 'cancelled' %}badge-danger{% else %}badge-warning{% endif %}">
+                    {{ b.status_group_label }}
+                </span>
+            </td>
             <td class="hotels-col-actions">
-                <div class="hotels-row-actions">
-                    <a href="{% url 'member-bookings' %}?edit={{ b.id }}#voucher-worksheet" class="btn btn-outline btn-sm">Edit voucher</a>
-                    <a href="{% url 'member-booking-voucher-pdf' b.id %}" class="btn btn-outline btn-sm" title="Download PDF">PDF</a>
+                <div class="vx-actions">
+                    <a class="vx vx--view" href="{% url 'member-booking-voucher-print' b.id %}" target="_blank" rel="noopener" title="{% trans 'View' %}" aria-label="{% trans 'View voucher' %}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></a>
+                    <a class="vx vx--edit" href="{% url 'member-booking-detail' b.id %}" title="{% trans 'Edit' %}" aria-label="{% trans 'Edit voucher' %}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></a>
+                    <a class="vx vx--pdf" href="{% url 'member-booking-voucher-pdf' b.id %}" title="{% trans 'Download PDF' %}" aria-label="{% trans 'Download PDF' %}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></a>
+                    <button type="button" class="vx vx--del" data-delete="{{ b.id }}" data-number="{{ b.voucher_number }}" title="{% trans 'Delete' %}" aria-label="{% trans 'Delete voucher' %}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
                 </div>
             </td>
         </tr>
@@ -58,10 +81,12 @@
             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
         </svg>
     </div>
-    <h3 class="hotels-empty__title">{% if search_q or status_filter %}No matches{% else %}No bookings yet{% endif %}</h3>
-    <p class="hotels-empty__text">{% if search_q or status_filter %}Try another search or change the status filter.{% else %}Create a booking to assign a voucher number and build packages for your clients.{% endif %}</p>
-    {% if search_q or status_filter %}
-    <a href="{% url 'member-bookings' %}" class="btn btn-outline hotels-empty__btn">View all bookings</a>
+    <h3 class="hotels-empty__title">{% if filters_active %}{% trans "No matches" %}{% else %}{% trans "No vouchers yet" %}{% endif %}</h3>
+    <p class="hotels-empty__text">{% if filters_active %}{% trans "Try another search or clear the filters." %}{% else %}{% trans "Create a voucher to assign a voucher number and build packages for your clients." %}{% endif %}</p>
+    {% if filters_active %}
+    <a href="{% url 'member-bookings' %}" class="btn btn-outline hotels-empty__btn">{% trans "View all vouchers" %}</a>
+    {% else %}
+    <a href="{% url 'member-booking-new' %}" class="btn btn-primary hotels-empty__btn">{% trans "Create voucher" %}</a>
     {% endif %}
 </div>
 {% endif %}

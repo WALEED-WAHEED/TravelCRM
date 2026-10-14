@@ -1,0 +1,48 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Announcements" %}{% endblock %}
+{% block content %}
+{% trans "Deactivate this announcement?" as js_confirm_deactivate %}
+<div class="page-header">
+  <h1 class="page-title">{% trans "Announcements" %}</h1>
+  <p class="page-subtitle">{% trans "Broadcast a banner to all tenants, or a specific set of agencies." %}</p>
+</div>
+
+<div class="mb-4">
+  <a href="{% url 'platform_admin:announcement-create' %}" class="btn btn-primary">{% trans "New announcement" %}</a>
+</div>
+
+<div class="card">
+  <div class="card-content" style="padding-top:20px;">
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>{% trans "Title" %}</th><th>{% trans "Severity" %}</th><th>{% trans "Targets" %}</th><th>{% trans "Window" %}</th><th>{% trans "Status" %}</th><th></th></tr></thead>
+        <tbody>
+          {% for a in announcements %}
+          <tr>
+            <td class="font-medium">{{ a.title }}</td>
+            <td><span class="badge badge-{% if a.severity == 'critical' %}danger{% elif a.severity == 'warning' %}outline{% else %}primary{% endif %}">{{ a.get_severity_display }}</span></td>
+            <td class="text-muted text-sm">{% with count=a.target_agencies.count %}{% if count %}{% blocktrans %}{{ count }} agencies{% endblocktrans %}{% else %}{% trans "All tenants" %}{% endif %}{% endwith %}</td>
+            <td class="text-muted text-sm tabular-nums">{{ a.starts_at|date:"Y-m-d" }} → {{ a.ends_at|date:"Y-m-d"|default:"—" }}</td>
+            <td>{% if a.is_live %}<span class="badge badge-success">{% trans "Live" %}</span>{% elif a.is_active %}<span class="badge badge-outline">{% trans "Scheduled/expired" %}</span>{% else %}<span class="badge badge-default">{% trans "Inactive" %}</span>{% endif %}</td>
+            <td>
+              <div class="flex gap-2">
+                <a class="btn btn-outline btn-sm" href="{% url 'platform_admin:announcement-edit' a.id %}">{% trans "Edit" %}</a>
+                {% if a.is_active %}
+                <form method="post" action="{% url 'platform_admin:announcement-deactivate' a.id %}" onsubmit="return confirm('{{ js_confirm_deactivate|escapejs }}');">
+                  {% csrf_token %}
+                  <button class="btn btn-outline btn-sm" type="submit">{% trans "Deactivate" %}</button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6"><div class="empty-state"><h3>{% trans "No announcements yet" %}</h3></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

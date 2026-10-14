@@ -1,0 +1,969 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load currency_tags %}
+{% block title %}{% trans "Reports" %}{% endblock %}
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+    /* Chart palette — validated (scripts/validate_palette.js) against the app's
+       card surfaces: dark #181a21 (default), light #ffffff. Slot order is the
+       colour-blind-safety mechanism; never reorder or cycle. Light slots 3–4 are
+       under 3:1 contrast, so every chart ships a legend and a table view. */
+    .viz-root {
+        --series-1: #3987e5;
+        --series-2: #d95926;
+        --series-3: #199e70;
+        --series-4: #c98500;
+        --viz-ink: var(--foreground);
+        --viz-muted: var(--muted-foreground);
+        --viz-grid: var(--border);
+        --viz-surface: var(--card);
+    }
+    html[data-theme="light"] .viz-root {
+        --series-1: #2a78d6;
+        --series-2: #eb6834;
+        --series-3: #1baf7a;
+        --series-4: #eda100;
+    }
+    /* Components below set `display`, which would beat the [hidden] attribute. */
+    .page-reports [hidden] { display: none !important; }
+    .rpt-filters { position: sticky; top: calc(var(--topnav-height) + 8px); z-index: 20; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; padding: 14px 16px; margin-bottom: 18px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter: blur(8px); box-shadow: var(--shadow-soft); }
+    .rpt-filters .form-group { margin: 0; }
+    .rpt-filters .form-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); margin-bottom: 4px; }
+    .rpt-filters .form-select, .rpt-filters .form-input { min-width: 170px; }
+    .rpt-group { border: 0; padding: 0; margin: 0; min-width: 0; }
+    .rpt-group legend { float: left; width: 100%; padding: 0; }
+    .rpt-group .rpt-seg { clear: both; }
+    .rpt-seg { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--muted); }
+    .rpt-seg label { position: relative; cursor: pointer; }
+    .rpt-seg input { position: absolute; opacity: 0; pointer-events: none; }
+    .rpt-seg span { display: block; padding: 6px 14px; border-radius: calc(var(--radius) - 3px); font-size: 0.85rem; color: var(--muted-foreground); }
+    .rpt-seg input:checked + span { background: var(--card); color: var(--foreground); font-weight: 600; box-shadow: var(--shadow-soft); }
+    .rpt-seg input:focus-visible + span { outline: 2px solid var(--ring); outline-offset: 1px; }
+    .rpt-range { margin-inline-start: auto; text-align: end; font-size: 0.8rem; color: var(--muted-foreground); line-height: 1.45; }
+    .rpt-range strong { color: var(--foreground); font-size: 0.9rem; }
+
+    .rpt-section { scroll-margin-top: calc(var(--topnav-height) + 150px); }
+    .rpt-kpi-group { margin-bottom: 14px; }
+    .rpt-group-label { margin: 0 0 8px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted-foreground); }
+    .rpt-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .rpt-kpi { display: flex; flex-direction: column; }
+    .rpt-kpi .rpt-delta { align-self: flex-start; }
+    .rpt-kpi__spark { display: block; width: 100%; height: 34px; margin-top: 10px; }
+    .rpt-jump { display: flex; flex-wrap: wrap; gap: 6px; align-self: center; }
+    .rpt-jump a { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border); font-size: 0.8rem; color: var(--foreground); text-decoration: none; background: var(--card); }
+    .rpt-jump a:hover { border-color: var(--primary); color: var(--primary); }
+    .rpt-insights { margin: 6px 0 4px; padding: 16px 20px; border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--border)); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--primary) 5%, var(--card)); }
+    .rpt-insights__title { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 0.95rem; font-weight: 700; color: var(--primary); }
+    .rpt-insights ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 8px 24px; }
+    .rpt-insight { display: flex; gap: 10px; align-items: flex-start; font-size: 0.875rem; line-height: 1.45; }
+    .rpt-insight__icon { flex: none; width: 20px; height: 20px; border-radius: 999px; display: grid; place-items: center; font-size: 0.72rem; font-weight: 800; color: var(--muted-foreground); background: var(--muted); }
+    .rpt-insight--good .rpt-insight__icon { color: #fff; background: var(--success); }
+    .rpt-insight--bad .rpt-insight__icon { color: #fff; background: var(--destructive); }
+    .rpt-person { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; }
+    .rpt-avatar { width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center; font-size: 0.75rem; font-weight: 700; color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
+    .rpt-count { display: inline-block; min-width: 30px; padding: 2px 9px; border-radius: 999px; text-align: center; font-weight: 600; font-size: 0.8rem; border: 1px solid var(--border); }
+    .rpt-count--present { color: var(--success); background: color-mix(in srgb, var(--success) 10%, transparent); border-color: color-mix(in srgb, var(--success) 35%, var(--border)); }
+    .rpt-count--late { color: var(--warning); background: color-mix(in srgb, var(--warning) 10%, transparent); border-color: color-mix(in srgb, var(--warning) 35%, var(--border)); }
+    .rpt-count--absent { color: var(--destructive); background: color-mix(in srgb, var(--destructive) 10%, transparent); border-color: color-mix(in srgb, var(--destructive) 35%, var(--border)); }
+    .rpt-count--leave { color: var(--muted-foreground); background: var(--muted); }
+    .rpt-rate { display: inline-flex; align-items: center; gap: 10px; justify-content: flex-end; }
+    .rpt-rate__bar { width: 90px; height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; }
+    .rpt-rate__bar span { display: block; height: 100%; border-radius: 999px; }
+    .rpt-rate__bar .is-good { background: var(--success); }
+    .rpt-rate__bar .is-ok { background: var(--warning); }
+    .rpt-rate__bar .is-bad { background: var(--destructive); }
+    .rpt-subsection-title { margin: 22px 0 10px; font-size: 0.95rem; font-weight: 700; }
+    @media (max-width: 1100px) { .rpt-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 560px) { .rpt-kpis { grid-template-columns: 1fr; } }
+    .rpt-kpi { padding: 16px 18px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); box-shadow: var(--shadow-card); }
+    .rpt-kpi__label { display: block; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); }
+    .rpt-kpi__value { display: block; margin-top: 6px; font-size: 1.35rem; font-weight: 700; color: var(--foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rpt-kpi__sub { display: block; margin-top: 2px; font-size: 0.78rem; color: var(--muted-foreground); }
+    .rpt-delta { display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; padding: 2px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; border: 1px solid var(--border); color: var(--muted-foreground); }
+    .rpt-delta--good { color: var(--success); border-color: color-mix(in srgb, var(--success) 40%, var(--border)); }
+    .rpt-delta--bad { color: var(--destructive); border-color: color-mix(in srgb, var(--destructive) 40%, var(--border)); }
+
+    .rpt-balances { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .rpt-balance { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 18px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); }
+    .rpt-balance strong { font-size: 1.15rem; }
+
+    .rpt-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .rpt-card { min-width: 0; padding: 18px 20px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); box-shadow: var(--shadow-card); }
+    .rpt-card--wide { grid-column: 1 / -1; }
+    .rpt-card__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+    .rpt-card__title { margin: 0; font-size: 1rem; font-weight: 700; }
+    .rpt-card__hint { margin: 2px 0 0; font-size: 0.8rem; color: var(--muted-foreground); }
+    .rpt-canvas { position: relative; height: 290px; }
+    .rpt-card--wide .rpt-canvas { height: 320px; }
+    .rpt-empty { display: grid; place-items: center; height: 200px; text-align: center; font-size: 0.875rem; color: var(--muted-foreground); border: 1px dashed var(--border); border-radius: var(--radius); }
+    .rpt-table-wrap { overflow-x: auto; max-height: 320px; }
+    .rpt-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .rpt-table th, .rpt-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: start; white-space: nowrap; }
+    .rpt-table th { position: sticky; top: 0; background: var(--card); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-foreground); }
+    .rpt-table .num { text-align: end; font-variant-numeric: tabular-nums; }
+    /* Compact first view: summary row + section cards; one detail section open at a time */
+    .rpt-summary { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+    .rpt-mini { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); box-shadow: var(--shadow-soft); min-width: 0; }
+    .rpt-mini__label { font-size: 0.75rem; font-weight: 600; color: var(--muted-foreground); }
+    .rpt-mini__value { font-size: 1.25rem; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rpt-mini .rpt-delta { align-self: flex-start; }
+    .rpt-explore-label { margin: 26px 0 10px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-foreground); }
+    .rpt-explore-label span { margin-inline-start: 8px; font-weight: 500; letter-spacing: 0; text-transform: none; }
+    .rpt-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .rpt-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); box-shadow: var(--shadow-soft); font: inherit; color: var(--foreground); text-align: start; cursor: pointer; transition: border-color .15s, box-shadow .15s, transform .15s; }
+    .rpt-tile:hover { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); transform: translateY(-1px); }
+    .rpt-tile[aria-expanded="true"] { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent); }
+    .rpt-tile__icon { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; }
+    .tone-blue { color: #2a78d6; background: color-mix(in srgb, #2a78d6 12%, transparent); }
+    .tone-green { color: #1baf7a; background: color-mix(in srgb, #1baf7a 12%, transparent); }
+    .tone-amber { color: #c98500; background: color-mix(in srgb, #eda100 14%, transparent); }
+    .tone-purple { color: #7c3aed; background: color-mix(in srgb, #7c3aed 12%, transparent); }
+    .rpt-tile__title { font-size: 1rem; font-weight: 700; }
+    .rpt-tile__facts { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 0.8rem; color: var(--muted-foreground); }
+    .rpt-tile__facts b { color: var(--foreground); font-variant-numeric: tabular-nums; }
+    .rpt-tile__more { margin-top: auto; font-size: 0.8rem; font-weight: 600; color: var(--primary); }
+    .rpt-tile__more::after { content: " ›"; }
+    .rpt-tile[aria-expanded="true"] .rpt-tile__more::after { content: " ▾"; }
+    .rpt-detail { display: none; margin-top: 16px; padding: 4px 20px 20px; border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--border)); border-radius: calc(var(--radius-lg) + 4px); background: color-mix(in srgb, var(--primary) 2%, var(--background)); animation: rptOpen .2s ease-out; }
+    .rpt-detail.is-open { display: block; }
+    @keyframes rptOpen { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+    .rpt-detail__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .rpt-detail__head .rpt-section-title { margin: 16px 0 12px; }
+    .rpt-close { border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; background: var(--card); font: inherit; font-size: 0.8rem; color: var(--muted-foreground); cursor: pointer; }
+    .rpt-close:hover { color: var(--foreground); border-color: var(--foreground); }
+    .rpt-detail .rpt-kpi-group:first-of-type { margin-top: 0; }
+    @media (max-width: 1200px) { .rpt-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); } .rpt-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 560px) { .rpt-summary, .rpt-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media print { .rpt-tiles, .rpt-explore-label, .rpt-close { display: none !important; } .rpt-detail { display: block !important; border: 0; padding: 0; background: none; } }
+    .rpt-section-title { margin: 30px 0 12px; padding-top: 4px; font-size: 1.15rem; font-weight: 700; }
+    .rpt-badge-overdue { color: var(--destructive); font-weight: 600; }
+    @media (max-width: 960px) { .rpt-grid { grid-template-columns: 1fr; } .rpt-range { margin-inline-start: 0; text-align: start; width: 100%; } }
+    @media print {
+        .rpt-filters { position: static; box-shadow: none; backdrop-filter: none; }
+        .rpt-filters .btn, .rpt-toggle, .hotels-hero__actions { display: none !important; }
+        .rpt-card, .rpt-kpi { box-shadow: none; break-inside: avoid; }
+    }
+    .page-reports .hotels-hero { overflow: visible; }
+    .page-reports .hotels-hero:has(.dl-menu[open]) { z-index: 25; }
+    .dl-menu { position: relative; }
+    .dl-menu > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .dl-menu > summary::-webkit-details-marker { display: none; }
+    .dl-menu__chev { transition: transform .15s; }
+    .dl-menu[open] .dl-menu__chev { transform: rotate(180deg); }
+    .dl-menu__list { position: absolute; z-index: 30; top: calc(100% + 8px); inset-inline-end: 0; width: 270px; padding: 6px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); box-shadow: 0 16px 40px rgba(15, 23, 42, .16); animation: dlIn .14s ease-out; }
+    @keyframes dlIn { from { opacity: 0; transform: translateY(-4px); } }
+    .dl-menu__item { width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px; border: 0; border-radius: 10px; background: transparent; color: var(--foreground); font: inherit; text-align: start; text-decoration: none; cursor: pointer; }
+    .dl-menu__item:hover { background: var(--muted); }
+    .dl-menu__item strong { display: block; font-size: 0.875rem; font-weight: 600; }
+    .dl-menu__item small { display: block; font-size: 0.75rem; color: var(--muted-foreground); }
+    .dl-menu__icon { flex: none; width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; font-size: 0.66rem; font-weight: 800; letter-spacing: .03em; }
+    .dl-menu__icon--xls { color: #1d7a46; background: color-mix(in srgb, #1d7a46 13%, transparent); }
+    .dl-menu__icon--pdf { color: #c2361f; background: color-mix(in srgb, #c2361f 12%, transparent); }
+    @media print { .dl-menu { display: none !important; } }
+    /* ── Filters, tables, polish ── */
+    .rpt-kpis { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+    .rpt-tablebar { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; margin: 26px 0 10px; }
+    .rpt-tablebar .rpt-subsection-title { margin: 0; }
+    .rpt-tablebar__tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .rpt-n { display: inline-block; margin-inline-start: 6px; padding: 1px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; color: var(--muted-foreground); background: var(--muted); vertical-align: 2px; }
+    .rpt-seg--sm { padding: 2px; }
+    .rpt-seg--sm button { padding: 5px 11px; border: 0; border-radius: calc(var(--radius) - 3px); background: transparent; font: inherit; font-size: 0.78rem; color: var(--muted-foreground); cursor: pointer; }
+    .rpt-seg--sm button.is-on { background: var(--card); color: var(--foreground); font-weight: 600; box-shadow: var(--shadow-soft); }
+    .rpt-search { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); color: var(--muted-foreground); }
+    .rpt-search:focus-within { border-color: var(--primary); }
+    .rpt-search input { width: 210px; border: 0; outline: 0; background: transparent; font: inherit; font-size: 0.82rem; color: var(--foreground); }
+    .rpt-card--flush { padding: 0; overflow: hidden; }
+    .rpt-card--flush .rpt-empty { margin: 16px; height: 120px; }
+    .rpt-table-wrap--tall { max-height: 440px; }
+    .rpt-table--rows th, .rpt-table--rows td { padding: 10px 14px; }
+    .rpt-table--rows tbody tr:hover { background: color-mix(in srgb, var(--muted) 60%, transparent); }
+    .rpt-table--rows a { color: var(--primary); font-weight: 600; text-decoration: none; }
+    .rpt-table--rows a:hover { text-decoration: underline; }
+    .rpt-table--rows tbody tr:last-child td { border-bottom: 0; }
+    .rpt-noresult { padding: 22px; text-align: center; font-size: 0.85rem; color: var(--muted-foreground); }
+    .rpt-status { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 0.72rem; font-weight: 600; background: var(--muted); color: var(--muted-foreground); }
+    .rpt-status--confirmed { color: #1baf7a; background: color-mix(in srgb, #1baf7a 12%, transparent); }
+    .rpt-status--completed { color: #2a78d6; background: color-mix(in srgb, #2a78d6 12%, transparent); }
+    .rpt-status--cancelled { color: var(--destructive); background: color-mix(in srgb, var(--destructive) 10%, transparent); }
+    .rpt-bal { font-weight: 700; } .rpt-bal--owes { color: var(--success); } .rpt-bal--owed { color: var(--destructive); }
+    .rpt-link { font-size: 0.78rem; }
+    @media (max-width: 640px) { .rpt-search input { width: 140px; } .rpt-filters .form-group { flex: 1 1 100%; } .rpt-filters .form-select { width: 100%; max-width: none; } }
+    @media print { .rpt-tablebar__tools, .rpt-link { display: none !important; } .rpt-table-wrap--tall { max-height: none; } }
+    .rpt-presets-wrap { min-width: 0; flex: 1 1 100%; }
+    .rpt-presets-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; margin-bottom: 6px; }
+    .rpt-presets-head .form-label { margin: 0; }
+    .rpt-presets-head .rpt-range { margin: 0; text-align: end; font-size: 0.8rem; line-height: 1.3; }
+    .rpt-presets-head .rpt-range strong { font-size: 0.85rem; }
+    .rpt-presets { contain: inline-size; display: flex; gap: 4px; padding: 3px; overflow-x: auto; scrollbar-width: none; border: 1px solid var(--border); border-radius: var(--radius); background: var(--muted); }
+    .rpt-presets::-webkit-scrollbar { display: none; }
+    .rpt-preset { flex: 1 0 auto; justify-content: center; display: inline-flex; align-items: center; gap: 6px; padding: 7px 13px; border: 0; border-radius: calc(var(--radius) - 3px); background: transparent; font: inherit; font-size: 0.84rem; font-weight: 500; color: var(--muted-foreground); white-space: nowrap; cursor: pointer; transition: background .15s, color .15s; }
+    .rpt-preset:hover { color: var(--foreground); background: color-mix(in srgb, var(--card) 60%, transparent); }
+    .rpt-preset.is-on { background: var(--card); color: var(--primary); font-weight: 650; box-shadow: var(--shadow-soft); }
+    .rpt-preset:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
+    .rpt-filters { align-items: flex-end; }
+</style>
+{% endblock %}
+{% block content %}
+{% with k=report.kpis d=report.deltas %}
+<div class="page-reports viz-root">
+    <header class="hotels-hero hotels-reveal" style="--d:0ms; align-items:center;">
+        <div class="hotels-hero__copy">
+            <p class="hotels-eyebrow">{% trans "Analytics" %}</p>
+            <h1 class="page-title hotels-hero__title">{% trans "Reports" %}</h1>
+        </div>
+        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms">
+            <details class="dl-menu" id="dl-menu">
+                <summary class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    {% trans "Download" %}
+                    <svg class="dl-menu__chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </summary>
+                <div class="dl-menu__list" role="menu">
+                    <a role="menuitem" class="dl-menu__item" href="?{{ request.GET.urlencode }}{% if request.GET %}&amp;{% endif %}export=xlsx">
+                        <span class="dl-menu__icon dl-menu__icon--xls">XLS</span>
+                        <span><strong>{% trans "Excel workbook" %}</strong><small>{% trans "All sections, one sheet each" %}</small></span>
+                    </a>
+                    <button type="button" role="menuitem" class="dl-menu__item" onclick="document.getElementById('dl-menu').open=false; setTimeout(function(){ window.print(); }, 50);">
+                        <span class="dl-menu__icon dl-menu__icon--pdf">PDF</span>
+                        <span><strong>{% trans "PDF / Print" %}</strong><small>{% trans "The full report, ready to share" %}</small></span>
+                    </button>
+                </div>
+            </details>
+        </div>
+    </header>
+
+    <form class="rpt-filters" method="get" id="rpt-filters">
+        <div class="form-group rpt-presets-wrap">
+            <div class="rpt-presets-head">
+                <span class="form-label" id="rpt-preset-label">{% trans "Date range" %}</span>
+                <span class="rpt-range"><strong>{{ period.start|date:"d M Y" }} – {{ period.end|date:"d M Y" }}</strong> · {% blocktrans with a=period.prev_start|date:"d M Y" b=period.prev_end|date:"d M Y" %}compared with {{ a }} – {{ b }}{% endblocktrans %}</span>
+            </div>
+            <input type="hidden" id="rpt-preset" name="preset" value="{{ period.preset }}">
+            <div class="rpt-presets" role="radiogroup" aria-labelledby="rpt-preset-label">
+                {% for value, label in presets.items %}<button type="button" role="radio" class="rpt-preset{% if period.preset == value %} is-on{% endif %}" data-preset="{{ value }}" aria-checked="{% if period.preset == value %}true{% else %}false{% endif %}">{% if value == 'custom' %}<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>{% endif %}{% trans label %}</button>{% endfor %}
+            </div>
+        </div>
+        <div class="form-group rpt-custom" {% if period.preset != 'custom' %}hidden{% endif %}>
+            <label class="form-label" for="rpt-from">{% trans "From" %}</label>
+            <input id="rpt-from" type="date" name="from" class="form-input" value="{{ period.start|date:'Y-m-d' }}">
+        </div>
+        <div class="form-group rpt-custom" {% if period.preset != 'custom' %}hidden{% endif %}>
+            <label class="form-label" for="rpt-to">{% trans "To" %}</label>
+            <input id="rpt-to" type="date" name="to" class="form-input" value="{{ period.end|date:'Y-m-d' }}">
+        </div>
+        <button type="submit" class="btn btn-outline rpt-custom" {% if period.preset != 'custom' %}hidden{% endif %}>{% trans "Apply" %}</button>
+    </form>
+
+
+    <section id="rpt-overview" class="rpt-section">
+        {% with ak=report.attendance.kpis ad=report.attendance.deltas %}
+        <div class="rpt-summary">
+            {% include "reports/_mini.html" with label=_("Bookings") value=k.bookings delta=d.bookings good="up" %}
+            {% include "reports/_mini.html" with label=_("Booking value") value=k.booking_value money=True delta=d.booking_value good="up" %}
+            {% include "reports/_mini.html" with label=_("Travellers (PAX)") value=k.pax delta=d.pax good="up" %}
+            {% include "reports/_mini.html" with label=_("Money in") value=k.cash_in money=True delta=d.cash_in good="up" %}
+            {% include "reports/_mini.html" with label=_("Money out") value=k.cash_out money=True delta=d.cash_out good="down" %}
+            {% include "reports/_mini.html" with label=_("Net cash flow") value=k.net_cash money=True delta=d.net_cash good="up" %}
+        </div>
+        {% endwith %}
+
+        {% if report.insights %}
+        <div class="rpt-insights">
+            <h2 class="rpt-insights__title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>
+                {% trans "What stands out" %}
+            </h2>
+            <ul>
+                {% for tone, text in report.insights %}
+                <li class="rpt-insight rpt-insight--{{ tone }}">
+                    <span class="rpt-insight__icon" aria-hidden="true">{% if tone == 'good' %}&#10003;{% elif tone == 'bad' %}!{% else %}&#8226;{% endif %}</span>
+                    <span>{{ text }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </section>
+
+    {% with ak=report.attendance.kpis %}
+    <p class="rpt-explore-label">{% trans "Explore details" %} <span>{% trans "Click a section to open its charts and tables." %}</span></p>
+    <div class="rpt-tiles" role="tablist" aria-label="{% trans 'Report sections' %}">
+        <button type="button" class="rpt-tile" data-open="sales" role="tab" aria-controls="rpt-sales" aria-expanded="false">
+            <span class="rpt-tile__icon tone-blue" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+            <span class="rpt-tile__title">{% trans "Sales & bookings" %}</span>
+            <span class="rpt-tile__facts"><span><b>{{ k.bookings }}</b> {% trans "Bookings" %}</span><span><b>{{ k.pax }}</b> {% trans "PAX" %}</span><span><b>{{ k.cancelled }}</b> {% trans "Cancelled" %}</span></span>
+            <span class="rpt-tile__more">{% trans "View details" %}</span>
+        </button>
+        <button type="button" class="rpt-tile" data-open="money" role="tab" aria-controls="rpt-money" aria-expanded="false">
+            <span class="rpt-tile__icon tone-green" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+            <span class="rpt-tile__title">{% trans "Money" %}</span>
+            <span class="rpt-tile__facts"><span><b>Rs. {{ k.cash_in|amt }}</b> {% trans "in" %}</span><span><b>Rs. {{ k.cash_out|amt }}</b> {% trans "out" %}</span></span>
+            <span class="rpt-tile__more">{% trans "View details" %}</span>
+        </button>
+        <button type="button" class="rpt-tile" data-open="attendance" role="tab" aria-controls="rpt-attendance" aria-expanded="false">
+            <span class="rpt-tile__icon tone-amber" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+            <span class="rpt-tile__title">{% trans "Attendance" %}</span>
+            <span class="rpt-tile__facts"><span><b>{% if ak.rate is not None %}{{ ak.rate }}%{% else %}—{% endif %}</b> {% trans "rate" %}</span><span><b>{{ ak.late }}</b> {% trans "Late" %}</span><span><b>{{ ak.absent }}</b> {% trans "Absent" %}</span></span>
+            <span class="rpt-tile__more">{% trans "View details" %}</span>
+        </button>
+        <button type="button" class="rpt-tile" data-open="balances" role="tab" aria-controls="rpt-balances" aria-expanded="false">
+            <span class="rpt-tile__icon tone-purple" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M8 21H3v-5"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg></span>
+            <span class="rpt-tile__title">{% trans "Balances" %}</span>
+            <span class="rpt-tile__facts"><span><b>Rs. {{ report.receivable_total|amt }}</b> {% trans "owed to you" %}</span><span><b>Rs. {{ report.payable_total|amt }}</b> {% trans "you owe" %}</span></span>
+            <span class="rpt-tile__more">{% trans "View details" %}</span>
+        </button>
+    </div>
+    {% endwith %}
+
+    <section id="rpt-sales" class="rpt-section rpt-detail" data-detail="sales" role="tabpanel">
+        <div class="rpt-detail__head"><h2 class="rpt-section-title">{% trans "Sales & bookings" %}</h2><button type="button" class="rpt-close" data-close aria-label="{% trans 'Close' %}">{% trans "Close" %} &times;</button></div>
+        <div class="rpt-kpi-group">
+            <h2 class="rpt-group-label">{% trans "Sales" %}</h2>
+            <div class="rpt-kpis">
+                {% include "reports/_kpi.html" with label=_("Bookings") value=k.bookings delta=d.bookings good="up" spark="active_count" sub=_("confirmed + completed") %}
+                {% include "reports/_kpi.html" with label=_("Booking value") value=k.booking_value money=True delta=d.booking_value good="up" spark="booking_value" sub=_("sale value of those bookings") %}
+                {% include "reports/_kpi.html" with label=_("Average booking") value=k.avg_value money=True delta=d.avg_value good="up" sub=_("booking value ÷ bookings") %}
+                {% include "reports/_kpi.html" with label=_("Travellers (PAX)") value=k.pax delta=d.pax good="up" spark="pax" sub=_("adults, children, infants") %}
+                {% include "reports/_kpi.html" with label=_("Cancelled bookings") value=k.cancelled delta=d.cancelled good="down" spark="cancelled" sub=_("created in this period") %}
+            </div>
+        </div>
+
+        <div class="rpt-grid">
+            {% include "reports/_chart_card.html" with id="bookings" title=_("Bookings by status") hint=_("How many bookings were created each period, split by their current status.") %}
+            {% include "reports/_chart_card.html" with id="value" title=_("Booking value") hint=_("Sale value of confirmed and completed bookings each period.") %}
+            {% include "reports/_chart_card.html" with id="clients" title=_("Top clients") hint=_("Booking value per client in this period.") %}
+            {% include "reports/_chart_card.html" with id="packages" title=_("Most booked packages") hint=_("Confirmed and completed bookings per package.") %}
+            {% include "reports/_chart_card.html" with id="staff" wide=True title=_("Bookings by staff") hint=_("Booking value per team member. Hover for the count.") %}
+        </div>
+
+        <div class="rpt-tablebar">
+            <h3 class="rpt-subsection-title">{% trans "Bookings in this period" %} <span class="rpt-n">{{ report.booking_rows|length }}</span></h3>
+            <div class="rpt-tablebar__tools">
+                <div class="rpt-seg rpt-seg--sm" data-rowfilter="tbl-bookings">
+                    <button type="button" class="is-on" data-kind="">{% trans "All" %}</button>
+                    <button type="button" data-kind="confirmed">{% trans "Confirmed" %}</button>
+                    <button type="button" data-kind="completed">{% trans "Completed" %}</button>
+                    <button type="button" data-kind="draft">{% trans "Draft" %}</button>
+                    <button type="button" data-kind="cancelled">{% trans "Cancelled" %}</button>
+                </div>
+                <label class="rpt-search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="search" data-search="tbl-bookings" placeholder="{% trans 'Search client, voucher, package…' %}"></label>
+            </div>
+        </div>
+        <section class="rpt-card rpt-card--flush">
+            {% if report.booking_rows %}
+            <div class="rpt-table-wrap rpt-table-wrap--tall">
+                <table class="rpt-table rpt-table--rows" id="tbl-bookings">
+                    <thead><tr><th>{% trans "Date" %}</th><th>{% trans "Voucher" %}</th><th>{% trans "Client" %}</th><th>{% trans "Package" %}</th><th>{% trans "Staff" %}</th><th class="num">{% trans "PAX" %}</th><th>{% trans "Status" %}</th><th class="num">{% trans "Value" %}</th></tr></thead>
+                    <tbody>
+                        {% for b in report.booking_rows %}
+                        <tr data-kind="{{ b.status }}">
+                            <td>{{ b.date|date:"d M Y" }}</td>
+                            <td><a href="{% url 'member-booking-detail' b.id %}">{{ b.voucher }}</a></td>
+                            <td dir="auto">{{ b.client|default:"—" }}</td>
+                            <td dir="auto">{{ b.package|default:"—" }}</td>
+                            <td>{{ b.staff }}</td>
+                            <td class="num">{{ b.pax }}</td>
+                            <td><span class="rpt-status rpt-status--{{ b.status }}">{{ b.status_label }}</span></td>
+                            <td class="num">{{ b.value|amt }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="rpt-noresult" hidden>{% trans "No bookings match your search." %}</div>
+            </div>
+            {% else %}
+            <div class="rpt-empty">{% trans "No bookings were created in this period." %}</div>
+            {% endif %}
+        </section>
+    </section>
+
+    <section id="rpt-money" class="rpt-section rpt-detail" data-detail="money" role="tabpanel">
+        <div class="rpt-detail__head"><h2 class="rpt-section-title">{% trans "Money" %}</h2><button type="button" class="rpt-close" data-close aria-label="{% trans 'Close' %}">{% trans "Close" %} &times;</button></div>
+        <div class="rpt-kpi-group">
+            <h2 class="rpt-group-label">{% trans "Cash flow" %}</h2>
+            <div class="rpt-kpis">
+                {% include "reports/_kpi.html" with label=_("Money in") value=k.cash_in money=True delta=d.cash_in good="up" spark="cash_in" sub=_("payments received") %}
+                {% include "reports/_kpi.html" with label=_("Money out") value=k.cash_out money=True delta=d.cash_out good="down" spark="cash_out" sub=_("payments made + expenses") %}
+                {% include "reports/_kpi.html" with label=_("Net cash flow") value=k.net_cash money=True delta=d.net_cash good="up" spark="net" sub=_("money in − money out") %}
+                {% include "reports/_kpi.html" with label=_("Company expenses") value=k.expenses money=True delta=d.expenses good="down" spark="expenses" sub=_("rent, salaries, office…") %}
+            </div>
+        </div>
+
+        <div class="rpt-kpi-group">
+            <h2 class="rpt-group-label">{% trans "Profitability" %}</h2>
+            <div class="rpt-kpis">
+                {% include "reports/_kpi.html" with label=_("Sales charged") value=k.sales money=True delta=d.sales good="up" sub=_("tickets, hotels, visas… billed to parties") %}
+                {% include "reports/_kpi.html" with label=_("Supplier bills") value=k.purchases money=True delta=d.purchases good="down" sub=_("what suppliers billed you") %}
+                {% if k.purchases %}{% blocktrans asvar margin_sub with p=k.margin_pct|floatformat:0 %}{{ p }}% of sales{% endblocktrans %}{% else %}{% trans "no supplier bills recorded yet" as margin_sub %}{% endif %}
+                {% include "reports/_kpi.html" with label=_("Gross margin") value=k.margin money=True delta=d.margin good="up" sub=margin_sub %}
+            </div>
+        </div>
+
+        <div class="rpt-grid">
+            {% include "reports/_chart_card.html" with id="cashflow" wide=True title=_("Money in vs money out") hint=_("Payments received compared with payments made and expenses, per period. Hover a bar for the net.") %}
+            {% include "reports/_chart_card.html" with id="services" wide=True title=_("Sales vs purchases by service") hint=_("What you charged parties vs what suppliers billed you, per service — the gap is your gross margin.") %}
+            {% include "reports/_chart_card.html" with id="expenses" title=_("Expenses by category") hint=_("Company expenses in this period.") %}
+            {% include "reports/_chart_card.html" with id="methods" title=_("Money received by method") hint=_("Cash, bank transfer, cheque…") %}
+            {% include "reports/_chart_card.html" with id="payers" wide=True title=_("Who paid you the most") hint=_("Money received per party in this period.") %}
+        </div>
+    </section>
+
+    {% with ak=report.attendance.kpis ad=report.attendance.deltas %}
+    <section id="rpt-attendance" class="rpt-section rpt-detail" data-detail="attendance" role="tabpanel">
+        <div class="rpt-detail__head"><h2 class="rpt-section-title">{% trans "Attendance" %}</h2><button type="button" class="rpt-close" data-close aria-label="{% trans 'Close' %}">{% trans "Close" %} &times;</button></div>
+        <div class="rpt-kpis">
+            {% if ak.rate is not None %}{% blocktrans asvar rate_v with r=ak.rate %}{{ r }}%{% endblocktrans %}{% else %}{% trans "—" as rate_v %}{% endif %}
+            {% include "reports/_kpi.html" with label=_("Attendance rate") value=rate_v delta=ad.rate good="up" sub=_("days present or late, out of days expected") %}
+            {% include "reports/_kpi.html" with label=_("Late arrivals") value=ak.late delta=ad.late good="down" sub=_("after the late cut-off") %}
+            {% include "reports/_kpi.html" with label=_("Absences") value=ak.absent delta=ad.absent good="down" sub=_("no check-in by the absent cut-off") %}
+            {% if ak.avg_hours is not None %}{% blocktrans asvar hours_v with h=ak.avg_hours %}{{ h }} h{% endblocktrans %}{% else %}{% trans "—" as hours_v %}{% endif %}
+            {% include "reports/_kpi.html" with label=_("Average hours / day") value=hours_v delta=ad.avg_hours good="up" sub=_("from check-in to check-out") %}
+        </div>
+        <div class="rpt-grid" style="margin-top:16px;">
+            {% include "reports/_chart_card.html" with id="attendance" wide=True title=_("Attendance by status") hint=_("Present, late, absent and leave days per period across all staff.") %}
+        </div>
+        <h3 class="rpt-subsection-title">{% trans "By staff member" %} <span class="text-sm text-muted" style="font-weight:400;">— {% trans "days present, late, absent and on leave in this period" %}</span></h3>
+        <section class="rpt-card">
+            {% if report.attendance.people %}
+            <div class="rpt-table-wrap">
+                <table class="rpt-table">
+                    <thead><tr><th>{% trans "Staff" %}</th><th class="num">{% trans "Present" %}</th><th class="num">{% trans "Late" %}</th><th class="num">{% trans "Absent" %}</th><th class="num">{% trans "Leave" %}</th><th class="num">{% trans "Attendance" %}</th><th class="num">{% trans "Hours" %}</th></tr></thead>
+                    <tbody>
+                        {% for r in report.attendance.people %}
+                        <tr>
+                            <td><span class="rpt-person"><span class="rpt-avatar" aria-hidden="true">{{ r.name|first|upper }}</span>{{ r.name }}</span></td>
+                            <td class="num"><span class="rpt-count rpt-count--present">{{ r.present }}</span></td>
+                            <td class="num"><span class="rpt-count rpt-count--late">{{ r.late }}</span></td>
+                            <td class="num"><span class="rpt-count rpt-count--absent">{{ r.absent }}</span></td>
+                            <td class="num"><span class="rpt-count rpt-count--leave">{{ r.leave }}</span></td>
+                            <td class="num">
+                                {% if r.rate is not None %}
+                                <span class="rpt-rate"><span class="rpt-rate__bar" aria-hidden="true"><span class="{% if r.rate >= 90 %}is-good{% elif r.rate >= 75 %}is-ok{% else %}is-bad{% endif %}" style="width:{{ r.rate }}%"></span></span><strong>{{ r.rate }}%</strong></span>
+                                {% else %}—{% endif %}
+                            </td>
+                            <td class="num">{{ r.hours }} h</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="rpt-empty">{% trans "No attendance records in this period." %}</div>
+            {% endif %}
+        </section>
+    </section>
+    {% endwith %}
+
+    <section id="rpt-balances" class="rpt-section rpt-detail" data-detail="balances" role="tabpanel">
+        <div class="rpt-detail__head"><h2 class="rpt-section-title">{% trans "Balances" %}</h2><button type="button" class="rpt-close" data-close aria-label="{% trans 'Close' %}">{% trans "Close" %} &times;</button></div>
+        <div class="rpt-balances">
+            <div class="rpt-balance">
+                <span>{% blocktrans with d=period.end|date:"d M Y" %}Parties owe you<br><span class="text-xs text-muted">as of {{ d }}</span>{% endblocktrans %}</span>
+                <strong style="color:var(--success)">Rs. {{ report.receivable_total|amt }}</strong>
+            </div>
+            <div class="rpt-balance">
+                <span>{% blocktrans with d=period.end|date:"d M Y" %}You owe parties<br><span class="text-xs text-muted">as of {{ d }}</span>{% endblocktrans %}</span>
+                <strong style="color:var(--destructive)">Rs. {{ report.payable_total|amt }}</strong>
+            </div>
+            <div class="rpt-balance">
+                <span>{% trans "Installments due in 30 days" %}<br><span class="text-xs text-muted">{% blocktrans count n=report.installments_overdue %}{{ n }} overdue{% plural %}{{ n }} overdue{% endblocktrans %}</span></span>
+                <strong>{{ report.installments|length }}</strong>
+            </div>
+        </div>
+        <div class="rpt-grid">
+            {% include "reports/_chart_card.html" with id="receivables" title=_("Who owes you the most") hint=_("Party balances (Dr) at the end of the period.") %}
+            {% include "reports/_chart_card.html" with id="payables" title=_("Whom you owe the most") hint=_("Party balances (Cr) at the end of the period.") %}
+        </div>
+
+        <div class="rpt-tablebar">
+            <h3 class="rpt-subsection-title">{% blocktrans with d=period.end|date:"d M Y" %}Party balances as of {{ d }}{% endblocktrans %} <span class="rpt-n">{{ report.party_rows|length }}</span></h3>
+            <div class="rpt-tablebar__tools">
+                <div class="rpt-seg rpt-seg--sm" data-rowfilter="tbl-parties">
+                    <button type="button" class="is-on" data-kind="">{% trans "All" %}</button>
+                    <button type="button" data-kind="owes">{% trans "Owe you" %}</button>
+                    <button type="button" data-kind="owed">{% trans "You owe" %}</button>
+                </div>
+                <label class="rpt-search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="search" data-search="tbl-parties" placeholder="{% trans 'Search party…' %}"></label>
+            </div>
+        </div>
+        <section class="rpt-card rpt-card--flush">
+            {% if report.party_rows %}
+            <div class="rpt-table-wrap rpt-table-wrap--tall">
+                <table class="rpt-table rpt-table--rows" id="tbl-parties">
+                    <thead><tr><th>{% trans "Party" %}</th><th class="num">{% trans "Debit" %}</th><th class="num">{% trans "Credit" %}</th><th class="num">{% trans "Balance" %}</th><th>{% trans "Last entry" %}</th><th></th></tr></thead>
+                    <tbody>
+                        {% for r in report.party_rows %}
+                        <tr data-kind="{% if r.balance > 0 %}owes{% else %}owed{% endif %}">
+                            <td dir="auto"><strong>{{ r.name }}</strong></td>
+                            <td class="num">{{ r.debit|amt }}</td>
+                            <td class="num">{{ r.credit|amt }}</td>
+                            <td class="num"><span class="rpt-bal {% if r.balance > 0 %}rpt-bal--owes{% else %}rpt-bal--owed{% endif %}">{{ r.abs|amt }} {% if r.balance > 0 %}{% trans "Dr" %}{% else %}{% trans "Cr" %}{% endif %}</span></td>
+                            <td>{{ r.last_date|date:"d M Y" }}</td>
+                            <td class="num"><a class="rpt-link" href="{% url 'member-ledger-report' %}?party={{ r.name|urlencode }}">{% trans "Statement" %} ›</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="rpt-noresult" hidden>{% trans "No parties match your search." %}</div>
+            </div>
+            {% else %}
+            <div class="rpt-empty">{% trans "Every party is settled." %}</div>
+            {% endif %}
+        </section>
+
+    <h3 class="rpt-subsection-title">{% trans "Installments — overdue and due in the next 30 days" %}</h3>
+    <section class="rpt-card rpt-card--flush">
+        {% if report.installments %}
+        <div class="rpt-table-wrap">
+            <table class="rpt-table">
+                <thead><tr><th>{% trans "Due" %}</th><th>{% trans "Booking" %}</th><th>{% trans "Client" %}</th><th>{% trans "Installment" %}</th><th class="num">{% trans "Amount" %}</th><th>{% trans "Status" %}</th></tr></thead>
+                <tbody>
+                    {% now "Y-m-d" as today %}
+                    {% for i in report.installments %}
+                    <tr>
+                        <td>{{ i.due_date|date:"d M Y" }}</td>
+                        <td><a href="{% url 'member-booking-detail' i.payment_plan.booking.id %}">{{ i.payment_plan.booking.voucher_number }}</a></td>
+                        <td>{{ i.payment_plan.booking.client_company|default:"—" }}</td>
+                        <td>{{ i.label }}</td>
+                        <td class="num">{{ i.amount|pkr }}</td>
+                        <td>{% if i.due_date|date:"Y-m-d" < today %}<span class="rpt-status rpt-status--cancelled">{% trans "Overdue" %}</span>{% else %}<span class="rpt-status rpt-status--draft">{% trans "Due" %}</span>{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="rpt-empty">{% trans "No installments overdue or due in the next 30 days." %}</div>
+        {% endif %}
+    </section>
+
+    </section>
+</div>
+{% endwith %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('click', function (e) {
+  var m = document.getElementById('dl-menu');
+  if (m && m.open && !m.contains(e.target)) m.open = false;
+});
+document.addEventListener('keydown', function (e) { var m = document.getElementById('dl-menu'); if (e.key === 'Escape' && m) m.open = false; });
+</script>
+{{ chart_data|json_script:"rpt-data" }}
+{% trans "Money in" as t_in %}{% trans "Money out" as t_out %}{% trans "Net" as t_net %}
+{% trans "Sales (charged to parties)" as t_sales %}{% trans "Purchases (billed by suppliers)" as t_purchases %}
+{% trans "Booking value" as t_value %}{% trans "Bookings" as t_bookings %}{% trans "Amount" as t_amount %}
+{% trans "Count" as t_count %}{% trans "Period" as t_period %}{% trans "Total" as t_total %}
+{% trans "No data for this period." as t_empty %}{% trans "Show table" as t_show_table %}{% trans "Show chart" as t_show_chart %}
+<script>
+(function () {
+  var DATA = JSON.parse(document.getElementById('rpt-data').textContent);
+  var T = {
+    in: '{{ t_in|escapejs }}', out: '{{ t_out|escapejs }}', net: '{{ t_net|escapejs }}',
+    sales: '{{ t_sales|escapejs }}', purchases: '{{ t_purchases|escapejs }}', value: '{{ t_value|escapejs }}',
+    bookings: '{{ t_bookings|escapejs }}', amount: '{{ t_amount|escapejs }}', count: '{{ t_count|escapejs }}',
+    period: '{{ t_period|escapejs }}', total: '{{ t_total|escapejs }}', empty: '{{ t_empty|escapejs }}',
+    showTable: '{{ t_show_table|escapejs }}', showChart: '{{ t_show_chart|escapejs }}'
+  };
+  // Booking statuses keep the same colour slot everywhere (colour follows the entity).
+  var STATUS_SLOT = { confirmed: 1, completed: 2, draft: 3, cancelled: 4 };
+  var STATUS_ORDER = ['confirmed', 'completed', 'draft', 'cancelled'];
+  var charts = [];
+
+  // --- filters: presets submit immediately; custom dates wait for Apply ----
+  var form = document.getElementById('rpt-filters');
+  var preset = document.getElementById('rpt-preset');
+  function syncCustom() {
+    var custom = preset.value === 'custom';
+    form.querySelectorAll('.rpt-custom').forEach(function (el) { el.hidden = !custom; });
+    form.querySelectorAll('.rpt-custom input').forEach(function (el) { el.disabled = !custom; });
+  }
+  // Keep the selected range visible when the pill bar has to scroll.
+  (function () {
+    var bar = form.querySelector('.rpt-presets'), on = form.querySelector('.rpt-preset.is-on');
+    if (bar && on && bar.scrollWidth > bar.clientWidth) {
+      bar.scrollLeft = on.offsetLeft - bar.offsetLeft - (bar.clientWidth - on.offsetWidth) / 2;
+    }
+  })();
+  form.querySelectorAll('.rpt-preset').forEach(function (b) {
+    b.addEventListener('click', function () {
+      preset.value = b.getAttribute('data-preset');
+      form.querySelectorAll('.rpt-preset').forEach(function (x) {
+        x.classList.toggle('is-on', x === b);
+        x.setAttribute('aria-checked', x === b ? 'true' : 'false');
+      });
+      syncCustom();
+      if (preset.value === 'custom') { var f = document.getElementById('rpt-from'); if (f) f.focus(); }
+      else form.submit();
+    });
+  });
+  // Tables: search box + status pills, both filter rows in place.
+  function applyRows(id) {
+    var table = document.getElementById(id);
+    if (!table) return;
+    var q = ((document.querySelector('[data-search="' + id + '"]') || {}).value || '').trim().toLowerCase();
+    var on = document.querySelector('[data-rowfilter="' + id + '"] .is-on');
+    var kind = on ? on.getAttribute('data-kind') : '';
+    var shown = 0;
+    table.querySelectorAll('tbody tr').forEach(function (tr) {
+      var ok = (!kind || tr.getAttribute('data-kind') === kind) && (!q || tr.textContent.toLowerCase().indexOf(q) !== -1);
+      tr.hidden = !ok;
+      if (ok) shown++;
+    });
+    var none = table.parentNode.querySelector('.rpt-noresult');
+    if (none) none.hidden = shown > 0;
+  }
+  document.querySelectorAll('[data-search]').forEach(function (inp) {
+    inp.addEventListener('input', function () { applyRows(inp.getAttribute('data-search')); });
+  });
+  document.querySelectorAll('[data-rowfilter]').forEach(function (seg) {
+    seg.addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      seg.querySelectorAll('button').forEach(function (x) { x.classList.toggle('is-on', x === b); });
+      applyRows(seg.getAttribute('data-rowfilter'));
+    });
+  });
+  syncCustom();
+
+  // --- formatting ------------------------------------------------------------
+  function money(v) { return 'Rs. ' + Math.round(v).toLocaleString('en-US'); }
+  var compactFmt = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
+  function compact(v) { return compactFmt.format(v); }
+  function allZero(arr) { return !arr || !arr.length || arr.every(function (v) { return !v; }); }
+
+  // --- theme -----------------------------------------------------------------
+  function theme() {
+    var s = getComputedStyle(document.querySelector('.viz-root'));
+    var g = function (n) { return s.getPropertyValue(n).trim(); };
+    return {
+      s: [null, g('--series-1'), g('--series-2'), g('--series-3'), g('--series-4')],
+      ink: g('--viz-ink'), muted: g('--viz-muted'), grid: g('--viz-grid'), surface: g('--viz-surface')
+    };
+  }
+
+  function baseOptions(th, opts) {
+    opts = opts || {};
+    var horizontal = !!opts.horizontal;
+    var valueAxis = {
+      beginAtZero: true,
+      grid: { color: th.grid, drawTicks: false },
+      border: { display: false },
+      ticks: { color: th.muted, padding: 8, callback: function (v) { return opts.count ? v : compact(v); } }
+    };
+    if (opts.count) valueAxis.ticks.precision = 0;
+    var catAxis = {
+      grid: { display: false },
+      border: { color: th.grid },
+      ticks: { color: th.muted, padding: 6, autoSkip: true, maxRotation: 0 }
+    };
+    if (opts.stacked) { valueAxis.stacked = true; catAxis.stacked = true; }
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: horizontal ? 'y' : 'x',
+      animation: { duration: 250 },
+      interaction: horizontal ? { mode: 'nearest', axis: 'y', intersect: false } : { mode: 'index', intersect: false },
+      layout: { padding: { top: 4, right: 8, left: 6 } },
+      plugins: {
+        legend: {
+          display: !!opts.legend, position: 'top', align: 'start',
+          labels: { color: th.ink, usePointStyle: true, pointStyle: 'rectRounded', boxWidth: 10, boxHeight: 10, padding: 14 }
+        },
+        tooltip: {
+          backgroundColor: th.surface, titleColor: th.ink, bodyColor: th.ink, borderColor: th.grid, borderWidth: 1,
+          padding: 10, boxPadding: 4, usePointStyle: true,
+          callbacks: opts.tooltip || {
+            label: function (ctx) {
+              var v = horizontal ? ctx.parsed.x : ctx.parsed.y;
+              return (ctx.dataset.label ? ctx.dataset.label + ': ' : '') + (opts.count ? v : money(v));
+            }
+          }
+        }
+      },
+      scales: horizontal ? { x: valueAxis, y: catAxis } : { x: catAxis, y: valueAxis }
+    };
+  }
+
+  function bar(color, extra) {
+    return Object.assign({
+      backgroundColor: color, hoverBackgroundColor: color, borderRadius: 4, borderSkipped: 'start',
+      maxBarThickness: 26, categoryPercentage: 0.72, barPercentage: 0.88
+    }, extra || {});
+  }
+
+  // --- table view (every chart has one) ------------------------------------
+  function renderTable(card, headers, rows, moneyCols) {
+    var wrap = card.querySelector('.rpt-table-wrap');
+    var html = '<table class="rpt-table"><thead><tr>' + headers.map(function (h, i) {
+      return '<th' + (i ? ' class="num"' : '') + '>' + h + '</th>';
+    }).join('') + '</tr></thead><tbody>' + rows.map(function (r) {
+      return '<tr>' + r.map(function (c, i) {
+        if (!i) return '<td>' + String(c).replace(/[<>&]/g, function (x) { return { '<': '&lt;', '>': '&gt;', '&': '&amp;' }[x]; }) + '</td>';
+        return '<td class="num">' + (moneyCols.indexOf(i) !== -1 ? money(c) : c) + '</td>';
+      }).join('') + '</tr>';
+    }).join('') + '</tbody></table>';
+    wrap.innerHTML = html;
+  }
+
+  function mount(id, config, table) {
+    var card = document.querySelector('[data-chart="' + id + '"]');
+    if (!card) return;
+    var empty = card.querySelector('.rpt-empty');
+    var canvasBox = card.querySelector('.rpt-canvas');
+    var toggle = card.querySelector('.rpt-toggle');
+    if (!config) {
+      empty.hidden = false; canvasBox.hidden = true; toggle.hidden = true;
+      return;
+    }
+    empty.hidden = true;
+    renderTable(card, table.headers, table.rows, table.money || []);
+    // Horizontal (ranked) bars: height follows the number of rows, so 2 rows don't float in a tall box.
+    if (config.options && config.options.indexAxis === 'y') {
+      canvasBox.style.height = Math.max(150, config.data.labels.length * 36 + 56) + 'px';
+    }
+    var showingTable = card.dataset.view === 'table';
+    canvasBox.hidden = showingTable;
+    card.querySelector('.rpt-table-wrap').hidden = !showingTable;
+    toggle.textContent = showingTable ? T.showChart : T.showTable;
+    charts.push(new Chart(canvasBox.querySelector('canvas'), config));
+  }
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.rpt-toggle');
+    if (!btn) return;
+    var card = btn.closest('.rpt-card');
+    var toTable = card.dataset.view !== 'table';
+    card.dataset.view = toTable ? 'table' : 'chart';
+    card.querySelector('.rpt-canvas').hidden = toTable;
+    card.querySelector('.rpt-table-wrap').hidden = !toTable;
+    btn.textContent = toTable ? T.showChart : T.showTable;
+  });
+
+  function horizontalPairs(id, pairs, color, opts) {
+    opts = opts || {};
+    if (allZero(pairs.values)) return mount(id, null);
+    var th = theme();
+    mount(id, {
+      type: 'bar',
+      data: { labels: pairs.labels, datasets: [bar(color(th), { label: opts.label || T.amount, data: pairs.values, maxBarThickness: 22 })] },
+      options: baseOptions(th, Object.assign({ horizontal: true }, opts))
+    }, {
+      headers: ['', opts.count ? T.count : T.amount],
+      rows: pairs.labels.map(function (l, i) { return [l, pairs.values[i]]; }),
+      money: opts.count ? [] : [1]
+    });
+  }
+
+  function render() {
+    charts.forEach(function (c) { c.destroy(); });
+    charts = [];
+    var th = theme();
+    var S = DATA.series, B = DATA.breakdowns;
+
+    // 1. Money in vs out — grouped bars on one axis; net in the tooltip footer.
+    if (allZero(S.cash_in) && allZero(S.cash_out)) { mount('cashflow', null); }
+    else {
+      var opts = baseOptions(th, { legend: true });
+      opts.plugins.tooltip.callbacks.footer = function (items) { return T.net + ': ' + money(S.net[items[0].dataIndex]); };
+      mount('cashflow', {
+        type: 'bar',
+        data: { labels: S.labels, datasets: [
+          bar(th.s[1], { label: T.in, data: S.cash_in }),
+          bar(th.s[2], { label: T.out, data: S.cash_out })
+        ] },
+        options: opts
+      }, {
+        headers: [T.period, T.in, T.out, T.net],
+        rows: S.labels.map(function (l, i) { return [l, S.cash_in[i], S.cash_out[i], S.net[i]]; }),
+        money: [1, 2, 3]
+      });
+    }
+
+    // 2. Bookings by status — stacked; 2px surface gap between segments.
+    var st = S.status;
+    var byKey = {};
+    st.keys.forEach(function (k, i) { byKey[k] = { label: st.labels[i], values: st.values[i] }; });
+    if (STATUS_ORDER.every(function (k) { return allZero(byKey[k] && byKey[k].values); })) { mount('bookings', null); }
+    else {
+      var present = STATUS_ORDER.filter(function (k) { return byKey[k] && !allZero(byKey[k].values); });
+      mount('bookings', {
+        type: 'bar',
+        data: { labels: S.labels, datasets: present.map(function (k, idx) {
+          return bar(th.s[STATUS_SLOT[k]], {
+            label: byKey[k].label, data: byKey[k].values, borderColor: th.surface,
+            borderWidth: { top: idx === present.length - 1 ? 0 : 2 }, borderSkipped: false,
+            borderRadius: idx === present.length - 1 ? 4 : 0
+          });
+        }) },
+        options: baseOptions(th, { legend: true, stacked: true, count: true })
+      }, {
+        headers: [T.period].concat(present.map(function (k) { return byKey[k].label; })),
+        rows: S.labels.map(function (l, i) { return [l].concat(present.map(function (k) { return byKey[k].values[i]; })); })
+      });
+    }
+
+    // 3. Booking value — single-series line, no legend.
+    if (allZero(S.booking_value)) { mount('value', null); }
+    else {
+      mount('value', {
+        type: 'line',
+        data: { labels: S.labels, datasets: [{
+          label: T.value, data: S.booking_value, borderColor: th.s[1], backgroundColor: th.s[1] + '22',
+          fill: true, borderWidth: 2, cubicInterpolationMode: 'monotone', pointRadius: S.labels.length > 40 ? 0 : 3,
+          pointHoverRadius: 6, pointBackgroundColor: th.s[1], pointBorderColor: th.surface, pointBorderWidth: 2
+        }] },
+        options: baseOptions(th, {})
+      }, {
+        headers: [T.period, T.value],
+        rows: S.labels.map(function (l, i) { return [l, S.booking_value[i]]; }),
+        money: [1]
+      });
+    }
+
+    // 4. Sales vs purchases by service — two series, legend.
+    var sv = B.services;
+    if (!sv.labels.length) { mount('services', null); }
+    else {
+      mount('services', {
+        type: 'bar',
+        data: { labels: sv.labels, datasets: [
+          bar(th.s[1], { label: T.sales, data: sv.sales }),
+          bar(th.s[2], { label: T.purchases, data: sv.purchases })
+        ] },
+        options: baseOptions(th, { legend: true })
+      }, {
+        headers: ['', T.sales, T.purchases],
+        rows: sv.labels.map(function (l, i) { return [l, sv.sales[i], sv.purchases[i]]; }),
+        money: [1, 2]
+      });
+    }
+
+    // Attendance by status — stacked, fixed slot per status.
+    var at = S.attendance;
+    var AT_LABELS = { present: '{% trans "Present" as l %}{{ l|escapejs }}', late: '{% trans "Late" as l %}{{ l|escapejs }}', absent: '{% trans "Absent" as l %}{{ l|escapejs }}', leave: '{% trans "Leave" as l %}{{ l|escapejs }}' };
+    // Attendance status means good / warning / bad, so it uses the status colours —
+    // the same ones as the "By staff member" table below (legend + table keep it readable).
+    var rootStyle = getComputedStyle(document.documentElement);
+    var AT_COLORS = {
+      present: rootStyle.getPropertyValue('--success').trim(),
+      late: rootStyle.getPropertyValue('--warning').trim(),
+      absent: rootStyle.getPropertyValue('--destructive').trim(),
+      leave: rootStyle.getPropertyValue('--muted-foreground').trim()
+    };
+    if (!at || at.values.every(allZero)) { mount('attendance', null); }
+    else {
+      var atPresent = at.keys.filter(function (k, i) { return !allZero(at.values[i]); });
+      mount('attendance', {
+        type: 'bar',
+        data: { labels: S.labels, datasets: atPresent.map(function (k, idx) {
+          var vals = at.values[at.keys.indexOf(k)];
+          return bar(AT_COLORS[k], {
+            label: AT_LABELS[k], data: vals, borderColor: th.surface,
+            borderWidth: { top: idx === atPresent.length - 1 ? 0 : 2 }, borderSkipped: false,
+            borderRadius: idx === atPresent.length - 1 ? 4 : 0
+          });
+        }) },
+        options: baseOptions(th, { legend: true, stacked: true, count: true })
+      }, {
+        headers: [T.period].concat(atPresent.map(function (k) { return AT_LABELS[k]; })),
+        rows: S.labels.map(function (l, i) { return [l].concat(atPresent.map(function (k) { return at.values[at.keys.indexOf(k)][i]; })); })
+      });
+    }
+
+    // 5–10. Single-series ranked bars: one colour for every bar.
+    var one = function (t) { return t.s[1]; };
+    horizontalPairs('expenses', B.expenses, one);
+    horizontalPairs('receivables', B.receivables, one);
+    horizontalPairs('payables', B.payables, one);
+    horizontalPairs('methods', B.methods, one);
+    horizontalPairs('packages', B.packages, one, { count: true, label: T.bookings });
+    horizontalPairs('clients', B.clients, one, { label: T.value });
+    horizontalPairs('payers', B.payers, one, { label: T.in });
+    var staff = B.staff;
+    if (allZero(staff.values)) { mount('staff', null); }
+    else {
+      var sOpts = baseOptions(th, { horizontal: true });
+      sOpts.plugins.tooltip.callbacks.label = function (ctx) {
+        return T.value + ': ' + money(ctx.parsed.x) + ' · ' + staff.counts[ctx.dataIndex] + ' ' + T.bookings.toLowerCase();
+      };
+      mount('staff', {
+        type: 'bar',
+        data: { labels: staff.labels, datasets: [bar(th.s[1], { label: T.value, data: staff.values, maxBarThickness: 22 })] },
+        options: sOpts
+      }, {
+        headers: ['', T.value, T.bookings],
+        rows: staff.labels.map(function (l, i) { return [l, staff.values[i], staff.counts[i]]; }),
+        money: [1]
+      });
+    }
+  }
+
+  function renderSparks() {
+    var th = theme();
+    document.querySelectorAll('.rpt-kpi__spark[data-spark]').forEach(function (svg) {
+      var vals = DATA.series[svg.getAttribute('data-spark')] || [];
+      svg.innerHTML = '';
+      if (vals.length < 2 || allZero(vals)) return;
+      var w = 200, h = 34, pad = 2;
+      var min = Math.min.apply(null, vals.concat([0])), max = Math.max.apply(null, vals.concat([0]));
+      var span = max - min || 1;
+      var pts = vals.map(function (v, i) {
+        return [pad + i * (w - 2 * pad) / (vals.length - 1), h - pad - (v - min) * (h - 2 * pad) / span];
+      });
+      var line = pts.map(function (p, i) { return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
+      var zeroY = (h - pad - (0 - min) * (h - 2 * pad) / span).toFixed(1);
+      var area = line + ' L' + pts[pts.length - 1][0].toFixed(1) + ' ' + zeroY + ' L' + pts[0][0].toFixed(1) + ' ' + zeroY + ' Z';
+      svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+      svg.setAttribute('preserveAspectRatio', 'none');
+      svg.innerHTML = '<path d="' + area + '" fill="' + th.s[1] + '" fill-opacity="0.12"/>' +
+        '<path d="' + line + '" fill="none" stroke="' + th.s[1] + '" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>';
+    });
+  }
+
+  function start() {
+    if (typeof Chart === 'undefined') { setTimeout(start, 50); return; }
+    Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
+    render();
+    renderSparks();
+    // Theme toggle re-renders with that theme's validated steps.
+    new MutationObserver(function () { render(); renderSparks(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  }
+  // ── Compact view: one detail section open at a time, opened from its card ──
+  var openInput = document.createElement('input');
+  openInput.type = 'hidden'; openInput.name = 'open';
+  document.getElementById('rpt-filters').appendChild(openInput);
+  function openSection(key, scroll) {
+    document.querySelectorAll('.rpt-detail').forEach(function (sec) { sec.classList.toggle('is-open', sec.dataset.detail === key); });
+    document.querySelectorAll('.rpt-tile').forEach(function (t) { t.setAttribute('aria-expanded', t.dataset.open === key ? 'true' : 'false'); });
+    openInput.value = key || '';
+    openInput.disabled = !key;
+    var url = new URL(location.href);
+    if (key) url.searchParams.set('open', key); else url.searchParams.delete('open');
+    history.replaceState(null, '', url);
+    charts.forEach(function (c) { c.resize(); });
+    if (key && scroll) document.getElementById('rpt-' + key).scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  document.querySelectorAll('.rpt-tile').forEach(function (t) {
+    t.addEventListener('click', function () {
+      var already = t.getAttribute('aria-expanded') === 'true';
+      openSection(already ? null : t.dataset.open, !already);
+    });
+  });
+  document.querySelectorAll('.rpt-detail [data-close]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var key = b.closest('.rpt-detail').dataset.detail;
+      openSection(null);
+      document.querySelector('.rpt-tile[data-open="' + key + '"]').focus();
+    });
+  });
+  window.addEventListener('beforeprint', function () { charts.forEach(function (c) { c.resize(); }); });
+  var initial = new URLSearchParams(location.search).get('open') || location.hash.replace('#rpt-', '');
+  openSection(['sales', 'money', 'attendance', 'balances'].indexOf(initial) !== -1 ? initial : null, false);
+
+  start();
+})();
+</script>
+{% endblock %}

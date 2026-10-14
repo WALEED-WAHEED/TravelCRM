@@ -1,0 +1,47 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Staff Access" %}{% endblock %}
+{% block content %}
+{% trans "Revoke staff access for this user?" as js_confirm_revoke %}
+<div class="page-header">
+  <h1 class="page-title">{% trans "Platform staff" %}</h1>
+  <p class="page-subtitle">{% trans "Scoped, non-superuser access to parts of this panel. Full Super Admins bypass this entirely." %}</p>
+</div>
+
+<div class="mb-4">
+  <a href="{% url 'platform_admin:staff-create' %}" class="btn btn-primary">{% trans "Grant staff access" %}</a>
+</div>
+
+<div class="card">
+  <div class="card-content" style="padding-top:20px;">
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>{% trans "User" %}</th><th>{% trans "Label" %}</th><th>{% trans "Capabilities" %}</th><th>{% trans "Granted by" %}</th><th></th></tr></thead>
+        <tbody>
+          {% for access in staff %}
+          <tr>
+            <td class="font-medium">{{ access.user.username }}</td>
+            <td class="text-muted text-sm">{{ access.role_label|default:"—" }}</td>
+            <td>
+              {% for cap in access.capabilities %}<span class="badge badge-outline" style="margin:2px;">{{ cap }}</span>{% empty %}<span class="text-muted text-sm">{% trans "None granted" %}</span>{% endfor %}
+            </td>
+            <td class="text-muted text-sm">{{ access.granted_by|default:"—" }}</td>
+            <td>
+              <div class="flex gap-2">
+                <a class="btn btn-outline btn-sm" href="{% url 'platform_admin:staff-edit' access.id %}">{% trans "Edit" %}</a>
+                <form method="post" action="{% url 'platform_admin:staff-revoke' access.id %}" onsubmit="return confirm('{{ js_confirm_revoke|escapejs }}');">
+                  {% csrf_token %}
+                  <button class="btn btn-outline btn-sm" type="submit">{% trans "Revoke" %}</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5"><div class="empty-state"><h3>{% trans "No scoped staff yet" %}</h3><p>{% trans "Everyone with access today is a full Super Admin." %}</p></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

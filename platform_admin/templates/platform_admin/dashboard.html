@@ -1,0 +1,98 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Tenants" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{% trans "Tenants" %}</h1>
+  <p class="page-subtitle">{% trans "Every travel agency running on this platform." %}</p>
+</div>
+
+<div class="grid grid-4 mb-4">
+  <div class="card kpi-card">
+    <div class="kpi-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div>
+    <div class="kpi-value">{{ stats.total_agencies }}</div>
+    <div class="kpi-label">{% trans "Total agencies" %}</div>
+  </div>
+  <div class="card kpi-card">
+    <div class="kpi-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="kpi-value">{{ stats.active_agencies }}</div>
+    <div class="kpi-label">{% trans "Active" %}</div>
+  </div>
+  <div class="card kpi-card">
+    <div class="kpi-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
+    <div class="kpi-value">{{ stats.suspended_agencies }}</div>
+    <div class="kpi-label">{% trans "Suspended" %}</div>
+  </div>
+  <div class="card kpi-card">
+    <div class="kpi-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+    <div class="kpi-value">{{ stats.total_users }}</div>
+    <div class="kpi-label">{% trans "Platform-wide users" %}</div>
+  </div>
+</div>
+
+<div class="grid grid-4 mb-6">
+  <div class="card kpi-card">
+    <div class="kpi-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+    <div class="kpi-value">PKR {{ stats.mrr|floatformat:0 }}</div>
+    <div class="kpi-label">{% trans "Monthly recurring revenue" %}</div>
+  </div>
+  <div class="card kpi-card">
+    <div class="kpi-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
+    <div class="kpi-value">{{ stats.paying }}</div>
+    <div class="kpi-label">{% trans "Paying agencies" %}</div>
+  </div>
+  <div class="card kpi-card">
+    <div class="kpi-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+    <div class="kpi-value">{{ stats.trialing }}</div>
+    <div class="kpi-label">{% trans "On trial" %}</div>
+  </div>
+  <div class="card kpi-card">
+    <div class="kpi-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <div class="kpi-value">{{ stats.pending_payments }}</div>
+    <div class="kpi-label"><a href="{% url 'platform_admin:pending-payments' %}" class="text-primary">{% trans "Pending payments →" %}</a></div>
+  </div>
+  <div class="card kpi-card">
+    <div class="kpi-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+    <div class="kpi-value">{{ stats.past_due }}</div>
+    <div class="kpi-label">{% trans "Past due" %}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-content" style="padding-top:20px;">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>{% trans "Agency" %}</th><th>{% trans "Code" %}</th><th>{% trans "City / country" %}</th><th>{% trans "Status" %}</th><th>{% trans "Created" %}</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for agency in agencies %}
+          <tr>
+            <td class="font-medium"><a href="{% url 'platform_admin:tenant-detail' agency.id %}">{{ agency.name }}</a></td>
+            <td class="text-muted text-sm">{{ agency.code }}</td>
+            <td class="text-muted text-sm">{{ agency.city }}{% if agency.country %}, {{ agency.country }}{% endif %}</td>
+            <td>
+              {% if agency.is_active %}<span class="badge badge-success">{% trans "Active" %}</span>{% else %}<span class="badge badge-outline">{% trans "Suspended" %}</span>{% endif %}
+            </td>
+            <td class="text-muted text-sm tabular-nums">{{ agency.created_at|date:"Y-m-d" }}</td>
+            <td><a class="btn btn-outline btn-sm" href="{% url 'platform_admin:tenant-detail' agency.id %}">{% trans "Manage" %}</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6">
+            <div class="hotels-empty">
+              <div class="hotels-empty__glow" aria-hidden="true"></div>
+              <div class="hotels-empty__icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              </div>
+              <h3 class="hotels-empty__title">{% trans "No agencies yet" %}</h3>
+              <p class="hotels-empty__text">{% trans "Onboard the first tenant to get started." %}</p>
+              <a href="{% url 'platform_admin:tenant-create' %}" class="btn btn-primary hotels-empty__btn">{% trans "Create the first one" %}</a>
+            </div>
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

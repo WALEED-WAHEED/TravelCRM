@@ -1,0 +1,36 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Email Templates" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{% trans "Global email templates" %}</h1>
+  <p class="page-subtitle">{% trans "Defaults every tenant inherits unless they set their own override." %}</p>
+</div>
+
+<div class="mb-4">
+  <a href="{% url 'platform_admin:email-template-create' %}" class="btn btn-primary">{% trans "New template" %}</a>
+</div>
+
+<div class="card">
+  <div class="card-content" style="padding-top:20px;">
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Type" %}</th><th>{% trans "Subject" %}</th><th>{% trans "Status" %}</th><th></th></tr></thead>
+        <tbody>
+          {% for t in templates %}
+          <tr>
+            <td class="font-medium">{{ t.name }} {% if t.is_default %}<span class="badge badge-primary">{% trans "Default" %}</span>{% endif %}</td>
+            <td class="text-muted text-sm">{{ t.get_template_type_display }}</td>
+            <td class="text-muted text-sm">{{ t.subject }}</td>
+            <td>{% if t.is_active %}<span class="badge badge-success">{% trans "Active" %}</span>{% else %}<span class="badge badge-outline">{% trans "Inactive" %}</span>{% endif %}</td>
+            <td><a class="btn btn-outline btn-sm" href="{% url 'platform_admin:email-template-edit' t.id %}">{% trans "Edit" %}</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5"><div class="empty-state"><h3>{% trans "No global templates yet" %}</h3></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

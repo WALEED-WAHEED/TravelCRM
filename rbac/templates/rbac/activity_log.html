@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Activity Log" %}{% endblock %}
+{% block extra_head %}
+<style>
+    .page-activity [hidden] { display: none !important; }
+    .al-stat-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .al-panel { padding: 20px 22px 22px; }
+    .al-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+    .al-title { margin: 0; font-size: 1.05rem; font-weight: 700; }
+    .al-hint { margin: 3px 0 0; font-size: 0.85rem; color: var(--muted-foreground); }
+    .al-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+    /* Fill the whole row: search takes the most room, the four dropdowns share the rest. */
+    .al-filters { flex-wrap: nowrap; }
+    .al-filters .hotels-search { flex: 2 1 260px; min-width: 0; max-width: none; }
+    .al-filters .nice-select { flex: 1 1 150px; min-width: 0; }
+    .al-filters .nice-select__btn { width: 100%; height: 40px; }
+    .al-filters .nice-select__value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .al-filters .nice-select__chev { margin-inline-start: auto; flex: none; }
+    @media (max-width: 1100px) {
+        .al-filters { flex-wrap: wrap; }
+        .al-filters .hotels-search { flex-basis: 100%; }
+    }
+    .al-filters .form-select { width: auto; min-width: 160px; flex: 0 1 auto; }
+    .al-clear { font-size: 0.85rem; font-weight: 600; color: var(--primary); text-decoration: none; }
+    .al-clear:hover { text-decoration: underline; }
+    .al-box { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+    .al-box .hotels-data-table { margin: 0; }
+    .al-box .hotels-data-table td { vertical-align: top; }
+    .al-box tbody tr:hover td { background: color-mix(in srgb, var(--primary) 4%, transparent); }
+    .al-when { white-space: nowrap; }
+    .al-when small { display: block; color: var(--muted-foreground); }
+    .al-who { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+    .al-avatar { flex: none; width: 30px; height: 30px; border-radius: 999px; display: grid; place-items: center; font-size: 0.75rem; font-weight: 700; color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
+    .al-avatar--system { color: var(--muted-foreground); background: var(--muted); }
+    .al-what strong { display: block; font-weight: 600; }
+    .al-what small { color: var(--muted-foreground); }
+    .al-changes { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 0.82rem; }
+    .al-changes li { line-height: 1.4; }
+    .al-changes .label { font-weight: 600; }
+    .al-changes .old { color: var(--muted-foreground); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--muted-foreground) 60%, transparent); }
+    .al-changes .arrow { color: var(--muted-foreground); margin: 0 4px; }
+    .al-more summary { cursor: pointer; font-size: 0.82rem; font-weight: 600; color: var(--primary); }
+    .al-more[open] summary { margin-bottom: 6px; }
+    .al-pager { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 14px; font-size: 0.85rem; color: var(--muted-foreground); }
+    .al-pager__btns { display: flex; gap: 8px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-activity page-hotels">
+    <header class="hotels-hero hotels-reveal" style="--d:0ms">
+        <div class="hotels-hero__copy">
+            <p class="hotels-eyebrow">{% trans "Account" %}</p>
+            <h1 class="page-title hotels-hero__title">{% trans "Activity Log" %}</h1>
+            <p class="page-subtitle hotels-hero__sub">{% blocktrans with agency_name=request.user.agency.name %}Every create, edit and delete in {{ agency_name }} is recorded automatically — who did it, when, and exactly what changed.{% endblocktrans %}</p>
+        </div>
+        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms">
+            <a class="btn btn-outline" href="?{{ query }}{% if query %}&amp;{% endif %}export=csv">{% trans "Export to Excel" %}</a>
+        </div>
+    </header>
+
+    <div class="hotels-stat-grid al-stat-grid">
+        <div class="hotels-stat-card hotels-stat-card--info hotels-reveal" style="--d:80ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+            <div class="hotels-stat-card__meta"><span class="hotels-stat-card__label">{% trans "All activity" %}</span><span class="hotels-stat-card__value">{{ total }}</span></div>
+        </div>
+        <div class="hotels-stat-card hotels-stat-card--success hotels-reveal" style="--d:110ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+            <div class="hotels-stat-card__meta"><span class="hotels-stat-card__label">{% trans "Created" %}</span><span class="hotels-stat-card__value">{{ counts.create }}</span></div>
+        </div>
+        <div class="hotels-stat-card hotels-stat-card--warning hotels-reveal" style="--d:140ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div>
+            <div class="hotels-stat-card__meta"><span class="hotels-stat-card__label">{% trans "Edited" %}</span><span class="hotels-stat-card__value">{{ counts.update }}</span></div>
+        </div>
+        <div class="hotels-stat-card hotels-stat-card--danger hotels-reveal" style="--d:170ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></div>
+            <div class="hotels-stat-card__meta"><span class="hotels-stat-card__label">{% trans "Deleted" %}</span><span class="hotels-stat-card__value">{{ counts.delete }}</span></div>
+        </div>
+    </div>
+
+    <section class="card al-panel hotels-reveal" style="--d:200ms">
+        <div class="al-top">
+            <div>
+                <h2 class="al-title">{% trans "History" %}</h2>
+                <p class="al-hint">{% trans "Newest first. Times are in your office timezone." %}</p>
+            </div>
+        </div>
+        <form method="get" class="al-filters" id="al-filters">
+            <div class="search-bar hotels-search">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="search" name="q" value="{{ f.q }}" placeholder="{% trans 'Search records…' %}" aria-label="{% trans 'Search' %}" autocomplete="off">
+            </div>
+            <select name="preset" class="form-select" data-nice-select data-prefix="{% trans 'When' %}" aria-label="{% trans 'When' %}">
+                {% for v, l in presets %}<option value="{{ v }}" {% if f.preset == v %}selected{% endif %}>{% trans l %}</option>{% endfor %}
+            </select>
+            <select name="action" class="form-select" data-nice-select data-prefix="{% trans 'Action' %}" aria-label="{% trans 'Action' %}">
+                <option value="">{% trans "Any" %}</option>
+                {% for v, l in actions %}<option value="{{ v }}" {% if f.action == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+            </select>
+            <select name="model" class="form-select" data-nice-select data-prefix="{% trans 'Type' %}" aria-label="{% trans 'Record type' %}">
+                <option value="">{% trans "Any" %}</option>
+                {% for v, l in options.models %}<option value="{{ v }}" {% if f.model == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+            </select>
+            <select name="who" class="form-select" data-nice-select data-prefix="{% trans 'Who' %}" aria-label="{% trans 'Who' %}">
+                <option value="">{% trans "Anyone" %}</option>
+                {% for v, l in options.users %}<option value="{{ v }}" {% if f.who == v|stringformat:"s" %}selected{% endif %}>{{ l }}</option>{% endfor %}
+                {% if options.has_system %}<option value="system" {% if f.who == 'system' %}selected{% endif %}>{% trans "System (automatic)" %}</option>{% endif %}
+            </select>
+            {% if filtered %}<a class="al-clear" href="{% url 'member-activity-log' %}">{% trans "Clear filters" %}</a>{% endif %}
+        </form>
+
+        <div class="al-box">
+            {% if rows %}
+            <table class="hotels-data-table">
+                <thead><tr><th>{% trans "When" %}</th><th>{% trans "Who" %}</th><th>{% trans "Action" %}</th><th>{% trans "Record" %}</th><th>{% trans "What changed" %}</th></tr></thead>
+                <tbody>
+                    {% for r in rows %}
+                    <tr class="hotels-row" style="--row-i: {{ forloop.counter0 }}">
+                        <td class="al-when">{{ r.when_date }}<small>{{ r.when_time }}</small></td>
+                        <td>
+                            <div class="al-who" {% if r.e.ip_address %}title="IP {{ r.e.ip_address }}"{% endif %}>
+                                {% if r.e.user_id %}
+                                <span class="al-avatar" aria-hidden="true">{{ r.e.user.first_name|first|default:r.e.user.username|first|upper }}{{ r.e.user.last_name|first|upper }}</span>
+                                {% else %}
+                                <span class="al-avatar al-avatar--system" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M1 12h4M19 12h4M4.2 19.8 7 17M17 7l2.8-2.8"/></svg></span>
+                                {% endif %}
+                                <span>{{ r.who }}</span>
+                            </div>
+                        </td>
+                        <td><span class="badge {% if r.e.action == 'delete' %}badge-danger{% elif r.e.action == 'create' %}badge-success{% elif r.e.action == 'update' %}badge-warning{% else %}badge-default{% endif %}">{% if r.e.action == 'create' %}{% trans "Created" %}{% elif r.e.action == 'update' %}{% trans "Edited" %}{% elif r.e.action == 'delete' %}{% trans "Deleted" %}{% else %}{{ r.e.get_action_display }}{% endif %}</span></td>
+                        <td class="al-what"><strong>{{ r.e.object_repr }}</strong><small>{{ r.type }}</small></td>
+                        <td>
+                            {% if r.changes %}
+                                {% if r.changes|length <= 3 %}
+                                <ul class="al-changes">
+                                    {% for c in r.changes %}<li><span class="label">{{ c.label }}:</span> <span class="old">{{ c.old }}</span><span class="arrow">→</span>{{ c.new }}</li>{% endfor %}
+                                </ul>
+                                {% else %}
+                                <details class="al-more">
+                                    <summary>{% blocktrans count n=r.changes|length %}{{ n }} field changed{% plural %}{{ n }} fields changed{% endblocktrans %}</summary>
+                                    <ul class="al-changes">
+                                        {% for c in r.changes %}<li><span class="label">{{ c.label }}:</span> <span class="old">{{ c.old }}</span><span class="arrow">→</span>{{ c.new }}</li>{% endfor %}
+                                    </ul>
+                                </details>
+                                {% endif %}
+                            {% elif r.e.action == 'create' %}<span class="text-sm text-muted">{% trans "New record" %}</span>
+                            {% elif r.e.action == 'delete' %}<span class="text-sm text-muted">{% trans "Removed" %}</span>
+                            {% else %}<span class="text-muted">—</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="hotels-empty">
+                <div class="hotels-empty__glow" aria-hidden="true"></div>
+                {% if filtered %}
+                <h3 class="hotels-empty__title">{% trans "No matching activity" %}</h3>
+                <p class="hotels-empty__text">{% trans "Try a wider time range or another record type." %}</p>
+                <a class="btn btn-outline hotels-empty__btn" href="{% url 'member-activity-log' %}">{% trans "Clear filters" %}</a>
+                {% else %}
+                <h3 class="hotels-empty__title">{% trans "No activity recorded yet" %}</h3>
+                <p class="hotels-empty__text">{% trans "Changes to bookings, the ledger, inventory and settings will appear here." %}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        {% if page.paginator.num_pages > 1 %}
+        <nav class="al-pager" aria-label="{% trans 'Pages' %}">
+            <span>{% blocktrans with a=page.start_index b=page.end_index n=page.paginator.count %}Showing {{ a }}–{{ b }} of {{ n }}{% endblocktrans %}</span>
+            <span class="al-pager__btns">
+                {% if page.has_previous %}<a class="btn btn-outline btn-sm" href="?{{ query }}{% if query %}&amp;{% endif %}page={{ page.previous_page_number }}">{% trans "Previous" %}</a>{% endif %}
+                {% if page.has_next %}<a class="btn btn-outline btn-sm" href="?{{ query }}{% if query %}&amp;{% endif %}page={{ page.next_page_number }}">{% trans "Next" %}</a>{% endif %}
+            </span>
+        </nav>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var f = document.getElementById('al-filters');
+  if (!f) return;
+  // Dropdowns apply immediately; the search box applies on Enter (the form's normal submit).
+  f.addEventListener('change', function (e) { if (e.target.name !== 'q') f.submit(); });
+})();
+</script>
+{% endblock %}

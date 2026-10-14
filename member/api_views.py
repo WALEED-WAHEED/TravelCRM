@@ -1,15 +1,16 @@
 from rest_framework import permissions, status, viewsets
 from rest_framework.authentication import SessionAuthentication
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from utils.api import TenantScopedAPIMixin
 from utils.permissions import IsMember, IsMemberOrAgent
 
-from .models import Flight, Hotel, Mutamer, Transport
-from .serializers import FlightSerializer, HotelSerializer, MutamerSerializer, TransportSerializer
+from .models import Flight, Hotel, Package, Transport
+from .serializers import FlightSerializer, HotelSerializer, PackageSerializer, TransportSerializer
 
 
-class HotelViewSet(viewsets.ModelViewSet):
+class HotelViewSet(TenantScopedAPIMixin, viewsets.ModelViewSet):
     """
     Agency hotels. Browser forms use session auth + CSRF; API clients may use JWT.
     """
@@ -47,7 +48,7 @@ class HotelViewSet(viewsets.ModelViewSet):
         )
 
 
-class FlightViewSet(viewsets.ModelViewSet):
+class FlightViewSet(TenantScopedAPIMixin, viewsets.ModelViewSet):
     """Agency flights — session + CSRF for HTMX, JWT for API clients."""
 
     serializer_class = FlightSerializer
@@ -83,7 +84,7 @@ class FlightViewSet(viewsets.ModelViewSet):
         )
 
 
-class TransportViewSet(viewsets.ModelViewSet):
+class TransportViewSet(TenantScopedAPIMixin, viewsets.ModelViewSet):
     """Agency transports — session + CSRF for HTMX, JWT for API clients."""
 
     serializer_class = TransportSerializer
@@ -119,29 +120,23 @@ class TransportViewSet(viewsets.ModelViewSet):
         )
 
 
-class MutamerViewSet(viewsets.ModelViewSet):
-    """Agency mutamers — session + CSRF for HTMX, JWT for API clients."""
+class PackageViewSet(TenantScopedAPIMixin, viewsets.ModelViewSet):
+    """Agency packages — agents can read (to quote), members manage."""
 
-    serializer_class = MutamerSerializer
+    serializer_class = PackageSerializer
     authentication_classes = [SessionAuthentication, JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get_permissions(self):
-        # Members and agents both manage pilgrims for their agency.
-        return [IsMemberOrAgent()]
+        if self.action in ("list", "retrieve"):
+            return [IsMemberOrAgent()]
+        return [IsMember()]
 
     def get_queryset(self):
-        user = self.request.user
-        aid = getattr(user, "agency_id", None)
+        aid = getattr(self.request.user, "agency_id", None)
         if not aid:
-            return Mutamer.objects.none()
-        if user.role in ("member", "agent"):
-            qs = Mutamer.objects.filter(agency_id=aid)
-            family_id = (self.request.query_params.get("family_id") or "").strip()
-            if family_id:
-                qs = qs.filter(family_id=family_id)
-            return qs
-        return Mutamer.objects.none()
+            return Package.objects.none()
+        return Package.objects.filter(agency_id=aid).select_related("makkah_hotel", "madina_hotel", "flight", "return_flight", "transport")
 
     def create(self, request, *args, **kwargs):
         if not request.user.agency_id:
@@ -153,6 +148,6 @@ class MutamerViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(
-            agent=self.request.user,
             agency_id=self.request.user.agency_id,
+            created_by=self.request.user,
         )

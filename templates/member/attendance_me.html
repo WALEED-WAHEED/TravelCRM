@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "My attendance" %}{% endblock %}
+{% block extra_head %}
+<style>
+    .page-att-me [hidden] { display: none !important; }
+    .am-wrap { max-width: 860px; margin: 0 auto; }
+    .am-card { padding: 22px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); box-shadow: var(--shadow-card); margin-bottom: 16px; }
+    .am-today { text-align: center; }
+    .am-date { font-size: 0.85rem; color: var(--muted-foreground); }
+    .am-state { display: inline-flex; align-items: center; gap: 8px; margin: 10px 0 4px; padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 0.95rem; border: 1px solid var(--border); }
+    .am-state--present { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, var(--border)); }
+    .am-state--late { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 45%, var(--border)); }
+    .am-state--absent { color: var(--destructive); border-color: color-mix(in srgb, var(--destructive) 45%, var(--border)); }
+    .am-times { font-size: 0.9rem; color: var(--muted-foreground); margin-bottom: 14px; }
+    .am-times strong { color: var(--foreground); }
+    .am-needs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 6px 0 16px; }
+    .am-need { padding: 4px 12px; border-radius: 999px; background: var(--muted); font-size: 0.8rem; }
+    .am-btn { width: 100%; max-width: 360px; padding: 16px; font-size: 1.1rem; font-weight: 700; border-radius: 14px; }
+    .am-hint { margin-top: 10px; font-size: 0.85rem; color: var(--muted-foreground); }
+    .am-qr-ok { color: var(--success); font-weight: 600; }
+    .am-results { list-style: none; margin: 16px auto 0; padding: 0; max-width: 460px; text-align: start; display: grid; gap: 8px; }
+    .am-result { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: var(--radius); border: 1px solid var(--border); font-size: 0.875rem; }
+    .am-result__icon { flex: none; width: 22px; height: 22px; border-radius: 999px; display: grid; place-items: center; font-weight: 800; font-size: 0.75rem; color: #fff; background: var(--success); }
+    .am-result--fail { border-color: color-mix(in srgb, var(--destructive) 45%, var(--border)); }
+    .am-result--fail .am-result__icon { background: var(--destructive); }
+    .am-msg { margin-top: 14px; font-weight: 700; }
+    .am-msg--ok { color: var(--success); }
+    .am-msg--err { color: var(--destructive); }
+    .am-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .am-chip { padding: 6px 12px; border-radius: var(--radius); background: var(--muted); font-size: 0.85rem; }
+    .am-chip strong { font-size: 1rem; }
+    .am-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .am-table th, .am-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: start; }
+    .am-table th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-foreground); }
+    .am-title { margin: 0 0 12px; font-size: 1rem; font-weight: 700; }
+    .am-correction summary { cursor: pointer; font-weight: 700; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-att-me am-wrap">
+    <header class="hotels-hero hotels-reveal" style="--d:0ms">
+        <div class="hotels-hero__copy">
+            <p class="hotels-eyebrow">{% trans "Attendance" %}</p>
+            <h1 class="page-title hotels-hero__title">{% trans "My attendance" %}</h1>
+            <p class="page-subtitle hotels-hero__sub">{% blocktrans with t=late_cutoff|time:"g:i A" %}Check in when you arrive and check out when you leave. Arriving after {{ t }} counts as late.{% endblocktrans %}</p>
+        </div>
+    </header>
+
+
+    <section class="am-card am-today" aria-live="polite">
+        <div class="am-date">{{ today|date:"l, d F Y" }}</div>
+        {% if today_log and today_log.check_in_at %}
+            <div class="am-state am-state--{{ today_log.status }}">{% if today_log.status == 'late' %}&#9888;{% else %}&#10003;{% endif %} {{ today_log.get_status_display }}</div>
+            <div class="am-times">
+                {% trans "In" %} <strong>{{ today_log.check_in_time|time:"g:i A" }}</strong>
+                {% if today_log.check_out_time %} · {% trans "Out" %} <strong>{{ today_log.check_out_time|time:"g:i A" }}</strong> · <strong>{{ today_log.work_hours }}</strong> {% trans "hours" %}{% endif %}
+            </div>
+        {% elif today_log %}
+            <div class="am-state am-state--{{ today_log.status }}">{{ today_log.get_status_display }}</div>
+            <div class="am-times">{{ today_log.get_source_display }}{% if today_log.notes %} — {{ today_log.notes }}{% endif %}</div>
+        {% else %}
+            <div class="am-state">{% trans "Not checked in yet" %}</div>
+            <div class="am-times">&nbsp;</div>
+        {% endif %}
+
+        {% if required %}
+        <div class="am-needs" aria-label="{% trans 'Required to check in' %}">
+            {% for r in required %}<span class="am-need">{{ r }}</span>{% endfor %}
+        </div>
+        {% endif %}
+
+        {% with done=today_log.check_out_time %}
+        {% if not today_log.check_in_at %}
+        <button type="button" class="btn btn-primary am-btn" id="am-action" data-action="in" {% if needs_qr and not qr_token %}disabled{% endif %}>{% trans "Check in" %}</button>
+        {% else %}
+        <button type="button" class="btn btn-outline am-btn" id="am-action" data-action="out" {% if needs_qr and not qr_token %}disabled{% endif %}>{% if done %}{% trans "Update check-out" %}{% else %}{% trans "Check out" %}{% endif %}</button>
+        {% endif %}
+        {% endwith %}
+
+        {% if needs_qr %}
+            {% if qr_token %}
+            <p class="am-hint am-qr-ok">&#10003; {% trans "Office QR code scanned." %}</p>
+            {% else %}
+            <p class="am-hint">{% trans "Point your phone camera at the QR code on the office display — it opens this page ready to check you in." %}</p>
+            {% endif %}
+        {% endif %}
+        {% if needs_location %}<p class="am-hint" id="am-loc-hint">{% trans "Your browser will ask to share your location — tap Allow." %}</p>{% endif %}
+
+        <p class="am-msg" id="am-msg" hidden></p>
+        <ul class="am-results" id="am-results" hidden></ul>
+    </section>
+
+    <section class="am-card">
+        <h2 class="am-title">{% blocktrans with m=today|date:"F Y" %}This month ({{ m }}){% endblocktrans %}</h2>
+        <div class="am-chips">
+            <span class="am-chip">{% trans "Present" %} <strong>{{ summary.present }}</strong></span>
+            <span class="am-chip">{% trans "Late" %} <strong>{{ summary.late }}</strong></span>
+            <span class="am-chip">{% trans "Absent" %} <strong>{{ summary.absent }}</strong></span>
+            <span class="am-chip">{% trans "Leave" %} <strong>{{ summary.leave }}</strong></span>
+        </div>
+        {% if logs %}
+        <div style="overflow-x:auto;">
+            <table class="am-table">
+                <thead><tr><th>{% trans "Date" %}</th><th>{% trans "Status" %}</th><th>{% trans "In" %}</th><th>{% trans "Out" %}</th><th>{% trans "Hours" %}</th><th>{% trans "How" %}</th></tr></thead>
+                <tbody>
+                    {% for l in logs %}
+                    <tr>
+                        <td>{{ l.date|date:"D d M" }}</td>
+                        <td>{{ l.get_status_display }}</td>
+                        <td>{{ l.check_in_time|time:"g:i A"|default:"—" }}</td>
+                        <td>{{ l.check_out_time|time:"g:i A"|default:"—" }}</td>
+                        <td>{{ l.work_hours|default:"—" }}</td>
+                        <td class="text-muted">{{ l.get_source_display }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-sm">{% trans "No records this month yet." %}</p>
+        {% endif %}
+    </section>
+
+    <section class="am-card">
+        <details class="am-correction">
+            <summary>{% trans "Something wrong? Request a correction" %}</summary>
+            <p class="text-sm text-muted" style="margin:8px 0 12px;">{% trans "Forgot to check in, or had an approved leave? Your manager reviews the request — you can't change records yourself." %}</p>
+            <form method="post" action="{% url 'attendance-correction' %}">
+                {% csrf_token %}
+                <div class="grid grid-2">
+                    <div class="form-group"><label class="form-label" for="c-date">{% trans "Date" %}</label><input id="c-date" class="form-input" type="date" name="date" max="{{ today|date:'Y-m-d' }}" value="{{ today|date:'Y-m-d' }}" required></div>
+                    <div class="form-group"><label class="form-label" for="c-status">{% trans "Should be" %}</label>
+                        <select id="c-status" class="form-select" name="requested_status">
+                            {% for v, l in status_choices %}<option value="{{ v }}">{{ l }}</option>{% endfor %}
+                        </select></div>
+                    <div class="form-group"><label class="form-label" for="c-in">{% trans "Arrived at (optional)" %}</label><input id="c-in" class="form-input" type="time" name="requested_check_in"></div>
+                    <div class="form-group"><label class="form-label" for="c-out">{% trans "Left at (optional)" %}</label><input id="c-out" class="form-input" type="time" name="requested_check_out"></div>
+                </div>
+                <div class="form-group"><label class="form-label" for="c-reason">{% trans "Reason" %}</label><textarea id="c-reason" class="form-textarea" name="reason" rows="2" required placeholder="{% trans 'e.g. Phone battery died, I arrived at 9:00' %}"></textarea></div>
+                <button type="submit" class="btn btn-primary">{% trans "Send request" %}</button>
+            </form>
+        </details>
+        {% if corrections %}
+        <table class="am-table" style="margin-top:14px;">
+            <thead><tr><th>{% trans "Date" %}</th><th>{% trans "Requested" %}</th><th>{% trans "Status" %}</th><th>{% trans "Note" %}</th></tr></thead>
+            <tbody>
+                {% for c in corrections %}
+                <tr><td>{{ c.date|date:"d M" }}</td><td>{{ c.get_requested_status_display }}</td><td>{{ c.get_status_display }}</td><td class="text-muted">{{ c.review_note|default:"—" }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% trans "Getting your location…" as t_locating %}
+{% trans "Checking…" as t_checking %}
+{% trans "Location is blocked. Allow location for this site in your browser settings, then try again." as t_loc_denied %}
+{% trans "Couldn't get your location. Turn on GPS and try again." as t_loc_failed %}
+{% trans "Location needs a secure (https) connection — ask your administrator." as t_loc_insecure %}
+{% trans "Something went wrong — try again." as t_failed %}
+<script>
+(function () {
+  var btn = document.getElementById('am-action');
+  if (!btn) return;
+  var msg = document.getElementById('am-msg');
+  var list = document.getElementById('am-results');
+  var NEEDS_LOCATION = {{ needs_location|yesno:"true,false" }};
+  var QR = '{{ qr_token|escapejs }}';
+  var label = btn.textContent;
+
+  function csrf() { return '{{ csrf_token|escapejs }}'; }
+  function show(text, ok) {
+    msg.hidden = false;
+    msg.textContent = text;
+    msg.className = 'am-msg ' + (ok ? 'am-msg--ok' : 'am-msg--err');
+  }
+  function renderResults(results) {
+    list.innerHTML = '';
+    (results || []).forEach(function (r) {
+      var li = document.createElement('li');
+      li.className = 'am-result' + (r.ok ? '' : ' am-result--fail');
+      li.innerHTML = '<span class="am-result__icon" aria-hidden="true">' + (r.ok ? '&#10003;' : '&#10005;') + '</span><span><strong></strong><br><span></span></span>';
+      li.querySelector('strong').textContent = r.label;
+      li.querySelector('span span').textContent = r.message;
+      list.appendChild(li);
+    });
+    list.hidden = !list.children.length;
+  }
+  function locate() {
+    return new Promise(function (resolve, reject) {
+      if (!NEEDS_LOCATION) return resolve(null);
+      if (!window.isSecureContext || !navigator.geolocation) return reject('{{ t_loc_insecure|escapejs }}');
+      navigator.geolocation.getCurrentPosition(
+        function (p) { resolve(p.coords); },
+        function (e) { reject(e.code === 1 ? '{{ t_loc_denied|escapejs }}' : '{{ t_loc_failed|escapejs }}'); },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      );
+    });
+  }
+
+  async function run() {
+    btn.disabled = true;
+    msg.hidden = true;
+    try {
+      btn.textContent = NEEDS_LOCATION ? '{{ t_locating|escapejs }}' : '{{ t_checking|escapejs }}';
+      var coords = null;
+      try { coords = await locate(); } catch (err) { show(err, false); return; }
+      btn.textContent = '{{ t_checking|escapejs }}';
+      var fd = new FormData();
+      fd.append('action', btn.dataset.action);
+      fd.append('qr', QR);
+      if (coords) {
+        fd.append('lat', coords.latitude);
+        fd.append('lng', coords.longitude);
+        fd.append('accuracy', coords.accuracy);
+      }
+      var r = await fetch('{% url "attendance-check" %}', {
+        method: 'POST', body: fd, credentials: 'same-origin', headers: { 'X-CSRFToken': csrf() }
+      });
+      var data = await r.json();
+      renderResults(data.results);
+      if (data.ok) {
+        show(data.message + ' (' + data.time + ')', true);
+        setTimeout(function () { window.location.href = '{% url "attendance-me" %}'; }, 2500);
+      } else {
+        show(data.error || '{{ t_failed|escapejs }}', false);
+      }
+    } catch (e) {
+      show('{{ t_failed|escapejs }}', false);
+    } finally {
+      btn.textContent = label;
+      btn.disabled = false;
+    }
+  }
+  btn.addEventListener('click', run);
+  // Arriving from the office QR code: check in straight away (the code is only valid ~60 seconds).
+  if (QR && btn.dataset.action === 'in' && !btn.disabled) run();
+})();
+</script>
+{% endblock %}

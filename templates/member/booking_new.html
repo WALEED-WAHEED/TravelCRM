@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Create voucher" %}{% endblock %}
+{% block extra_head %}
+<style>
+  .hotels-hero__actions .btn.vw-back { min-height: 44px; gap: 10px; padding: 6px 18px 6px 6px; border-radius: 999px; font-weight: 600; background: var(--card); box-shadow: 0 1px 2px rgba(15, 23, 42, .06); transition: border-color .15s, color .15s, box-shadow .15s, transform .15s; }
+  [dir="rtl"] .hotels-hero__actions .btn.vw-back { padding: 6px 6px 6px 18px; }
+  .hotels-hero__actions .btn.vw-back > svg:first-child { width: 32px; height: 32px; padding: 8px; margin: 0; border-radius: 999px; color: var(--primary); background: color-mix(in srgb, var(--primary) 11%, transparent); transition: transform .15s, background .15s, color .15s; }
+  .hotels-hero__actions .btn.vw-back:hover { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); color: var(--primary); box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 14%, transparent); transform: translateY(-1px); }
+  .hotels-hero__actions .btn.vw-back:hover > svg:first-child { color: #fff; background: var(--primary); transform: translateX(-2px); }
+  [dir="rtl"] .hotels-hero__actions .btn.vw-back > svg:first-child { transform: scaleX(-1); }
+  [dir="rtl"] .hotels-hero__actions .btn.vw-back:hover > svg:first-child { transform: scaleX(-1) translateX(-2px); }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-hotels page-bookings">
+    <header class="hotels-hero hotels-reveal" style="--d:0ms; align-items:center;">
+        <div class="hotels-hero__copy">
+            <p class="hotels-eyebrow"><a href="{% if vw_mode == 'agent' %}{% url 'agent-vouchers' %}{% else %}{% url 'member-bookings' %}{% endif %}" class="text-muted" style="text-decoration:none;">{% trans "Vouchers" %}</a> · {% trans "New" %}</p>
+            <h1 class="page-title hotels-hero__title">{% trans "Create voucher" %}</h1>
+        </div>
+        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms; display:flex; flex-wrap:wrap; align-items:center; gap:10px;">
+            {% if vw_mode != 'agent' %}{% include "member/partials/_vw_notes.html" %}{% endif %}
+        </div>
+    </header>
+
+    {% include "member/partials/booking_voucher_worksheet.html" %}
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Team & Roles" %}{% endblock %}
+{% block content %}
+<div class="page-contacts">
+  <header class="hotels-hero hotels-reveal" style="--d:0ms">
+    <div class="hotels-hero__copy">
+      <p class="hotels-eyebrow">{% trans "Team" %}</p>
+      <h1 class="page-title hotels-hero__title">{% trans "Team & Roles" %}</h1>
+      <p class="page-subtitle hotels-hero__sub">{% blocktrans with agency_name=request.user.agency.name %}Everyone with access to {{ agency_name }}, and what they can do.{% endblocktrans %}</p>
+    </div>
+    {% if can_manage %}
+    <div class="hotels-hero__actions hotels-reveal" style="--d:60ms">
+      <a href="{% url 'member-roles' %}" class="btn btn-outline hotels-cta-btn">{% trans "Manage roles" %}</a>
+      <a href="{% url 'member-team-invite' %}" class="btn btn-primary hotels-cta-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+        {% trans "Add teammate" %}
+      </a>
+    </div>
+    {% endif %}
+  </header>
+
+
+  <section class="card hotels-panel hotels-reveal" style="--d:120ms">
+    <div class="card-content hotels-panel__body">
+      <table class="hotels-data-table">
+        <thead>
+          <tr><th>{% trans "User" %}</th><th>{% trans "Role" %}</th><th>{% trans "Email" %}</th><th>{% trans "Status" %}</th>{% if can_manage %}<th class="hotels-col-actions">{% trans "Actions" %}</th>{% endif %}</tr>
+        </thead>
+        <tbody>
+          {% for u in staff %}
+          <tr class="hotels-row">
+            <td class="font-medium">{{ u.username }}{% if u.pk == request.user.pk %} <span class="badge badge-outline">{% trans "You" %}</span>{% endif %}</td>
+            <td>
+              {% if u.custom_role %}
+              <a href="{% url 'member-role-detail' u.custom_role.id %}" class="badge badge-primary">{{ u.custom_role.name }}</a>
+              {% else %}
+              <span class="badge badge-default">{{ u.get_role_display }}</span>
+              {% endif %}
+            </td>
+            <td class="text-muted text-sm">{{ u.email|default:"—" }}</td>
+            <td>{% if u.is_active %}<span class="badge badge-success">{% trans "Active" %}</span>{% else %}<span class="badge badge-outline">{% trans "Deactivated" %}</span>{% endif %}</td>
+            {% if can_manage %}
+            <td class="hotels-col-actions">
+              <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+                <form method="post" action="{% url 'member-team-update-role' u.id %}" onchange="this.submit()">
+                  {% csrf_token %}
+                  <select name="role_id" class="form-select" style="width:auto; padding:6px 10px;">
+                    {% for r in roles %}
+                    <option value="{{ r.id }}" {% if u.custom_role_id == r.id %}selected{% endif %}>{{ r.name }}</option>
+                    {% endfor %}
+                  </select>
+                </form>
+                {% if u.is_active and u.pk != request.user.pk %}
+                {% blocktrans asvar deactivate_confirm_msg with username=u.username %}Deactivate {{ username }}?{% endblocktrans %}
+                <form method="post" action="{% url 'member-team-deactivate' u.id %}" onsubmit="return confirm('{{ deactivate_confirm_msg|escapejs }}');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline btn-sm">{% trans "Deactivate" %}</button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+            {% endif %}
+          </tr>
+          {% empty %}
+          <tr class="hotels-row"><td colspan="5"><div class="empty-state" style="padding:22px 12px;"><h3>{% trans "No teammates yet" %}</h3><p>{% trans "Add your first team member to get started." %}</p></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

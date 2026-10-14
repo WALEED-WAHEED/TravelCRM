@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Billing" %}{% endblock %}
+{% block content %}
+<div class="page-contacts">
+  <header class="hotels-hero hotels-reveal" style="--d:0ms">
+    <div class="hotels-hero__copy">
+      <p class="hotels-eyebrow">{% trans "Billing" %}</p>
+      <h1 class="page-title hotels-hero__title">{% trans "Plan & billing" %}</h1>
+      <p class="page-subtitle hotels-hero__sub">
+        {% if subscription.status == 'trialing' %}
+        {% blocktrans count counter=subscription.days_left_in_trial with plan_name=subscription.plan.name %}{{ counter }} day left in your trial of the {{ plan_name }} plan.{% plural %}{{ counter }} days left in your trial of the {{ plan_name }} plan.{% endblocktrans %}
+        {% elif subscription.status == 'active' %}
+        {% blocktrans with plan_name=subscription.plan.name renew_date=subscription.current_period_end|date:"M j, Y" %}You're on the {{ plan_name }} plan, renews {{ renew_date }}.{% endblocktrans %}
+        {% elif subscription.status == 'expired' or subscription.status == 'past_due' %}
+        {% trans "Your access has lapsed — choose a plan below to reactivate." %}
+        {% else %}
+        {% trans "No active plan yet." %}
+        {% endif %}
+      </p>
+    </div>
+  </header>
+
+
+  <div class="grid grid-2 mb-6">
+    <div class="card kpi-card">
+      <div class="kpi-value">{{ seat_usage }}{% if subscription.plan.max_seats %} / {{ subscription.plan.max_seats }}{% endif %}</div>
+      <div class="kpi-label">{% trans "Active staff seats" %}</div>
+    </div>
+    <div class="card kpi-card">
+      <div class="kpi-value">{{ booking_usage }}{% if subscription.plan.max_bookings_per_month %} / {{ subscription.plan.max_bookings_per_month }}{% endif %}</div>
+      <div class="kpi-label">{% trans "Bookings this month" %}</div>
+    </div>
+  </div>
+
+  {% if can_manage %}
+  <section class="card hotels-panel hotels-reveal mb-6" style="--d:80ms">
+    <div class="hotels-panel__head">
+      <h2 class="hotels-panel__title">{% trans "Plans" %}</h2>
+      <p class="hotels-panel__hint text-muted text-sm">{% trans "Pick a plan and send payment — we'll confirm and activate it shortly." %}</p>
+    </div>
+    <div class="card-content hotels-panel__body">
+      <div class="grid grid-3">
+        {% for plan in plans %}
+        <div class="hotels-stat-card {% if subscription.plan_id == plan.id %}hotels-stat-card--accent{% endif %}" style="flex-direction:column; align-items:stretch;">
+          <div class="flex justify-between items-center">
+            <span class="font-semibold">{{ plan.name }}</span>
+            {% if subscription.plan_id == plan.id %}<span class="badge badge-primary">{% trans "Current" %}</span>{% endif %}
+          </div>
+          <div class="text-sm text-muted mt-2">
+            {{ plan.currency }} {{ plan.price_amount }} / {{ plan.get_billing_interval_display|lower }}<br>
+            {% if plan.max_seats %}{% blocktrans with seats=plan.max_seats %}{{ seats }} seats{% endblocktrans %}{% else %}{% trans "Unlimited seats" %}{% endif %}<br>
+            {% if plan.max_bookings_per_month %}{% blocktrans with n=plan.max_bookings_per_month %}{{ n }} bookings/mo{% endblocktrans %}{% else %}{% trans "Unlimited bookings" %}{% endif %}
+          </div>
+          {% if subscription.plan_id != plan.id %}
+          <a href="{% url 'member-billing-subscribe' plan.id %}" class="btn btn-outline btn-sm mt-4" style="justify-content:center;">{% trans "Switch to this plan" %}</a>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="card hotels-panel hotels-reveal" style="--d:120ms">
+    <div class="hotels-panel__head">
+      <h2 class="hotels-panel__title">{% trans "Payment history" %}</h2>
+    </div>
+    <div class="card-content hotels-panel__body">
+      <table class="hotels-data-table">
+        <thead><tr><th>{% trans "Submitted" %}</th><th>{% trans "Plan" %}</th><th>{% trans "Amount" %}</th><th>{% trans "Method" %}</th><th>{% trans "Status" %}</th></tr></thead>
+        <tbody>
+          {% for p in payment_history %}
+          <tr class="hotels-row">
+            <td class="text-muted text-sm tabular-nums">{{ p.submitted_at|date:"Y-m-d" }}</td>
+            <td>{{ p.plan.name }}</td>
+            <td class="tabular-nums">{{ p.currency }} {{ p.amount }}</td>
+            <td class="text-muted text-sm">{{ p.get_method_display }}</td>
+            <td><span class="badge badge-{% if p.status == 'confirmed' %}success{% elif p.status == 'rejected' %}danger{% else %}outline{% endif %}">{{ p.get_status_display }}</span></td>
+          </tr>
+          {% empty %}
+          <tr class="hotels-row"><td colspan="5"><div class="empty-state"><h3>{% trans "No payments yet" %}</h3></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,7 +1,9 @@
-from django.core.management.base import BaseCommand
-from django.contrib.auth import get_user_model
-from agencies.models import Agency
 import getpass
+
+from django.contrib.auth import get_user_model
+from django.core.management.base import BaseCommand
+
+from agencies.models import Agency
 
 User = get_user_model()
 
@@ -116,9 +118,9 @@ class Command(BaseCommand):
             )
             self.stdout.write(f'  Email: {admin_email}')
             self.stdout.write(f'  Password: {admin_password}')
-            self.stdout.write(f'  Role: member (superuser - manage via Django admin)')
-            self.stdout.write(f'  Is Staff: True')
-            self.stdout.write(f'  Is Superuser: True')
+            self.stdout.write('  Role: member (superuser - manage via Django admin)')
+            self.stdout.write('  Is Staff: True')
+            self.stdout.write('  Is Superuser: True')
 
         # Create agent user
         agent_username = options['agent_username']
@@ -169,7 +171,7 @@ class Command(BaseCommand):
                 self.style.WARNING(f'Agent user "{agent_username}" already exists. Skipping...')
             )
         else:
-            agent_user = User.objects.create_user(
+            User.objects.create_user(
                 username=agent_username,
                 email=agent_email,
                 password=agent_password,
@@ -184,7 +186,7 @@ class Command(BaseCommand):
             )
             self.stdout.write(f'  Email: {agent_email}')
             self.stdout.write(f'  Password: {agent_password}')
-            self.stdout.write(f'  Role: agent')
+            self.stdout.write('  Role: agent')
             self.stdout.write(f'  Agency: {agency.name} (ID: {agency.id})')
 
         # Create member user
@@ -225,7 +227,7 @@ class Command(BaseCommand):
                 self.style.WARNING(f'Member user "{member_username}" already exists. Skipping...')
             )
         else:
-            member_user = User.objects.create_user(
+            User.objects.create_user(
                 username=member_username,
                 email=member_email,
                 password=member_password,
@@ -240,7 +242,7 @@ class Command(BaseCommand):
             )
             self.stdout.write(f'  Email: {member_email}')
             self.stdout.write(f'  Password: {member_password}')
-            self.stdout.write(f'  Role: member')
+            self.stdout.write('  Role: member')
             self.stdout.write(f'  Agency: {agency.name} (ID: {agency.id})')
 
         self.stdout.write(

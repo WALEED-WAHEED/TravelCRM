@@ -1,0 +1,204 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{{ agency.name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{{ agency.name }}</h1>
+  <p class="page-subtitle">
+    {{ agency.code }} ·
+    {% if agency.is_active %}<span class="badge badge-success">{% trans "Active" %}</span>{% else %}<span class="badge badge-outline">{% trans "Suspended" %}</span>{% endif %}
+  </p>
+</div>
+
+<div class="card mb-6">
+  <div class="card-content" style="padding-top:20px;">
+    <p class="text-sm text-muted" style="line-height:1.7;">
+      {{ agency.email|default:"—" }}<br>
+      {{ agency.phone|default:"—" }}<br>
+      {{ agency.address }}{% if agency.city %}, {{ agency.city }}{% endif %}{% if agency.country %}, {{ agency.country }}{% endif %}
+    </p>
+    {% if not agency.is_active and agency.suspended_reason %}
+    <div class="alert alert-error" style="margin-top:12px;">
+      <strong>{% trans "Suspended:" %}</strong> {{ agency.suspended_reason }}
+      <div class="text-sm text-muted" style="margin-top:4px;">
+        {% blocktrans with by=agency.suspended_by.username|default:"—" when=agency.suspended_at|date:"Y-m-d H:i" %}by {{ by }} on {{ when }}{% endblocktrans %}
+      </div>
+    </div>
+    {% endif %}
+    {% if can_manage %}
+      {% if agency.is_active %}
+      <form method="post" action="{% url 'platform_admin:tenant-suspend' agency.id %}" style="margin-top:16px; display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+        {% csrf_token %}
+        <div class="form-group" style="margin-bottom:0; flex:1; min-width:220px;">
+          <label class="form-label" for="reason">{% trans "Reason (recorded on suspension)" %}</label>
+          <input class="form-input" type="text" id="reason" name="reason" placeholder="{% trans 'e.g. non-payment, abuse report' %}">
+        </div>
+        <button class="btn btn-danger" type="submit">{% trans "Suspend agency" %}</button>
+      </form>
+      {% else %}
+      <form method="post" action="{% url 'platform_admin:tenant-activate' agency.id %}" style="margin-top:16px;">
+        {% csrf_token %}
+        <button class="btn btn-primary" type="submit">{% trans "Reactivate agency" %}</button>
+      </form>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+{% if usage %}
+<div class="card mb-6">
+  <div class="card-header">
+    <h2 class="card-title">{% trans "Plan usage" %}</h2>
+  </div>
+  <div class="card-content">
+    <div class="grid grid-2">
+      <div>
+        <div class="flex" style="justify-content:space-between;">
+          <span class="text-sm text-muted">{% trans "Staff seats" %}</span>
+          <span class="text-sm tabular-nums">{{ usage.seats_used }} / {{ usage.seats_max|default:"∞" }}</span>
+        </div>
+      </div>
+      <div>
+        <div class="flex" style="justify-content:space-between;">
+          <span class="text-sm text-muted">{% trans "Bookings this month" %}</span>
+          <span class="text-sm tabular-nums">{{ usage.bookings_used }} / {{ usage.bookings_max|default:"∞" }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card mb-6">
+  <div class="card-header">
+    <h2 class="card-title">{% trans "Branding" %}</h2>
+  </div>
+  <div class="card-content">
+    <form method="post" action="{% url 'platform_admin:tenant-branding-update' agency.id %}" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:14px;">
+      {% csrf_token %}
+      <div class="grid grid-2">
+        <div class="form-group">
+          <label class="form-label" for="company_name">{% trans "Company name" %}</label>
+          <input class="form-input" type="text" id="company_name" name="company_name" value="{{ branding.company_name|default:'' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="tagline">{% trans "Tagline" %}</label>
+          <input class="form-input" type="text" id="tagline" name="tagline" value="{{ branding.tagline|default:'' }}">
+        </div>
+      </div>
+      <div class="grid grid-2">
+        <div class="form-group">
+          <label class="form-label" for="primary_color">{% trans "Primary color" %}</label>
+          <input class="form-input" type="text" id="primary_color" name="primary_color" value="{{ branding.primary_color|default:'#2bb7ff' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="secondary_color">{% trans "Secondary color" %}</label>
+          <input class="form-input" type="text" id="secondary_color" name="secondary_color" value="{{ branding.secondary_color|default:'#4ea8ff' }}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="logo">{% trans "Logo" %}</label>
+        {% if branding.logo %}<img src="{{ branding.logo.url }}" alt="" style="max-height:32px; display:block; margin-bottom:8px;">{% endif %}
+        <input type="file" id="logo" name="logo" accept="image/*">
+      </div>
+      {% if can_manage %}
+      <div><button class="btn btn-outline" type="submit">{% trans "Save branding" %}</button></div>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<div class="card mb-6">
+  <div class="card-header">
+    <h2 class="card-title">{% trans "Subscription" %}</h2>
+  </div>
+  <div class="card-content" style="padding-top:12px;">
+    {% if subscription %}
+    <p class="text-sm" style="margin-bottom:16px;">
+      <span class="badge badge-{% if subscription.status == 'active' %}success{% elif subscription.status == 'trialing' %}primary{% else %}danger{% endif %}">{{ subscription.get_status_display }}</span>
+      {% trans "on" %} <strong>{{ subscription.plan.name }}</strong>
+      {% if subscription.status == 'trialing' %}— {% blocktrans with d=subscription.trial_ends_at|date:"Y-m-d" %}trial ends {{ d }}{% endblocktrans %}{% endif %}
+      {% if subscription.status == 'active' %}— {% blocktrans with d=subscription.current_period_end|date:"Y-m-d" %}renews {{ d }}{% endblocktrans %}{% endif %}
+    </p>
+    {% else %}
+    <p class="text-sm text-muted" style="margin-bottom:16px;">{% trans "No subscription on record." %}</p>
+    {% endif %}
+    <form method="post" action="{% url 'platform_admin:tenant-assign-plan' agency.id %}" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+      {% csrf_token %}
+      <div>
+        <label class="text-sm text-muted" style="display:block; margin-bottom:4px;">{% trans "Plan" %}</label>
+        <select name="plan_id" class="form-select" style="width:auto;">
+          {% for plan in plans %}
+          <option value="{{ plan.id }}" {% if subscription.plan_id == plan.id %}selected{% endif %}>{{ plan.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="text-sm text-muted" style="display:block; margin-bottom:4px;">{% trans "Status" %}</label>
+        <select name="status" class="form-select" style="width:auto;">
+          <option value="active">{% trans "Active" %}</option>
+          <option value="trialing">{% trans "Trialing" %}</option>
+          <option value="past_due">{% trans "Past due" %}</option>
+          <option value="expired">{% trans "Expired" %}</option>
+          <option value="cancelled">{% trans "Cancelled" %}</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-outline">{% trans "Assign" %}</button>
+    </form>
+  </div>
+</div>
+
+<div class="card mb-6">
+  <div class="card-header">
+    <h2 class="card-title">{% blocktrans with count=users.count %}Users ({{ count }}){% endblocktrans %}</h2>
+  </div>
+  <div class="card-content">
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>{% trans "Username" %}</th><th>{% trans "Role" %}</th><th>{% trans "Email" %}</th><th></th></tr></thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td class="font-medium">{{ u.username }}</td>
+            <td class="text-muted text-sm">{{ u.get_role_display }}</td>
+            <td class="text-muted text-sm">{{ u.email|default:"—" }}</td>
+            <td>
+              <form method="post" action="{% url 'platform_admin:impersonate-start' u.id %}">
+                {% csrf_token %}
+                <button class="btn btn-outline btn-sm" type="submit">{% trans "Log in as this user" %}</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4"><div class="empty-state"><h3>{% trans "No users yet" %}</h3></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">{% trans "Recent platform activity on this agency" %}</h2>
+  </div>
+  <div class="card-content">
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>{% trans "When" %}</th><th>{% trans "Action" %}</th><th>{% trans "By" %}</th></tr></thead>
+        <tbody>
+          {% for entry in recent_activity %}
+          <tr>
+            <td class="text-muted text-sm tabular-nums">{{ entry.timestamp|date:"Y-m-d H:i" }}</td>
+            <td>{{ entry.get_action_display }}</td>
+            <td class="text-muted text-sm">{{ entry.user|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3"><div class="empty-state"><h3>{% trans "No recorded activity yet" %}</h3></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

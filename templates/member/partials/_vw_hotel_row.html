@@ -1,0 +1,22 @@
+{% load i18n %}<tr>
+  <td class="auto js-city">{{ bh.city|default:'—' }}</td>
+  <td><select class="form-select js-hotel w-lg" aria-label="{% trans 'Hotel' %}"><option value="">{% trans "Select hotel…" %}</option>{% for h in hotels_list %}<option value="{{ h.id }}" data-city="{{ h.city }}" {% if bh.hotel_id == h.id %}selected{% endif %}>{{ h.name }}{% if h.city %} · {{ h.city }}{% endif %}</option>{% endfor %}</select></td>
+  <td><input class="form-input js-view w-sm" value="{{ bh.view|default:'Standard' }}" aria-label="{% trans 'View' %}"></td>
+  <td><select class="form-select js-meal w-sm" aria-label="{% trans 'Meal' %}">
+    {% with cur=bh.meal_plan|default:'RO' %}
+    {% for v, l in meal_plans %}<option value="{{ v }}" data-short="{{ v }}" {% if cur == v %}selected{% endif %}>{{ v }} · {{ l }}</option>{% endfor %}
+    {% if cur not in meal_values %}<option value="{{ cur }}" data-short="{{ cur }}" selected>{{ cur }}</option>{% endif %}
+    {% endwith %}
+  </select></td>
+  <td><input class="form-input js-conf w-sm" value="{{ bh.confirmation_number|default:'' }}" aria-label="{% trans 'Conf #' %}"></td>
+  <td><select class="form-select js-room w-md" aria-label="{% trans 'Room type' %}">
+    {% with cur=bh.room_type|default:'Sharing' %}
+    {% for v, l in room_types %}<option value="{{ v }}" {% if cur == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+    {% if cur not in room_type_values %}<option value="{{ cur }}" selected>{{ cur }}</option>{% endif %}
+    {% endwith %}
+  </select></td>
+  <td><input type="date" class="form-input js-ci w-md" value="{{ bh.check_in|date:'Y-m-d' }}" aria-label="{% trans 'Check-in' %}"></td>
+  <td><input type="date" class="form-input js-co w-md" value="{{ bh.check_out|date:'Y-m-d' }}" aria-label="{% trans 'Check-out' %}"></td>
+  <td class="nights">—</td>
+  <td><button type="button" class="vw-x" aria-label="{% trans 'Remove' %}">&times;</button></td>
+</tr>

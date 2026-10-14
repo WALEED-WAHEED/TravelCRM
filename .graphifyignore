@@ -1,0 +1,22 @@
+# Files Graphify should NOT index (gitignore syntax).
+# .gitignore is also honored, so .venv/, staticfiles/, .env* are already skipped.
+
+# Secrets — never index, even if .gitignore changes
+.env
+.env.*
+env.*.example
+
+# Generated / vendored / noise
+.venv/
+staticfiles/
+media/
+locale/
+**/migrations/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.mo
+*.po
+
+# Graphify's own output
+graphify-out/

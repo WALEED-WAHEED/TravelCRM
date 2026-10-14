@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Roles" %}{% endblock %}
+{% block content %}
+<div class="page-contacts">
+  <header class="hotels-hero hotels-reveal" style="--d:0ms">
+    <div class="hotels-hero__copy">
+      <p class="hotels-eyebrow">{% trans "Team" %}</p>
+      <h1 class="page-title hotels-hero__title">{% trans "Roles" %}</h1>
+      <p class="page-subtitle hotels-hero__sub">{% blocktrans with agency_name=request.user.agency.name %}Five built-in templates, ready to use — clone one to customize it for {{ agency_name }}.{% endblocktrans %}</p>
+    </div>
+  </header>
+
+
+  <section class="card hotels-panel hotels-reveal" style="--d:80ms">
+    <div class="hotels-panel__head">
+      <h2 class="hotels-panel__title">{% trans "Templates" %}</h2>
+      <p class="hotels-panel__hint text-muted text-sm">{% trans "Shared across every agency on the platform, read-only — clone to adjust." %}</p>
+    </div>
+    <div class="card-content hotels-panel__body">
+      <table class="hotels-data-table">
+        <thead><tr><th>{% trans "Role" %}</th><th>{% trans "Level" %}</th><th class="hotels-col-actions">{% trans "Actions" %}</th></tr></thead>
+        <tbody>
+          {% for r in templates %}
+          <tr class="hotels-row">
+            <td class="font-medium">{{ r.name }}</td>
+            <td class="text-muted text-sm">{{ r.level }}</td>
+            <td class="hotels-col-actions">
+              <div style="display:flex; gap:8px; justify-content:flex-end;">
+                <a href="{% url 'member-role-detail' r.id %}" class="btn btn-outline btn-sm">{% trans "View permissions" %}</a>
+                {% if not at_cap %}
+                <form method="post" action="{% url 'member-role-clone' r.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline btn-sm">{% trans "Clone & customize" %}</button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card hotels-panel hotels-reveal" style="--d:120ms">
+    <div class="hotels-panel__head">
+      <h2 class="hotels-panel__title">{% blocktrans with count=custom_roles.count max=max_custom_roles %}Your custom roles ({{ count }}/{{ max }}){% endblocktrans %}</h2>
+    </div>
+    <div class="card-content hotels-panel__body">
+      <table class="hotels-data-table">
+        <thead><tr><th>{% trans "Role" %}</th><th>{% trans "Cloned from" %}</th><th class="hotels-col-actions">{% trans "Actions" %}</th></tr></thead>
+        <tbody>
+          {% for r in custom_roles %}
+          <tr class="hotels-row">
+            <td class="font-medium">{{ r.name }}</td>
+            <td class="text-muted text-sm">{{ r.cloned_from.name|default:"—" }}</td>
+            <td class="hotels-col-actions">
+              <a href="{% url 'member-role-detail' r.id %}" class="btn btn-outline btn-sm">{% trans "Edit permissions" %}</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr class="hotels-row"><td colspan="3"><div class="empty-state" style="padding:22px 12px;"><h3>{% trans "No custom roles yet" %}</h3><p>{% trans "Clone a template above to build your own." %}</p></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if at_cap %}<p class="text-sm text-muted" style="margin-top:10px;">{% blocktrans with max=max_custom_roles %}You've reached the limit of {{ max }} custom roles.{% endblocktrans %}</p>{% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}

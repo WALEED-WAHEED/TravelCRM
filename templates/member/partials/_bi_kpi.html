@@ -1,0 +1,14 @@
+{% load i18n currency_tags %}
+{# label, value, money (bool), delta ({pct, dir} or None), good ("up"|"down"), sub, nodelta (bool) #}
+<div class="bi-kpi">
+    <span class="bi-kpi__label">{{ label }}</span>
+    <span class="bi-kpi__value" title="{% if money %}Rs. {{ value|amt }}{% else %}{{ value }}{% endif %}">{% if money %}Rs. {{ value|amt }}{% else %}{{ value }}{% endif %}</span>
+    {% if sub %}<span class="bi-kpi__sub">{{ sub }}</span>{% endif %}
+    {% if not nodelta %}
+    {% if delta %}
+    <span class="bi-delta {% if delta.dir == good %}bi-delta--good{% elif delta.dir != 'flat' %}bi-delta--bad{% endif %}" title="{% trans 'Change compared with the previous period of the same length' %}">{% if delta.dir == 'up' %}&#9650;{% elif delta.dir == 'down' %}&#9660;{% else %}&#9679;{% endif %} {{ delta.pct|floatformat:0 }}%</span>
+    {% else %}
+    <span class="bi-delta">— {% trans "no earlier data" %}</span>
+    {% endif %}
+    {% endif %}
+</div>

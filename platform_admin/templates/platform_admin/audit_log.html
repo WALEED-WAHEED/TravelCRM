@@ -1,0 +1,89 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Audit Log" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{% trans "Platform audit log" %}</h1>
+  <p class="page-subtitle">{% trans "Every create/update/delete on a tracked model, across every tenant." %}</p>
+</div>
+
+<div class="card mb-4">
+  <div class="card-content" style="padding-top:16px;">
+    <form method="get" style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label" for="model_name">{% trans "Model" %}</label>
+        <select class="form-select" id="model_name" name="model_name" style="width:auto;">
+          <option value="">{% trans "All models" %}</option>
+          {% for m in model_names %}
+          <option value="{{ m }}" {% if filters.model_name == m %}selected{% endif %}>{{ m }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label" for="action">{% trans "Action" %}</label>
+        <select class="form-select" id="action" name="action" style="width:auto;">
+          <option value="">{% trans "All actions" %}</option>
+          {% for key, label in action_choices %}
+          <option value="{{ key }}" {% if filters.action == key %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label" for="agency_id">{% trans "Agency" %}</label>
+        <select class="form-select" id="agency_id" name="agency_id" style="width:auto;">
+          <option value="">{% trans "All agencies" %}</option>
+          {% for a in agencies %}
+          <option value="{{ a.id }}" {% if filters.agency_id == a.id|stringformat:"s" %}selected{% endif %}>{{ a.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label" for="date_from">{% trans "From" %}</label>
+        <input class="form-input" type="date" id="date_from" name="date_from" value="{{ filters.date_from }}" style="width:auto;">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label" for="date_to">{% trans "To" %}</label>
+        <input class="form-input" type="date" id="date_to" name="date_to" value="{{ filters.date_to }}" style="width:auto;">
+      </div>
+      <button class="btn btn-primary" type="submit">{% trans "Filter" %}</button>
+      <a class="btn btn-outline" href="{% url 'platform_admin:audit-log' %}">{% trans "Clear" %}</a>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-content" style="padding-top:20px;">
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>{% trans "When" %}</th><th>{% trans "User" %}</th><th>{% trans "Action" %}</th><th>{% trans "Model" %}</th><th>{% trans "Object" %}</th><th>{% trans "Agency" %}</th></tr></thead>
+        <tbody>
+          {% for entry in page_obj %}
+          <tr>
+            <td class="text-muted text-sm tabular-nums">{{ entry.timestamp|date:"Y-m-d H:i:s" }}</td>
+            <td class="font-medium">{{ entry.user|default:"—" }}</td>
+            <td><span class="badge badge-{% if entry.action == 'delete' %}danger{% elif entry.action == 'create' %}success{% else %}default{% endif %}">{{ entry.get_action_display }}</span></td>
+            <td class="text-muted text-sm">{{ entry.model_name }}</td>
+            <td class="text-muted text-sm">{{ entry.object_repr }}</td>
+            <td class="text-muted text-sm">{{ entry.agency|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6"><div class="empty-state"><h3>{% trans "No activity matches these filters" %}</h3></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="flex gap-2 items-center mt-4" style="justify-content:center;">
+      {% if page_obj.has_previous %}
+      <a class="btn btn-outline btn-sm" href="?{{ querystring }}&page={{ page_obj.previous_page_number }}">{% trans "Previous" %}</a>
+      {% endif %}
+      <span class="text-sm text-muted">{% blocktrans with num=page_obj.number total=page_obj.paginator.num_pages %}Page {{ num }} of {{ total }}{% endblocktrans %}</span>
+      {% if page_obj.has_next %}
+      <a class="btn btn-outline btn-sm" href="?{{ querystring }}&page={{ page_obj.next_page_number }}">{% trans "Next" %}</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

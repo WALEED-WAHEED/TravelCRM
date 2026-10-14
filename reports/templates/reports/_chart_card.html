@@ -1,0 +1,14 @@
+{% load i18n %}
+{# id, title, hint, wide (bool). Chart and table are filled in by the page script. #}
+<section class="rpt-card{% if wide %} rpt-card--wide{% endif %}" data-chart="{{ id }}" data-view="chart">
+    <div class="rpt-card__head">
+        <div>
+            <h3 class="rpt-card__title">{{ title }}</h3>
+            <p class="rpt-card__hint">{{ hint }}</p>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm rpt-toggle">{% trans "Show table" %}</button>
+    </div>
+    <div class="rpt-canvas"><canvas role="img" aria-label="{{ title }}"></canvas></div>
+    <div class="rpt-table-wrap" hidden></div>
+    <div class="rpt-empty" hidden>{% trans "No data for this period." %}</div>
+</section>

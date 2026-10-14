@@ -1,0 +1,66 @@
+{% load i18n %}
+{% load currency_tags %}
+{% if packages %}
+<table class="hotels-data-table pkg-table">
+    <thead>
+        <tr>
+            <th style="width:27%">{% trans "Package" %}</th>
+            <th style="width:19%">{% trans "Dates" %}</th>
+            <th style="width:26%">{% trans "Hotels" %}</th>
+            <th style="width:14%">{% trans "Price / person" %}</th>
+            <th style="width:6%">{% trans "Seats" %}</th>
+            <th class="hotels-col-actions" scope="col"><span class="sr-only">{% trans "Actions" %}</span></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in packages %}
+        <tr class="hotels-row" style="--row-i: {{ forloop.counter0 }}">
+            <td>
+                <div class="hotels-cell-name">
+                    <span class="hotels-cell-name__title font-medium" dir="auto">{{ p.name }}</span>
+                    <span class="pkg-sub"><span class="pkg-code">{{ p.code }}</span> · {{ p.get_package_type_display }}{% if not p.is_active %} · <em>{% trans "Inactive" %}</em>{% endif %}</span>
+                </div>
+            </td>
+            <td>
+                {% if p.departure_date %}
+                <strong class="pkg-line">{{ p.departure_date|date:"d M" }}{% if p.return_date %} → {{ p.return_date|date:"d M Y" }}{% else %} {{ p.departure_date|date:"Y" }}{% endif %}</strong>
+                {% endif %}
+                {% if p.total_nights %}<span class="pkg-sub">{% blocktrans count n=p.total_nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}</span>{% endif %}
+                {% if not p.departure_date and not p.total_nights %}<span class="text-muted">—</span>{% endif %}
+            </td>
+            <td>
+                {% if p.makkah_hotel or p.madina_hotel %}
+                {% if p.makkah_hotel %}<span class="pkg-line"><b>{% trans "Makkah" %}</b> {{ p.makkah_hotel.name }}</span>{% endif %}
+                {% if p.madina_hotel %}<span class="pkg-line"><b>{% trans "Madina" %}</b> {{ p.madina_hotel.name }}</span>{% endif %}
+                {% else %}<span class="text-muted">—</span>{% endif %}
+            </td>
+            <td>
+                {% if p.starting_price is not None %}<span class="text-xs text-muted">{% trans "from" %}</span> <span class="pkg-price">{{ p.starting_price|pkr }}</span>{% else %}<span class="text-muted">—</span>{% endif %}
+            </td>
+            <td class="tabular-nums">{{ p.total_seats|default:"—" }}</td>
+            <td class="hotels-col-actions">
+                <div class="vx-actions">
+                    <button type="button" class="vx vx--view" onclick="openPackageView({{ p.id }})" title="{% trans 'View' %}" aria-label="{% trans 'View' %}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button type="button" class="vx vx--edit" onclick="openPackageEditModal({{ p.id }})" title="{% trans 'Edit' %}" aria-label="{% trans 'Edit' %}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>
+                    <button type="button" class="vx vx--del" onclick="deletePackage({{ p.id }})" title="{% trans 'Delete' %}" aria-label="{% trans 'Delete' %}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="hotels-empty">
+    <div class="hotels-empty__glow" aria-hidden="true"></div>
+    <div class="hotels-empty__icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5z" /><path d="M3 8l9 5 9-5" /><path d="M12 13v8" /></svg>
+    </div>
+    <h3 class="hotels-empty__title">{% if search_q or type_filter %}{% trans "No matches" %}{% else %}{% trans "No packages yet" %}{% endif %}</h3>
+    <p class="hotels-empty__text">{% if search_q or type_filter %}{% trans "Try another search or package type." %}{% else %}{% trans "Bundle your hotels, flights and transport into a package with per-person prices." %}{% endif %}</p>
+    {% if search_q or type_filter %}
+    <a href="{% url 'member-packages' %}" class="btn btn-outline hotels-empty__btn">{% trans "View all packages" %}</a>
+    {% else %}
+    <button type="button" class="btn btn-primary hotels-empty__btn" onclick="openPackageAddModal()">{% trans "Add package" %}</button>
+    {% endif %}
+</div>
+{% endif %}

@@ -1,0 +1,11 @@
+{% load i18n currency_tags %}
+{# Compact summary number: label, value, money (bool), delta ({pct, dir} or None), good ("up"|"down") #}
+<div class="rpt-mini">
+    <span class="rpt-mini__label">{{ label }}</span>
+    <strong class="rpt-mini__value">{% if money %}Rs. {{ value|amt }}{% else %}{{ value }}{% endif %}</strong>
+    {% if delta %}
+    <span class="rpt-delta {% if delta.dir == good %}rpt-delta--good{% elif delta.dir != 'flat' %}rpt-delta--bad{% endif %}" title="{% trans 'Change compared with the previous period of the same length' %}">{% if delta.dir == 'up' %}&#9650;{% elif delta.dir == 'down' %}&#9660;{% else %}&#9679;{% endif %} {{ delta.pct|floatformat:0 }}%</span>
+    {% else %}
+    <span class="rpt-delta">— {% trans "no earlier data" %}</span>
+    {% endif %}
+</div>

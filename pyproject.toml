@@ -1,0 +1,19 @@
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "travelcrm.settings"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+addopts = "--reuse-db"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+exclude = [".venv", "migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B"]
+ignore = [
+    "E501",  # line length is a formatter concern, not a lint failure
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/migrations/*.py" = ["E", "F", "I"]

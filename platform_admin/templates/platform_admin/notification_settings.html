@@ -1,0 +1,44 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Notification Settings" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{% trans "Notification settings" %}</h1>
+  <p class="page-subtitle">{% trans "Read-only — which toggles each agency has on. Useful for support diagnosis; editing stays tenant self-service." %}</p>
+</div>
+
+<div class="card">
+  <div class="card-content" style="padding-top:20px;">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>{% trans "Agency" %}</th>
+            <th>{% trans "Booking conf." %}</th>
+            <th>{% trans "Payment recv." %}</th>
+            <th>{% trans "Voucher gen." %}</th>
+            <th>{% trans "Daily summary" %}</th>
+            <th>{% trans "Weekly report" %}</th>
+            <th>{% trans "Admin: new booking" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            <td class="font-medium">{{ row.agency.name }}</td>
+            <td>{% if row.email_booking_confirmation %}<span class="badge badge-success">{% trans "On" %}</span>{% else %}<span class="badge badge-outline">{% trans "Off" %}</span>{% endif %}</td>
+            <td>{% if row.email_payment_received %}<span class="badge badge-success">{% trans "On" %}</span>{% else %}<span class="badge badge-outline">{% trans "Off" %}</span>{% endif %}</td>
+            <td>{% if row.email_voucher_generated %}<span class="badge badge-success">{% trans "On" %}</span>{% else %}<span class="badge badge-outline">{% trans "Off" %}</span>{% endif %}</td>
+            <td>{% if row.email_daily_summary %}<span class="badge badge-success">{% trans "On" %}</span>{% else %}<span class="badge badge-outline">{% trans "Off" %}</span>{% endif %}</td>
+            <td>{% if row.email_weekly_report %}<span class="badge badge-success">{% trans "On" %}</span>{% else %}<span class="badge badge-outline">{% trans "Off" %}</span>{% endif %}</td>
+            <td>{% if row.admin_new_booking %}<span class="badge badge-success">{% trans "On" %}</span>{% else %}<span class="badge badge-outline">{% trans "Off" %}</span>{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7"><div class="empty-state"><h3>{% trans "No agencies have configured notifications yet" %}</h3></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

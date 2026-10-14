@@ -1,3 +1,2 @@
-{% include "member/partials/approvals_table.html" %}
-<span id="approvals-count-display" class="text-sm text-muted hotels-toolbar-count" hx-swap-oob="true">{{ vouchers|length }} pending{{ vouchers|length|pluralize }}</span>
-
+{% load i18n %}{% include "member/partials/approvals_table.html" %}
+<span id="approvals-count-display" class="text-sm text-muted hotels-toolbar-count" hx-swap-oob="true">{% blocktrans count counter=vouchers|length %}{{ counter }} voucher{% plural %}{{ counter }} vouchers{% endblocktrans %}</span>

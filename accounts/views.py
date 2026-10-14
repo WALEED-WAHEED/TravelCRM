@@ -1,23 +1,25 @@
-from rest_framework import viewsets, permissions, status
+import logging
+
+from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.utils import translation
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.translation import gettext
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.contrib.auth import authenticate
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
-from django.core.mail import send_mail
-from django.conf import settings
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import User
-from .serializers import UserSerializer, UserCreateSerializer, PasswordChangeSerializer
-from agencies.models import Agency
+from rest_framework_simplejwt.views import TokenObtainPairView
+
 from system_config.models import AgencyBranding
-from system_config.serializers import AgencyBrandingSerializer, AgencyBrandingCreateSerializer
-from utils.permissions import IsMember, IsAgent
-import logging
+from system_config.serializers import AgencyBrandingCreateSerializer, AgencyBrandingSerializer
+from utils.api import TenantScopedAPIMixin
+
+from .models import User
+from .serializers import PasswordChangeSerializer, UserCreateSerializer, UserSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -34,17 +36,17 @@ def current_user(request):
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """Custom token serializer to include user role and agency info"""
-    
+
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        
+
         # Add custom claims
         token['role'] = user.role
         token['agency_id'] = user.agency.id if user.agency else None
         token['agency_name'] = user.agency.name if user.agency else None
         token['full_name'] = user.full_name
-        
+
         return token
 
 
@@ -53,7 +55,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(TenantScopedAPIMixin, viewsets.ModelViewSet):
     """
     ViewSet for managing users.
     Developers can manage all users, members can manage their agency users.
@@ -76,23 +78,32 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action == 'create':
             return UserCreateSerializer
         return UserSerializer
-    
+
     def perform_create(self, serializer):
         """Create user with proper agency context"""
         if self.request.user.role != 'member':
             raise permissions.PermissionDenied("Only members can create users.")
-        
-        # Set agency if not provided
-        if not serializer.validated_data.get('agency'):
-            serializer.validated_data['agency'] = self.request.user.agency
-        
+
+        # Always the caller's own agency — never trust a client-supplied
+        # agency_id here. UserCreateSerializer.create() re-derives `agency`
+        # from `agency_id` itself if it's present, so it must be popped
+        # here too, not just overwritten — otherwise the serializer's own
+        # create() silently puts the client's value back.
+        serializer.validated_data.pop('agency_id', None)
+        serializer.validated_data['agency'] = self.request.user.agency
+
         serializer.save()
 
     def perform_update(self, serializer):
         """Update user with permission checks"""
         if self.request.user.role != 'member':
             raise permissions.PermissionDenied("Only members can update users.")
-        
+
+        # get_queryset() already scopes retrieval to the caller's own
+        # agency, but don't let a client-supplied agency_id move a user
+        # to a different agency on update either.
+        serializer.validated_data.pop('agency', None)
+        serializer.validated_data.pop('agency_id', None)
         serializer.save()
 
     @action(detail=False, methods=['get'])
@@ -100,7 +111,7 @@ class UserViewSet(viewsets.ModelViewSet):
         """Get current user profile"""
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
-    
+
     @action(detail=False, methods=['patch'])
     def update_me(self, request):
         """Update current user profile"""
@@ -109,7 +120,7 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     @action(detail=False, methods=['post'])
     def change_password(self, request):
         """Change user password"""
@@ -140,25 +151,28 @@ def request_password_reset(request):
             {'email': ['This field is required.']},
             status=status.HTTP_400_BAD_REQUEST
         )
-    
+
     try:
         user = User.objects.get(email=email)
     except User.DoesNotExist:
         # Don't reveal if email exists or not
         return Response({'detail': 'Password reset email sent'})
-    
+
     # Generate reset token
     token = default_token_generator.make_token(user)
     uid = urlsafe_base64_encode(force_bytes(user.pk))
-    
+
     # Create reset URL
     reset_url = f"{settings.FRONTEND_URL}/reset-password/{uid}/{token}/"
-    
+
     # Send email
     try:
+        with translation.override(user.preferred_language or settings.LANGUAGE_CODE):
+            subject = gettext('Password Reset Request')
+            body = gettext('Click the link to reset your password: %(url)s') % {'url': reset_url}
         send_mail(
-            'Password Reset Request',
-            f'Click the link to reset your password: {reset_url}',
+            subject,
+            body,
             settings.DEFAULT_FROM_EMAIL,
             [user.email],
             fail_silently=False,
@@ -181,13 +195,13 @@ def reset_password(request):
     uid = request.data.get('uid')
     token = request.data.get('token')
     new_password = request.data.get('new_password')
-    
+
     if not all([uid, token, new_password]):
         return Response(
             {'detail': 'Missing required fields'},
             status=status.HTTP_400_BAD_REQUEST
         )
-    
+
     try:
         uid = force_str(urlsafe_base64_decode(uid))
         user = User.objects.get(pk=uid)
@@ -196,16 +210,16 @@ def reset_password(request):
             {'detail': 'Invalid reset link'},
             status=status.HTTP_400_BAD_REQUEST
         )
-    
+
     if not default_token_generator.check_token(user, token):
         return Response(
             {'detail': 'Invalid or expired reset link'},
             status=status.HTTP_400_BAD_REQUEST
         )
-    
+
     user.set_password(new_password)
     user.save()
-    
+
     return Response({'detail': 'Password reset successfully'})
 
 
@@ -219,19 +233,19 @@ class MemberProfileView(APIView):
         """Get member profile (agency branding)"""
         try:
             user = request.user
-            
+
             if user.role not in ['member', 'agent']:
                 return Response(
                     {'detail': 'Only members and agents can access profile'},
                     status=status.HTTP_403_FORBIDDEN
                 )
-            
+
             if not user.agency:
                 return Response(
                     {'detail': 'User is not associated with any agency'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             # Get or create agency branding
             branding, created = AgencyBranding.objects.get_or_create(
                 agency=user.agency,
@@ -242,10 +256,10 @@ class MemberProfileView(APIView):
                     'address': user.agency.address,
                 }
             )
-            
+
             serializer = AgencyBrandingSerializer(branding, context={'request': request})
             return Response(serializer.data)
-            
+
         except Exception as e:
             logger.error(f"Error getting member profile: {e}")
             return Response(
@@ -262,13 +276,13 @@ class MemberProfileView(APIView):
                     {'detail': 'Only members and agents can update profile'},
                     status=status.HTTP_403_FORBIDDEN
                 )
-            
+
             if not user.agency:
                 return Response(
                     {'detail': 'User is not associated with any agency'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             # Get or create agency branding
             branding, created = AgencyBranding.objects.get_or_create(
                 agency=user.agency,
@@ -279,21 +293,21 @@ class MemberProfileView(APIView):
                     'address': user.agency.address,
                 }
             )
-            
+
             # Update branding with provided data
             serializer = AgencyBrandingCreateSerializer(
-                branding, 
-                data=request.data, 
+                branding,
+                data=request.data,
                 partial=True,
                 context={'request': request}
             )
-            
+
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-                
+
         except Exception as e:
             logger.error(f"Error updating member profile: {e}")
             return Response(
@@ -313,31 +327,30 @@ def generate_voucher_number(request):
                 {'detail': 'Only members and agents can generate voucher numbers'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
+
         if not user.agency:
             return Response(
                 {'detail': 'User is not associated with any agency'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Import here to avoid circular imports
-        from bookings.models import VoucherSequence
-        
+        from member.models import VoucherSequence
+
         # Get or create voucher sequence for this agency
         sequence, created = VoucherSequence.objects.get_or_create(
             agency=user.agency,
             defaults={'current_sequence': 0}
         )
-        
+
         # Generate next voucher number
         voucher_number = sequence.get_next_voucher_number()
-        
+
         return Response({
             'voucher_number': voucher_number,
-            'manual_number': voucher_number,  # Same as voucher number
             'sequence': sequence.current_sequence
         })
-        
+
     except Exception as e:
         logger.error(f"Error generating voucher number: {e}")
         return Response(
@@ -357,13 +370,13 @@ def upload_logo(request):
                 {'detail': 'Only members and agents can upload logos'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
+
         if not user.agency:
             return Response(
                 {'detail': 'User is not associated with any agency'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Get or create agency branding
         branding, created = AgencyBranding.objects.get_or_create(
             agency=user.agency,
@@ -374,14 +387,14 @@ def upload_logo(request):
                 'address': user.agency.address,
             }
         )
-        
+
         logo = request.FILES.get('logo')
         if not logo:
             return Response(
                 {'detail': 'No logo file provided'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Validate file type
         allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml']
         if logo.content_type not in allowed_types:
@@ -389,24 +402,24 @@ def upload_logo(request):
                 {'detail': 'Invalid file type. Only JPEG, PNG, GIF, and SVG are allowed'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Validate file size (max 5MB)
         if logo.size > 5 * 1024 * 1024:
             return Response(
                 {'detail': 'File size too large. Maximum 5MB allowed'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         branding.logo = logo
         branding.save()
-        
+
         serializer = AgencyBrandingSerializer(branding, context={'request': request})
         return Response({
             'detail': 'Logo uploaded successfully',
             'logo_url': branding.logo.url if branding.logo else None,
             'branding': serializer.data
         })
-        
+
     except Exception as e:
         logger.error(f"Error uploading logo: {e}")
         return Response(

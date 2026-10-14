@@ -1,0 +1,148 @@
+{% load i18n %}
+{# Internal notes pop-up (like Sticky Notes). On a saved voucher notes are stored straight away; on a new one they are saved together with the voucher. #}
+<style>
+  .hotels-hero__actions .btn.vn-btn { min-height: 44px; gap: 10px; padding: 6px 18px 6px 6px; border-radius: 999px; font-weight: 600; background: var(--card); box-shadow: 0 1px 2px rgba(15, 23, 42, .06); transition: border-color .15s, color .15s, box-shadow .15s, transform .15s; }
+  [dir="rtl"] .hotels-hero__actions .btn.vn-btn { padding: 6px 6px 6px 18px; }
+  .hotels-hero__actions .btn.vn-btn > svg:first-child { width: 32px; height: 32px; padding: 7px; margin: 0; border-radius: 999px; color: #b77900; background: color-mix(in srgb, #eda100 20%, transparent); transition: background .15s, color .15s; }
+  .hotels-hero__actions .btn.vn-btn:hover { border-color: color-mix(in srgb, #eda100 55%, var(--border)); box-shadow: 0 6px 16px color-mix(in srgb, #eda100 18%, transparent); transform: translateY(-1px); }
+  .hotels-hero__actions .btn.vn-btn:hover > svg:first-child { color: #fff; background: #eda100; }
+  .vn-badge { min-width: 20px; height: 20px; padding: 0 6px; margin-inline-start: -2px; border-radius: 999px; display: inline-grid; place-items: center; font-size: 0.72rem; font-weight: 800; color: #fff; background: #d98e00; }
+  .vn-badge[hidden] { display: none; }
+  .vn-win { position: fixed; top: 92px; inset-inline-end: 24px; z-index: 9000; width: 380px; max-width: calc(100vw - 24px); max-height: min(78vh, 660px); display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 18px; background: var(--card); box-shadow: 0 26px 64px rgba(15, 23, 42, .28); overflow: hidden; animation: vnIn .16s ease-out; }
+  .vn-win[hidden] { display: none; }
+  @keyframes vnIn { from { opacity: 0; transform: translateY(-6px) scale(.985); } }
+  .vn-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 10px 11px 16px; cursor: grab; user-select: none; touch-action: none; font-weight: 800; background: color-mix(in srgb, #eda100 24%, var(--card)); border-bottom: 1px solid color-mix(in srgb, #eda100 35%, var(--border)); }
+  .vn-head.is-dragging { cursor: grabbing; }
+  .vn-head__t { display: inline-flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+  .vn-n { min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; display: inline-grid; place-items: center; font-size: 0.72rem; color: #fff; background: #d98e00; }
+  .vn-x { width: 30px; height: 30px; border: 0; border-radius: 9px; background: transparent; color: var(--foreground); font-size: 1.25rem; line-height: 1; cursor: pointer; }
+  .vn-x:hover { background: color-mix(in srgb, #eda100 30%, transparent); }
+  .vn-compose { padding: 12px 12px 8px; }
+  .vn-compose textarea { width: 100%; min-height: 78px; padding: 10px 12px; resize: none; border: 1px solid color-mix(in srgb, #eda100 35%, var(--border)); border-radius: 12px; background: color-mix(in srgb, #eda100 9%, var(--card)); color: var(--foreground); font: inherit; font-size: 0.9rem; line-height: 1.45; outline: none; }
+  .vn-compose textarea:focus { border-color: #d98e00; box-shadow: 0 0 0 3px color-mix(in srgb, #eda100 25%, transparent); }
+  .vn-compose__row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+  .vn-compose__row small { font-size: 0.72rem; color: var(--muted-foreground); }
+  .vn-err { margin: 6px 0 0; font-size: 0.78rem; color: var(--destructive); }
+  .vn-list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 4px 12px 12px; }
+  .vn-note { padding: 11px 13px 10px; border: 1px solid color-mix(in srgb, #eda100 32%, var(--border)); border-radius: 14px; background: color-mix(in srgb, #eda100 15%, var(--card)); box-shadow: 0 2px 6px rgba(15, 23, 42, .05); animation: vnIn .18s ease-out; }
+  .vn-note p { margin: 0 0 9px; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .vn-note footer { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 0.74rem; color: var(--muted-foreground); }
+  .vn-av { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 0.68rem; font-weight: 800; color: #fff; background: #d98e00; }
+  .vn-note footer b { flex: none; max-width: 160px; color: var(--foreground); font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vn-note footer time { margin-inline-start: auto; white-space: nowrap; }
+  .vn-pend { padding: 1px 7px; border-radius: 999px; font-size: 0.68rem; font-weight: 700; color: #8a5d00; background: color-mix(in srgb, #eda100 28%, transparent); white-space: nowrap; }
+  .vn-del { width: 22px; height: 22px; border: 0; border-radius: 6px; background: transparent; color: var(--muted-foreground); font-size: 1rem; line-height: 1; cursor: pointer; }
+  .vn-del:hover { color: var(--destructive); background: color-mix(in srgb, var(--destructive) 12%, transparent); }
+  .vn-empty { margin: 10px 4px 16px; text-align: center; font-size: 0.84rem; color: var(--muted-foreground); }
+  .vn-foot { margin: 0; padding: 9px 14px; font-size: 0.72rem; text-align: center; color: var(--muted-foreground); border-top: 1px solid var(--border); background: var(--muted); }
+  @media (max-width: 520px) { .vn-win { inset-inline: 12px; width: auto; top: 76px; } }
+  @media print { .vn-win, .vn-btn { display: none !important; } }
+</style>
+
+<button type="button" class="btn btn-outline vn-btn" id="vn-open" aria-haspopup="dialog" aria-controls="vn-win">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15.5 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3z"/><path d="M15 3v6h6"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+  {% trans "Notes" %}<span class="vn-badge" id="vn-badge" hidden>0</span>
+</button>
+
+{% url 'member-booking-note-delete' 0 as vn_del_url %}
+<div class="vn-win" id="vn-win" role="dialog" aria-label="{% trans 'Notes' %}" hidden
+     data-add-url="{% if booking %}{% url 'member-booking-notes' booking.id %}{% endif %}" data-del-url="{{ vn_del_url }}">
+  <div class="vn-head" id="vn-drag">
+    <span class="vn-head__t">{% trans "Notes" %} <span class="vn-n" id="vn-n">0</span></span>
+    <button type="button" class="vn-x" id="vn-close" aria-label="{% trans 'Close' %}">&times;</button>
+  </div>
+  <div class="vn-compose">
+    <textarea id="vn-text" maxlength="2000" placeholder="{% trans 'Take a note…' %}" aria-label="{% trans 'New note' %}"></textarea>
+    <p class="vn-err" id="vn-err" hidden></p>
+    <div class="vn-compose__row"><small>{% trans "Ctrl + Enter to add" %}</small><button type="button" class="btn btn-primary btn-sm" id="vn-add">{% trans "Add note" %}</button></div>
+  </div>
+  <div class="vn-list" id="vn-list"></div>
+  <p class="vn-foot">{% trans "Internal — only your team sees these. Never printed." %}</p>
+</div>
+{{ voucher_notes|default:""|json_script:"vn-data" }}
+{% trans "No notes yet — jot down anything the team should know about this voucher." as t_empty %}
+{% trans "Saves with the voucher" as t_pend %}{% trans "Delete note" as t_del %}{% trans "Couldn't save the note — try again." as t_fail %}
+<script>
+(function () {
+  var win = document.getElementById('vn-win'), list = document.getElementById('vn-list'), text = document.getElementById('vn-text'), err = document.getElementById('vn-err');
+  var openBtn = document.getElementById('vn-open'), badge = document.getElementById('vn-badge'), count = document.getElementById('vn-n');
+  var addUrl = win.dataset.addUrl, delUrl = win.dataset.delUrl;
+  var T = { empty: '{{ t_empty|escapejs }}', pend: '{{ t_pend|escapejs }}', del: '{{ t_del|escapejs }}', fail: '{{ t_fail|escapejs }}' };
+  var ME = '{{ request.user.get_full_name|default:request.user.username|escapejs }}';
+  var notes = [], seq = 0;
+  try { notes = JSON.parse(document.getElementById('vn-data').textContent) || []; } catch (e) { notes = []; }
+  if (!Array.isArray(notes)) notes = [];
+
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function csrf() { var i = document.querySelector('[name=csrfmiddlewaretoken]'); return i ? i.value : ''; }
+  function nowText() { return new Date().toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }); }
+  function render() {
+    list.innerHTML = notes.length ? notes.map(function (n) {
+      return '<article class="vn-note" data-id="' + esc(n.id) + '"><p dir="auto">' + esc(n.text) + '</p><footer><span class="vn-av">' + esc(n.initial) + '</span><b>' + esc(n.author) + '</b>' +
+        (n.pending ? '<span class="vn-pend">' + esc(T.pend) + '</span>' : '') + '<time>' + esc(n.at) + '</time>' +
+        (n.mine ? '<button type="button" class="vn-del" data-id="' + esc(n.id) + '" aria-label="' + esc(T.del) + '" title="' + esc(T.del) + '">&times;</button>' : '') + '</footer></article>';
+    }).join('') : '<p class="vn-empty">' + esc(T.empty) + '</p>';
+    count.textContent = notes.length; badge.textContent = notes.length; badge.hidden = !notes.length;
+  }
+  function showErr(msg) { err.textContent = msg || ''; err.hidden = !msg; }
+  function open() { win.hidden = false; openBtn.setAttribute('aria-expanded', 'true'); text.focus(); }
+  function close() { win.hidden = true; openBtn.setAttribute('aria-expanded', 'false'); openBtn.focus(); }
+  openBtn.addEventListener('click', function () { if (win.hidden) open(); else close(); });
+  document.getElementById('vn-close').addEventListener('click', close);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !win.hidden && !document.querySelector('.vs-pop, .flatpickr-calendar.open')) close(); });
+
+  function add() {
+    var t = text.value.trim();
+    if (!t) { text.focus(); return; }
+    showErr('');
+    if (!addUrl) {  // new voucher: kept here until the voucher itself is saved
+      notes.unshift({ id: 'p' + (++seq), text: t, author: ME, initial: (ME[0] || '•').toUpperCase(), at: nowText(), mine: true, pending: true });
+      text.value = ''; render(); text.focus(); return;
+    }
+    fetch(addUrl, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() }, body: JSON.stringify({ text: t }) })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (!res.ok) { showErr(res.d.error || T.fail); return; }
+        notes.unshift(res.d.note); text.value = ''; render(); text.focus();
+      }).catch(function () { showErr(T.fail); });
+  }
+  document.getElementById('vn-add').addEventListener('click', add);
+  text.addEventListener('keydown', function (e) { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); add(); } });
+
+  list.addEventListener('click', function (e) {
+    var b = e.target.closest('.vn-del'); if (!b) return;
+    var id = b.dataset.id;
+    if (String(id).charAt(0) === 'p') { notes = notes.filter(function (n) { return String(n.id) !== id; }); render(); return; }
+    fetch(delUrl.replace('/0/', '/' + id + '/'), { method: 'POST', credentials: 'same-origin', headers: { 'X-CSRFToken': csrf() } })
+      .then(function (r) { if (!r.ok) throw new Error(); notes = notes.filter(function (n) { return String(n.id) !== id; }); render(); })
+      .catch(function () { showErr(T.fail); });
+  });
+
+  // New voucher: the notes written so far go along with the Save / Save as draft submit.
+  document.addEventListener('submit', function (e) {
+    var f = e.target; if (!f || f.id !== 'ws-booking-form' || addUrl) return;
+    var h = f.querySelector('input[name=notes_json]');
+    if (!h) { h = document.createElement('input'); h.type = 'hidden'; h.name = 'notes_json'; f.appendChild(h); }
+    h.value = JSON.stringify(notes.filter(function (n) { return n.pending; }).map(function (n) { return n.text; }).reverse());
+  }, true);
+
+  // Drag the window by its title bar.
+  var drag = document.getElementById('vn-drag'), start = null;
+  drag.addEventListener('pointerdown', function (e) {
+    if (e.target.closest('button')) return;
+    var r = win.getBoundingClientRect();
+    start = { x: e.clientX - r.left, y: e.clientY - r.top };
+    win.style.insetInlineEnd = 'auto'; win.style.left = r.left + 'px'; win.style.top = r.top + 'px'; win.style.width = r.width + 'px';
+    drag.classList.add('is-dragging'); drag.setPointerCapture(e.pointerId);
+  });
+  drag.addEventListener('pointermove', function (e) {
+    if (!start) return;
+    var w = win.offsetWidth, h = win.offsetHeight;
+    win.style.left = Math.max(6, Math.min(e.clientX - start.x, window.innerWidth - w - 6)) + 'px';
+    win.style.top = Math.max(6, Math.min(e.clientY - start.y, window.innerHeight - 60)) + 'px';
+  });
+  drag.addEventListener('pointerup', function () { start = null; drag.classList.remove('is-dragging'); });
+
+  render();
+})();
+</script>

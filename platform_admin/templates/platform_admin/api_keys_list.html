@@ -1,0 +1,37 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "API Keys" %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{% trans "API keys" %}</h1>
+  <p class="page-subtitle">{% trans "Platform-wide and per-agency integration credentials. Only Super Admin can manage these." %}</p>
+</div>
+
+<div class="mb-4">
+  <a href="{% url 'platform_admin:api-key-create' %}" class="btn btn-primary">{% trans "New API key" %}</a>
+</div>
+
+<div class="card">
+  <div class="card-content" style="padding-top:20px;">
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>{% trans "Name" %}</th><th>{% trans "Type" %}</th><th>{% trans "Key" %}</th><th>{% trans "Scope" %}</th><th>{% trans "Status" %}</th><th></th></tr></thead>
+        <tbody>
+          {% for row in keys %}
+          <tr>
+            <td class="font-medium">{{ row.obj.name }}</td>
+            <td class="text-muted text-sm">{{ row.obj.get_key_type_display }}</td>
+            <td class="tabular-nums text-sm">{{ row.masked_key }}</td>
+            <td class="text-muted text-sm">{{ row.obj.agency.name|default:"Platform-wide" }}</td>
+            <td>{% if row.obj.is_active %}<span class="badge badge-success">{% trans "Active" %}</span>{% else %}<span class="badge badge-outline">{% trans "Inactive" %}</span>{% endif %}</td>
+            <td><a class="btn btn-outline btn-sm" href="{% url 'platform_admin:api-key-edit' row.obj.id %}">{% trans "Edit" %}</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6"><div class="empty-state"><h3>{% trans "No API keys yet" %}</h3></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

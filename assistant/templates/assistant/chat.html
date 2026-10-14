@@ -1,0 +1,440 @@
+{% extends "base.html" %}
+{% load static i18n %}
+{% block title %}{% trans "AI Assistant" %}{% endblock %}
+{% block extra_head %}
+<style>
+  .ai-shell { position: relative; height: calc(100vh - var(--topnav-height) - 56px); min-height: 520px; }
+  .ai-ws { display: flex; flex-direction: column; height: 100%; min-height: 0; border: 1px solid var(--border); border-radius: calc(var(--radius-lg) + 4px); background: var(--card); box-shadow: var(--shadow-card); overflow: hidden; }
+  .ai-hist { position: absolute; z-index: 20; top: 0; bottom: 0; inset-inline-start: 0; width: min(320px, 88%); display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: calc(var(--radius-lg) + 4px); background: var(--card); box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18); overflow: hidden; transform: translateX(-16px); opacity: 0; pointer-events: none; transition: transform .22s ease, opacity .22s ease; }
+  [dir="rtl"] .ai-hist { transform: translateX(16px); }
+  .ai-shell.is-hist-open .ai-hist { transform: none; opacity: 1; pointer-events: auto; }
+  .ai-scrim { position: absolute; inset: 0; z-index: 15; border-radius: calc(var(--radius-lg) + 4px); background: rgba(15, 23, 42, 0.25); opacity: 0; pointer-events: none; transition: opacity .22s ease; }
+  .ai-shell.is-hist-open .ai-scrim { opacity: 1; pointer-events: auto; }
+  .ai-hist__top { display: flex; align-items: center; gap: 8px; }
+  .ai-hist__close { flex: none; width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 10px; background: var(--card); color: var(--muted-foreground); cursor: pointer; }
+  .ai-hist__close:hover { color: var(--foreground); }
+  .ai-hist__top { padding: 14px; border-bottom: 1px solid var(--border); }
+  .ai-hist__top .btn { flex: 1; }
+  .ai-hist__label { margin: 14px 16px 6px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-foreground); }
+  .ai-hist__list { flex: 1; overflow-y: auto; padding: 0 8px 10px; }
+  .ai-hist__item { position: relative; display: flex; align-items: center; border-radius: 10px; }
+  .ai-hist__item a { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: 9px 36px 9px 12px; border-radius: 10px; color: var(--foreground); text-decoration: none; }
+  [dir="rtl"] .ai-hist__item a { padding: 9px 12px 9px 36px; }
+  .ai-hist__item a:hover { background: var(--muted); }
+  .ai-hist__item.is-active a { background: color-mix(in srgb, var(--primary) 10%, transparent); color: var(--primary); }
+  .ai-hist__item strong { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ai-hist__item small { font-size: 0.72rem; color: var(--muted-foreground); }
+  .ai-hist__item form { position: absolute; inset-inline-end: 6px; top: 50%; transform: translateY(-50%); margin: 0; }
+  .ai-hist__del { width: 26px; height: 26px; display: grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: var(--muted-foreground); cursor: pointer; opacity: 0; transition: opacity .15s; }
+  .ai-hist__item:hover .ai-hist__del, .ai-hist__del:focus-visible, .ai-hist__item.is-active .ai-hist__del { opacity: 1; }
+  .ai-hist__del:hover { color: var(--destructive); background: color-mix(in srgb, var(--destructive) 10%, transparent); }
+  @media (hover: none) { .ai-hist__del { opacity: 1; } }
+  .ai-hist__confirm { position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; gap: 6px; padding: 0 8px 0 12px; border-radius: 10px; background: color-mix(in srgb, var(--destructive) 9%, var(--card)); border: 1px solid color-mix(in srgb, var(--destructive) 35%, var(--border)); animation: delIn .14s ease-out; }
+  .ai-hist__confirm[hidden] { display: none; }
+  @keyframes delIn { from { opacity: 0; transform: scale(.98); } }
+  .ai-hist__confirm span { flex: 1; min-width: 0; font-size: 0.8rem; font-weight: 600; color: var(--destructive); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ai-hist__yes, .ai-hist__no { flex: none; height: 28px; padding: 0 10px; border-radius: 8px; font: inherit; font-size: 0.76rem; font-weight: 700; cursor: pointer; }
+  .ai-hist__yes { border: 0; color: #fff; background: var(--destructive); }
+  .ai-hist__no { border: 1px solid var(--border); color: var(--foreground); background: var(--card); }
+  .ai-hist__empty { padding: 10px 16px; font-size: 0.82rem; color: var(--muted-foreground); }
+  @media (max-width: 640px) { .ai-shell { height: calc(100vh - var(--topnav-height) - 40px); } }
+  .ai-ws__head { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+  .ai-ws__logo { flex: none; width: 46px; height: 46px; border-radius: 13px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 55%, #7c3aed)); }
+  .ai-ws__title { flex: 1; min-width: 200px; }
+  .ai-ws__title h1 { margin: 0; font-size: 1.15rem; }
+  .ai-ws__title p { margin: 2px 0 0; font-size: 0.82rem; color: var(--muted-foreground); }
+  .ai-ws__tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .ai-ws__tools .form-select { width: auto; height: 38px; }
+  .ai-ws__back { display: inline-flex; align-items: center; gap: 4px; margin-inline-end: 6px; font-size: 0.82rem; color: var(--muted-foreground); text-decoration: none; }
+  .ai-ws__back:hover { color: var(--primary); }
+  [dir="rtl"] .ai-ws__back svg { transform: scaleX(-1); }
+  #assistant-messages { flex: 1; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; padding: 22px 24px; background: color-mix(in srgb, var(--muted) 45%, var(--card)); }
+  .ai-ws .assistant-bubble { max-width: 72%; padding: 11px 15px; border-radius: 16px; font-size: 0.92rem; background: var(--card); border: 1px solid var(--border); border-end-start-radius: 4px; }
+  .ai-ws .assistant-msg--user .assistant-bubble { border: 0; border-radius: 16px; border-end-end-radius: 4px; background: var(--primary); color: #fff; }
+  .ai-ws .assistant-confirm-card { border-radius: 14px; }
+  .ai-empty { margin: auto; max-width: 720px; text-align: center; }
+  .ai-empty h3 { margin: 12px 0 4px; font-size: 1.1rem; }
+  .ai-empty p { margin: 0 0 16px; font-size: 0.875rem; color: var(--muted-foreground); }
+  .ai-empty .ai-ws__logo { margin: 0 auto; width: 56px; height: 56px; }
+  .ai-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 6px 0 14px; text-align: start; }
+  .ai-card { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); font: inherit; color: var(--foreground); text-align: start; cursor: pointer; transition: border-color .15s, transform .15s, box-shadow .15s; }
+  .ai-card:hover { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); transform: translateY(-1px); box-shadow: var(--shadow-soft); }
+  .ai-card__icon { flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; }
+  .ai-card strong { display: block; font-size: 0.84rem; font-weight: 650; }
+  .ai-card small { display: block; margin-top: 2px; font-size: 0.74rem; line-height: 1.35; color: var(--muted-foreground); }
+  .tone-blue { color: #2a78d6; background: color-mix(in srgb, #2a78d6 12%, transparent); }
+  .tone-green { color: #1baf7a; background: color-mix(in srgb, #1baf7a 12%, transparent); }
+  .tone-amber { color: #c98500; background: color-mix(in srgb, #eda100 14%, transparent); }
+  .tone-purple { color: #7c3aed; background: color-mix(in srgb, #7c3aed 12%, transparent); }
+  .tone-red { color: var(--destructive); background: color-mix(in srgb, var(--destructive) 11%, transparent); }
+  .ai-empty__note { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 5px; margin: 0 !important; font-size: 0.76rem !important; }
+  @media (max-width: 900px) { .ai-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 520px) { .ai-cards { grid-template-columns: 1fr; } }
+  .ai-sugg { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .ai-sugg button { padding: 8px 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font: inherit; font-size: 0.82rem; cursor: pointer; color: var(--foreground); }
+  .ai-sugg button:hover { border-color: var(--primary); color: var(--primary); }
+  #assistant-form { display: flex; align-items: center; gap: 8px; padding: 14px 18px; border-top: 1px solid var(--border); background: var(--card); }
+  #assistant-input { flex: 1; height: 48px; border-radius: 999px; padding-inline: 18px; }
+  #assistant-form .btn { height: 48px; border-radius: 999px; padding-inline: 18px; }
+  #assistant-status { margin: 0; padding: 0 22px 8px; min-height: 18px; font-size: 0.82rem; color: var(--muted-foreground); background: var(--card); }
+  @media (max-width: 640px) { .ai-ws { height: auto; min-height: calc(100vh - var(--topnav-height) - 40px); } .ai-ws .assistant-bubble { max-width: 90%; } }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-dashboard" id="assistant-root"
+     data-session-id="{{ session.id }}"
+     data-send-url="{% url 'assistant-send' %}"
+     data-language-url="{% url 'assistant-set-language' %}"
+     data-preferred-language="{{ session.preferred_language|default:'' }}"
+     data-voice-provider="{{ voice_provider }}">
+  <div class="ai-shell">
+  <aside class="ai-hist" id="ai-hist" inert aria-label="{% trans 'Chat history' %}">
+    <div class="ai-hist__top">
+      <button type="button" class="ai-hist__close" data-hist-close aria-label="{% trans 'Close' %}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <a href="{% url 'assistant-new-session' %}" class="btn btn-primary"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span data-i18n="new_chat">{% trans "New chat" %}</span></a>
+    </div>
+    <p class="ai-hist__label">{% trans "Recent chats" %}</p>
+    <div class="ai-hist__list" id="ai-hist-list">
+      {% for h in history %}
+      <div class="ai-hist__item {% if h.id == session.id %}is-active{% endif %}">
+        <a href="{% url 'assistant-chat' %}?session={{ h.id }}" {% if h.id == session.id %}aria-current="page"{% endif %}>
+          <strong dir="auto">{{ h.title|default:_("Untitled chat") }}</strong>
+          <small>{% blocktrans with t=h.updated_at|timesince %}{{ t }} ago{% endblocktrans %}</small>
+        </a>
+        <form method="post" action="{% url 'assistant-delete-session' h.id %}" data-del-chat>
+          {% csrf_token %}<input type="hidden" name="current" value="{{ session.id }}">
+          <button type="button" class="ai-hist__del" data-del-ask title="{% trans 'Delete chat' %}" aria-label="{% trans 'Delete chat' %}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+        </form>
+        <div class="ai-hist__confirm" role="alertdialog" aria-label="{% trans 'Delete this chat?' %}" hidden>
+          <span>{% trans "Delete this chat?" %}</span>
+          <button type="button" class="ai-hist__yes" data-del-yes>{% trans "Delete" %}</button>
+          <button type="button" class="ai-hist__no" data-del-no>{% trans "Cancel" %}</button>
+        </div>
+      </div>
+      {% empty %}
+      <p class="ai-hist__empty" id="ai-hist-empty">{% trans "Your past chats will appear here." %}</p>
+      {% endfor %}
+    </div>
+  </aside>
+  <div class="ai-scrim" data-hist-close aria-hidden="true"></div>
+  <section class="ai-ws">
+    <header class="ai-ws__head">
+      <span class="ai-ws__logo" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg></span>
+      <div class="ai-ws__title">
+        <h1>{% trans "AI Assistant" %}</h1>
+      </div>
+      <div class="ai-ws__tools">
+        <button type="button" class="btn btn-outline btn-sm" id="ai-hist-toggle" aria-expanded="false" aria-controls="ai-hist">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/><polyline points="12 7 12 12 15 14"/></svg>
+          {% trans "History" %}{% if history %} <span class="badge badge-outline" style="padding:0 7px;">{{ history|length }}</span>{% endif %}
+        </button>
+        <a href="{% url 'assistant-new-session' %}" class="btn btn-primary btn-sm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>{% trans "New chat" %}</a>
+        <button type="button" id="assistant-speaker-toggle" class="btn btn-outline btn-sm" data-active="false" title="{% trans 'Read replies aloud' %}" hidden>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" /></svg>
+          <span data-i18n="speak_replies">{% trans "Speak replies" %}</span>
+        </button>
+      </div>
+    </header>
+
+    <div id="assistant-messages">
+      {% for m in chat_messages %}
+      <div class="assistant-msg assistant-msg--{{ m.role }}">
+        <div class="assistant-bubble">{{ m.content|linebreaksbr }}</div>
+        {% if m.pending_action %}
+        <div class="assistant-confirm-card" data-pending-id="{{ m.pending_action.id }}" data-status="{{ m.pending_action.status }}">
+          <p class="assistant-confirm-summary">{{ m.pending_action.summary }}</p>
+          {% if m.pending_action.status == 'pending' %}
+          <div class="assistant-confirm-actions">
+            <button type="button" class="btn btn-primary btn-sm assistant-confirm-btn" data-approve="true" data-i18n="confirm">{% trans "Confirm" %}</button>
+            <button type="button" class="btn btn-outline btn-sm assistant-confirm-btn" data-approve="false" data-i18n="cancel">{% trans "Cancel" %}</button>
+          </div>
+          {% else %}
+          <span class="badge badge-outline assistant-confirm-status">{{ m.pending_action.status }}</span>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+      {% empty %}
+      <div class="ai-empty" id="assistant-empty">
+        <span class="ai-ws__logo" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg></span>
+        <h3>{% blocktrans with n=request.user.first_name|default:request.user.username %}Hi {{ n }}, how can I help?{% endblocktrans %}</h3>
+        <p>{% trans "I can look up your bookings, ledger, balances and installments — and prepare entries for you." %}</p>
+        <div class="ai-cards">
+          {% trans "Summarise today for me" as q %}<button type="button" class="ai-card" data-q="{{ q }}"><span class="ai-card__icon tone-blue" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span><strong>{% trans "Today's summary" %}</strong><small>{{ q }}</small></span></button>
+          {% trans "Who owes me the most?" as q %}<button type="button" class="ai-card" data-q="{{ q }}"><span class="ai-card__icon tone-amber" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span><span><strong>{% trans "Who owes me?" %}</strong><small>{{ q }}</small></span></button>
+          {% trans "How much do I owe my suppliers?" as q %}<button type="button" class="ai-card" data-q="{{ q }}"><span class="ai-card__icon tone-purple" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/></svg></span><span><strong>{% trans "Supplier dues" %}</strong><small>{{ q }}</small></span></button>
+          {% trans "Which installments are due this week?" as q %}<button type="button" class="ai-card" data-q="{{ q }}"><span class="ai-card__icon tone-red" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span><strong>{% trans "Installments due" %}</strong><small>{{ q }}</small></span></button>
+          {% trans "How many bookings this month?" as q %}<button type="button" class="ai-card" data-q="{{ q }}"><span class="ai-card__icon tone-blue" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span><span><strong>{% trans "Bookings this month" %}</strong><small>{{ q }}</small></span></button>
+          {% trans "Which trips depart in the next 7 days?" as q %}<button type="button" class="ai-card" data-q="{{ q }}"><span class="ai-card__icon tone-green" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg></span><span><strong>{% trans "Upcoming trips" %}</strong><small>{{ q }}</small></span></button>
+        </div>
+        <p class="ai-empty__note">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          {% trans "Nothing is saved until you approve it." %}
+          <span class="ai-empty__mic" hidden> · {% trans "Tap the mic to ask by voice." %}</span>
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <form id="assistant-form">
+      {% csrf_token %}
+      <input type="text" id="assistant-input" class="form-input" autocomplete="off"
+             data-i18n-placeholder="placeholder" placeholder="{% trans 'Ask a question or give an instruction…' %}">
+      <button type="button" id="assistant-mic-btn" class="btn btn-outline" data-listening="false" title="{% trans 'Speak' %}" hidden>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="23" /><line x1="8" y1="23" x2="16" y2="23" /></svg>
+      </button>
+      <button type="submit" class="btn btn-primary" id="assistant-send-btn" data-i18n="send">{% trans "Send" %}</button>
+    </form>
+    <p id="assistant-status" aria-live="polite"></p>
+  </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/assistant-i18n.js' %}"></script>
+<script src="{% static 'js/voice/voice.js' %}"></script>
+<script src="{% static 'js/voice/web-speech-provider.js' %}"></script>
+<script>
+(function () {
+    var root = document.getElementById('assistant-root');
+    var sessionId = root.dataset.sessionId;
+    var sendUrl = root.dataset.sendUrl;
+    var languageUrl = root.dataset.languageUrl;
+    var messagesEl = document.getElementById('assistant-messages');
+    var form = document.getElementById('assistant-form');
+    var input = document.getElementById('assistant-input');
+    var sendBtn = document.getElementById('assistant-send-btn');
+    var statusEl = document.getElementById('assistant-status');
+    var appLang = (document.documentElement.lang || 'en').slice(0, 2);
+    var micBtn = document.getElementById('assistant-mic-btn');
+    var speakerToggle = document.getElementById('assistant-speaker-toggle');
+    var csrftoken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+    var voiceProvider = getVoiceProvider(root.dataset.voiceProvider);
+    var voiceSupport = voiceProvider ? voiceProvider.isSupported() : { stt: false, tts: false };
+    var speakingEnabled = false;
+
+    function t(key) {
+        var lang = appLang;
+        return (window.ASSISTANT_I18N[lang] && window.ASSISTANT_I18N[lang][key]) || window.ASSISTANT_I18N.en[key] || key;
+    }
+
+    function applyI18n() {
+        document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.dataset.i18n); });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) { el.setAttribute('placeholder', t(el.dataset.i18nPlaceholder)); });
+    }
+
+    function scrollToBottom() { messagesEl.scrollTop = messagesEl.scrollHeight; }
+
+    function currentVoiceLang() {
+        return voiceLanguageTag(appLang);
+    }
+
+    function addBubble(role, text) {
+        var empty = document.getElementById('assistant-empty');
+        if (empty) empty.remove();
+        var wrap = document.createElement('div');
+        wrap.className = 'assistant-msg assistant-msg--' + role;
+        var bubble = document.createElement('div');
+        bubble.className = 'assistant-bubble';
+        bubble.textContent = text;
+        wrap.appendChild(bubble);
+        messagesEl.appendChild(wrap);
+        scrollToBottom();
+        if (role === 'assistant' && speakingEnabled && voiceSupport.tts && text) {
+            voiceProvider.speak(text, currentVoiceLang());
+        }
+        return wrap;
+    }
+
+    function addConfirmCard(wrap, pendingAction) {
+        var card = document.createElement('div');
+        card.className = 'assistant-confirm-card';
+        card.dataset.pendingId = pendingAction.id;
+        card.dataset.status = pendingAction.status;
+        var summary = document.createElement('p');
+        summary.className = 'assistant-confirm-summary';
+        summary.textContent = pendingAction.summary;
+        card.appendChild(summary);
+        var actions = document.createElement('div');
+        actions.className = 'assistant-confirm-actions';
+        ['true', 'false'].forEach(function (approve) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-sm assistant-confirm-btn ' + (approve === 'true' ? 'btn-primary' : 'btn-outline');
+            btn.dataset.approve = approve;
+            btn.textContent = approve === 'true' ? t('confirm') : t('cancel');
+            actions.appendChild(btn);
+        });
+        card.appendChild(actions);
+        wrap.appendChild(card);
+        scrollToBottom();
+    }
+
+    function resolveAction(pendingId, approve, card) {
+        var url = '/member/assistant/action/' + pendingId + '/resolve/';
+        fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'approve=' + approve,
+        }).then(function (r) { return r.json(); }).then(function (data) {
+            card.dataset.status = data.status;
+            var actions = card.querySelector('.assistant-confirm-actions');
+            if (actions) actions.remove();
+            var badge = document.createElement('span');
+            badge.className = 'badge badge-outline assistant-confirm-status';
+            badge.textContent = data.status;
+            card.appendChild(badge);
+            if (data.text) addBubble('assistant', data.text);
+        }).catch(function () {
+            statusEl.textContent = t('error_generic');
+        });
+    }
+
+    messagesEl.addEventListener('click', function (e) {
+        var btn = e.target.closest('.assistant-confirm-btn');
+        if (!btn) return;
+        var card = btn.closest('.assistant-confirm-card');
+        resolveAction(card.dataset.pendingId, btn.dataset.approve, card);
+    });
+
+    var shell = document.querySelector('.ai-shell'), histBtn = document.getElementById('ai-hist-toggle');
+    function setHist(open) {
+        shell.classList.toggle('is-hist-open', open);
+        document.getElementById('ai-hist').inert = !open;   // closed drawer: not clickable or focusable
+        histBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    histBtn.addEventListener('click', function () { setHist(!shell.classList.contains('is-hist-open')); });
+    document.querySelectorAll('[data-hist-close]').forEach(function (el) { el.addEventListener('click', function () { setHist(false); }); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setHist(false); });
+
+    // After the first reply in a brand-new chat, list it in the history and pin the URL to it.
+    var listed = !!document.querySelector('.ai-hist__item.is-active');
+    function rememberChat(title) {
+        if (listed) return;
+        listed = true;
+        var url = new URL(location.href);
+        url.searchParams.set('session', sessionId);
+        history.replaceState(null, '', url);
+        var empty = document.getElementById('ai-hist-empty');
+        if (empty) empty.remove();
+        var item = document.createElement('div');
+        item.className = 'ai-hist__item is-active';
+        var a = document.createElement('a');
+        a.href = url.pathname + '?session=' + sessionId;
+        var strong = document.createElement('strong');
+        strong.setAttribute('dir', 'auto');
+        strong.textContent = title.slice(0, 80);
+        a.appendChild(strong);
+        item.appendChild(a);
+        document.getElementById('ai-hist-list').prepend(item);
+    }
+
+    // Delete: the trash button opens an inline "Delete this chat?" bar on that row.
+    document.querySelectorAll('.ai-hist__item').forEach(function (item) {
+        var ask = item.querySelector('[data-del-ask]');
+        var bar = item.querySelector('.ai-hist__confirm');
+        if (!ask || !bar) return;
+        var timer;
+        function close() { bar.hidden = true; clearTimeout(timer); }
+        ask.addEventListener('click', function () {
+            document.querySelectorAll('.ai-hist__confirm').forEach(function (b) { b.hidden = true; });
+            bar.hidden = false;
+            bar.querySelector('[data-del-yes]').focus();
+            clearTimeout(timer);
+            timer = setTimeout(close, 6000);
+        });
+        bar.querySelector('[data-del-no]').addEventListener('click', close);
+        bar.querySelector('[data-del-yes]').addEventListener('click', function () {
+            this.disabled = true;
+            item.querySelector('[data-del-chat]').submit();
+        });
+    });
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var text = input.value.trim();
+        if (!text) return;
+        addBubble('user', text);
+        input.value = '';
+        input.disabled = true;
+        sendBtn.disabled = true;
+        statusEl.textContent = t('thinking');
+
+        fetch(sendUrl, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'session_id=' + encodeURIComponent(sessionId) + '&message=' + encodeURIComponent(text),
+        }).then(function (r) { return r.json(); }).then(function (data) {
+            statusEl.textContent = '';
+            rememberChat(text);
+            if (data.type === 'error') {
+                addBubble('assistant', data.text || t('error_generic'));
+            } else if (data.type === 'confirmation_needed') {
+                var wrap = addBubble('assistant', data.text);
+                addConfirmCard(wrap, data.pending_action);
+            } else {
+                addBubble('assistant', data.text);
+            }
+        }).catch(function () {
+            statusEl.textContent = '';
+            addBubble('assistant', t('error_generic'));
+        }).finally(function () {
+            input.disabled = false;
+            sendBtn.disabled = false;
+            input.focus();
+        });
+    });
+
+
+    // --- Voice (mic input / spoken replies) ---
+    if (voiceSupport.stt) {
+        micBtn.hidden = false;
+        var micTip = document.querySelector('.ai-empty__mic');
+        if (micTip) micTip.hidden = false;
+        micBtn.addEventListener('click', function () {
+            if (voiceProvider.isListening()) {
+                voiceProvider.stopListening();
+                return;
+            }
+            micBtn.dataset.listening = 'true';
+            statusEl.textContent = t('listening');
+            voiceProvider.startListening({
+                lang: currentVoiceLang(),
+                onInterim: function (text) { input.value = text; },
+                onFinal: function (text) {
+                    input.value = text;
+                    statusEl.textContent = '';
+                    if (text.trim()) form.requestSubmit();
+                },
+                onError: function (messageKey) {
+                    micBtn.dataset.listening = 'false';
+                    statusEl.textContent = t(messageKey) || t('voice_generic_error');
+                },
+                onEnd: function () { micBtn.dataset.listening = 'false'; },
+            });
+        });
+    }
+
+    if (voiceSupport.tts) {
+        speakerToggle.hidden = false;
+        speakerToggle.addEventListener('click', function () {
+            speakingEnabled = !speakingEnabled;
+            speakerToggle.dataset.active = speakingEnabled ? 'true' : 'false';
+            if (!speakingEnabled) voiceProvider.stopSpeaking();
+        });
+    }
+
+    messagesEl.addEventListener('click', function (e) {
+        var q = e.target.closest('[data-q]');
+        if (!q) return;
+        input.value = q.dataset.q;
+        form.requestSubmit();
+    });
+
+    applyI18n();
+    scrollToBottom();
+    input.focus();
+})();
+</script>
+{% endblock %}

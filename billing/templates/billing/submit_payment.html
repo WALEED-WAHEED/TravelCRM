@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Subscribe" %} — {{ plan.name }}{% endblock %}
+{% block content %}
+<div class="page-contacts">
+  <header class="hotels-hero hotels-reveal" style="--d:0ms">
+    <div class="hotels-hero__copy">
+      <p class="hotels-eyebrow">{% trans "Billing" %}</p>
+      <h1 class="page-title hotels-hero__title">{% blocktrans with name=plan.name %}Subscribe to {{ name }}{% endblocktrans %}</h1>
+      <p class="page-subtitle hotels-hero__sub">{{ plan.currency }} {{ plan.price_amount }} / {{ plan.get_billing_interval_display|lower }}</p>
+    </div>
+    <div class="hotels-hero__actions">
+      <a href="{% url 'member-billing' %}" class="btn btn-outline">{% trans "Back to billing" %}</a>
+    </div>
+  </header>
+
+  <section class="card hotels-panel hotels-reveal" style="--d:80ms">
+    <div class="hotels-panel__head">
+      <h2 class="hotels-panel__title">{% trans "How to pay" %}</h2>
+      <p class="hotels-panel__hint text-muted text-sm">{% blocktrans with currency=plan.currency amount=plan.price_amount %}Send {{ currency }} {{ amount }} via bank transfer, JazzCash, or EasyPaisa, then tell us below — we'll confirm and activate your plan.{% endblocktrans %}</p>
+    </div>
+    <div class="card-content hotels-panel__body">
+      <form method="post" style="max-width:480px; display:flex; flex-direction:column; gap:16px;">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label" for="method">{% trans "Payment method" %}</label>
+          <select class="form-select" id="method" name="method">
+            <option value="bank_transfer">{% trans "Bank transfer" %}</option>
+            <option value="jazzcash">{% trans "JazzCash" %}</option>
+            <option value="easypaisa">{% trans "EasyPaisa" %}</option>
+            <option value="other">{% trans "Other" %}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="reference">{% trans "Transaction reference / note" %}</label>
+          <input class="form-input" type="text" id="reference" name="reference" placeholder="{% trans 'e.g. transaction ID, sender name' %}">
+        </div>
+        <button type="submit" class="btn btn-primary">{% trans "I've paid" %}</button>
+      </form>
+    </div>
+  </section>
+</div>
+{% endblock %}

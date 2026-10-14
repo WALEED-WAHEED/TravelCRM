@@ -1,14 +1,27 @@
 from django.contrib import admin
+
 from .models import (
-    Hotel, HotelRoom, HotelImage,
-    Flight, FlightSegment,
-    Transport,
     AttendanceLog,
-    Contact, ContactInstruction,
-    Mutamer, MutamerDocument,
-    VoucherSequence, Booking, BookingHotel, BookingFlight, BookingTransport, BookingMutamer, BookingContact, BookingTeamContact, BookingPayment,
-    Voucher, VoucherService,
-    LedgerEntry
+    Booking,
+    BookingContact,
+    BookingFlight,
+    BookingHotel,
+    BookingMutamer,
+    BookingPayment,
+    BookingTeamContact,
+    BookingTransport,
+    Contact,
+    ContactInstruction,
+    Flight,
+    FlightSegment,
+    Hotel,
+    HotelImage,
+    HotelRoom,
+    LedgerEntry,
+    Transport,
+    Voucher,
+    VoucherSequence,
+    VoucherService,
 )
 
 # Basic registration for all models
@@ -21,8 +34,6 @@ admin.site.register(Transport)
 admin.site.register(AttendanceLog)
 admin.site.register(Contact)
 admin.site.register(ContactInstruction)
-admin.site.register(Mutamer)
-admin.site.register(MutamerDocument)
 admin.site.register(VoucherSequence)
 admin.site.register(Booking)
 admin.site.register(BookingHotel)

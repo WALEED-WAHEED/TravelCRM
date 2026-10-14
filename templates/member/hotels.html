@@ -1,57 +1,50 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load currency_tags %}
-{% block title %}Hotels{% endblock %}
+{% block title %}{% trans "Hotels" %}{% endblock %}
 {% block content %}
 <div class="page-hotels">
     <header class="hotels-hero hotels-reveal" style="--d:0ms">
         <div class="hotels-hero__copy">
-            <p class="hotels-eyebrow">Inventory</p>
-            <h1 class="page-title hotels-hero__title">Hotels</h1>
-            <p class="page-subtitle hotels-hero__sub">Curate properties, rates, and availability for your Umrah &amp; Hajj programs.</p>
+            <p class="hotels-eyebrow">{% trans "Inventory" %}</p>
+            <h1 class="page-title hotels-hero__title">{% trans "Hotels" %}</h1>
         </div>
-        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms">
+        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms; display:flex; flex-wrap:wrap; gap:10px;">
+            <a href="{% url 'member-inventory-insights' 'hotels' %}" class="btn btn-outline"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>{% trans "Hotel insights" %}</a>
             <button type="button" class="btn btn-primary hotels-cta-btn" onclick="openHotelAddModal()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <line x1="12" y1="5" x2="12" y2="19" />
                     <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
-                Add hotel
+                {% trans "Add hotel" %}
             </button>
         </div>
     </header>
 
-    <div class="hotels-stat-grid hotels-stat-grid--2">
-        <div class="hotels-stat-card hotels-reveal" style="--d:80ms">
-            <div class="hotels-stat-card__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <path d="M3 22V7l9-5 9 5v15" />
-                    <path d="M9 22V12h6v10" />
-                </svg>
-            </div>
-            <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Total properties</span>
-                <span class="hotels-stat-card__value">{{ hotel_stats.total }}</span>
-            </div>
+    <div class="hotels-spotlight-stat hotels-reveal" style="--d:80ms">
+        <div class="hotels-spotlight-stat__icon" aria-hidden="true">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                <path d="M3 22V7l9-5 9 5v15" />
+                <path d="M9 22V12h6v10" />
+            </svg>
         </div>
-        <div class="hotels-stat-card hotels-reveal" style="--d:120ms">
-            <div class="hotels-stat-card__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <line x1="12" y1="1" x2="12" y2="23" />
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
-            </div>
-            <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Avg. nightly sale (PKR)</span>
-                <span class="hotels-stat-card__value">{% if hotel_stats.avg_sale %}{{ hotel_stats.avg_sale|pkr }}{% else %}—{% endif %}</span>
-            </div>
+        <div class="hotels-spotlight-stat__meta">
+            <span class="hotels-spotlight-stat__label">{% trans "Total properties" %}</span>
+            <span class="hotels-spotlight-stat__value">{{ hotel_stats.total }}</span>
         </div>
+        {% if hotel_stats.cities %}
+        <span class="hotels-spotlight-stat__chip">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+            {% blocktrans count n=hotel_stats.cities %}{{ n }} city{% plural %}{{ n }} cities{% endblocktrans %}
+        </span>
+        {% endif %}
     </div>
 
     <section class="card hotels-panel hotels-reveal" style="--d:200ms">
         <div class="hotels-panel__head">
             <div>
-                <h2 class="hotels-panel__title">Directory</h2>
-                <p class="hotels-panel__hint text-muted text-sm">Search by name, code, or location. Updates as you type.</p>
+                <h2 class="hotels-panel__title">{% trans "Directory" %}</h2>
+                <p class="hotels-panel__hint text-muted text-sm">{% trans "Search by name, code, or location. Updates as you type." %}</p>
             </div>
         </div>
         <div class="card-content hotels-panel__body">
@@ -63,16 +56,16 @@
                     </svg>
                     <input type="search"
                         name="q"
-                        placeholder="Search hotels…"
+                        placeholder="{% trans 'Search hotels…' %}"
                         value="{{ search_q }}"
                         autocomplete="off"
-                        aria-label="Search hotels"
+                        aria-label="{% trans 'Search hotels' %}"
                         hx-get="{% url 'member-hotels' %}"
                         hx-trigger="keyup changed delay:350ms, search"
                         hx-target="#hotel-table"
                         hx-push-url="false">
                 </div>
-                <span id="hotel-count-display" class="text-sm text-muted hotels-toolbar-count">{{ hotels|length }} hotel{{ hotels|length|pluralize }}</span>
+                <span id="hotel-count-display" class="text-sm text-muted hotels-toolbar-count">{% blocktrans count counter=hotels|length %}{{ counter }} hotel{% plural %}{{ counter }} hotels{% endblocktrans %}</span>
             </div>
 
             <div class="table-wrapper hotels-table-wrap" id="hotel-table">
@@ -86,10 +79,10 @@
     <div class="modal-box hotels-modal">
         <div class="modal-header hotels-modal__header">
             <div>
-                <span id="modal-hotel-title" class="modal-title">Add hotel</span>
-                <p id="modal-hotel-desc" class="hotels-modal-sub">Create a property record for rates, packages, and vouchers.</p>
+                <span id="modal-hotel-title" class="modal-title">{% trans "Add hotel" %}</span>
+                <p id="modal-hotel-desc" class="hotels-modal-sub">{% trans "Create a property record for rates, packages, and vouchers." %}</p>
             </div>
-            <button type="button" class="modal-close" onclick="closeModal('modal-hotel')" aria-label="Close dialog">
+            <button type="button" class="modal-close" onclick="closeModal('modal-hotel')" aria-label="{% trans 'Close dialog' %}">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <line x1="18" y1="6" x2="6" y2="18" />
                     <line x1="6" y1="6" x2="18" y2="18" />
@@ -100,57 +93,62 @@
             <div class="modal-body hotels-modal__body">
                 {% csrf_token %}
                 <div class="form-group">
-                    <label class="form-label">Hotel name *</label>
-                    <input class="form-input" name="name" required placeholder="Al Noor Hotel" autocomplete="organization">
+                    <label class="form-label">{% trans "Hotel name *" %}</label>
+                    <input class="form-input" name="name" required placeholder="{% trans 'Al Noor Hotel' %}" autocomplete="organization">
                 </div>
                 <div class="grid grid-2">
                     <div class="form-group">
-                        <label class="form-label">City *</label>
-                        <input class="form-input" name="city" required placeholder="Makkah" autocomplete="address-level2">
+                        <label class="form-label">{% trans "City *" %}</label>
+                        <input class="form-input" name="city" required placeholder="{% trans 'Makkah' %}" autocomplete="address-level2">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Country *</label>
-                        <input class="form-input" name="country" required placeholder="Saudi Arabia" autocomplete="country-name">
+                        <label class="form-label">{% trans "Country *" %}</label>
+                        <input class="form-input" name="country" required placeholder="{% trans 'Saudi Arabia' %}" autocomplete="country-name">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Address</label>
-                    <textarea class="form-textarea" name="address" rows="2" placeholder="Street, area" autocomplete="street-address"></textarea>
+                    <label class="form-label">{% trans "Address" %}</label>
+                    <textarea class="form-textarea" name="address" rows="2" placeholder="{% trans 'Street, area' %}" autocomplete="street-address"></textarea>
                 </div>
                 <div class="grid grid-2">
                     <div class="form-group">
-                        <label class="form-label">Sale price (PKR / night) *</label>
+                        <label class="form-label">{% trans "Sale price (PKR / night) *" %}</label>
                         <input class="form-input" name="sale_price" type="number" step="0.01" min="0" required placeholder="0.00" inputmode="decimal">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Purchase price (PKR / night) *</label>
+                        <label class="form-label">{% trans "Purchase price (PKR / night) *" %}</label>
                         <input class="form-input" name="purchase_price" type="number" step="0.01" min="0" required placeholder="0.00" inputmode="decimal">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Star rating</label>
-                    <select class="form-select" name="rating">
-                        <option value="">— Select —</option>
-                        {% for i in "12345" %}<option value="{{ i }}">{{ i }} star{% if i != "1" %}s{% endif %}</option>{% endfor %}
-                    </select>
+                    <label class="form-label">{% trans "Star rating" %}</label>
+                    <div class="hotel-rating-picker" role="radiogroup" aria-label="{% trans 'Star rating' %}">
+                        {% for i in "12345" %}
+                        <button type="button" class="hotel-rating-picker__star" data-value="{{ forloop.counter }}" aria-label="{% blocktrans count counter=forloop.counter %}{{ counter }} star{% plural %}{{ counter }} stars{% endblocktrans %}">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                        </button>
+                        {% endfor %}
+                        <button type="button" class="hotel-rating-picker__clear" data-value="0">{% trans "Clear" %}</button>
+                    </div>
+                    <input type="hidden" name="rating" id="hotel-rating-input" value="">
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline" onclick="closeModal('modal-hotel')">Cancel</button>
-                <button type="submit" class="btn btn-primary" id="modal-hotel-submit">Save hotel</button>
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-hotel')">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn btn-primary" id="modal-hotel-submit">{% trans "Save hotel" %}</button>
             </div>
         </form>
     </div>
 </div>
 
-<div id="modal-delete-hotel" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-delete-hotel-title" aria-describedby="modal-delete-hotel-desc">
+<div id="modal-delete-hotel" class="modal-overlay modal-overlay--center hidden" role="dialog" aria-modal="true" aria-labelledby="modal-delete-hotel-title" aria-describedby="modal-delete-hotel-desc">
     <div class="modal-box hotels-modal">
         <div class="modal-header hotels-modal__header">
             <div>
-                <span id="modal-delete-hotel-title" class="modal-title">Delete hotel?</span>
-                <p id="modal-delete-hotel-desc" class="hotels-modal-sub">This removes the property and related rooms and images. Links from bookings that used this hotel will be removed. This cannot be undone.</p>
+                <span id="modal-delete-hotel-title" class="modal-title">{% trans "Delete hotel?" %}</span>
+                <p id="modal-delete-hotel-desc" class="hotels-modal-sub">{% trans "This removes the property from your inventory. Draft bookings using it will drop the line item; already-confirmed or completed bookings and their vouchers keep their historical record unchanged. This cannot be undone." %}</p>
             </div>
-            <button type="button" class="modal-close" onclick="cancelHotelDelete()" aria-label="Close dialog">
+            <button type="button" class="modal-close" onclick="cancelHotelDelete()" aria-label="{% trans 'Close dialog' %}">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <line x1="18" y1="6" x2="6" y2="18" />
                     <line x1="6" y1="6" x2="18" y2="18" />
@@ -158,14 +156,23 @@
             </button>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-outline" onclick="cancelHotelDelete()">Cancel</button>
-            <button type="button" class="btn btn-danger" id="modal-delete-hotel-confirm">Delete</button>
+            <button type="button" class="btn btn-outline" onclick="cancelHotelDelete()">{% trans "Cancel" %}</button>
+            <button type="button" class="btn btn-danger" id="modal-delete-hotel-confirm">{% trans "Delete" %}</button>
         </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+{% trans "Add hotel" as js_add_hotel %}
+{% trans "Create a property record for rates, packages, and vouchers." as js_add_hotel_desc %}
+{% trans "Save hotel" as js_save_hotel %}
+{% trans "Edit hotel" as js_edit_hotel %}
+{% trans "Update rates and property details." as js_edit_hotel_desc %}
+{% trans "Update hotel" as js_update_hotel %}
+{% trans "Delete failed" as js_delete_failed %}
+{% trans "Save failed" as js_save_failed %}
+{% trans "Could not load hotel." as js_load_failed %}
 <script>
 (function () {
   var MODAL_ID = 'modal-hotel';
@@ -176,17 +183,39 @@
     return el ? el.value : '';
   }
 
+  var ratingInput = document.getElementById('hotel-rating-input');
+  var ratingStars = Array.prototype.slice.call(document.querySelectorAll('.hotel-rating-picker__star'));
+
+  function setRating(value) {
+    if (ratingInput) ratingInput.value = value > 0 ? String(value) : '';
+    ratingStars.forEach(function (star) {
+      var starValue = parseInt(star.dataset.value, 10);
+      star.classList.toggle('is-active', starValue <= value);
+    });
+  }
+
+  ratingStars.forEach(function (star) {
+    star.addEventListener('click', function () {
+      setRating(parseInt(star.dataset.value, 10));
+    });
+  });
+  var ratingClear = document.querySelector('.hotel-rating-picker__clear');
+  if (ratingClear) {
+    ratingClear.addEventListener('click', function () { setRating(0); });
+  }
+
   window.openHotelAddModal = function () {
     var form = document.getElementById('hotel-modal-form');
     if (!form) return;
     form.reset();
     delete form.dataset.hotelId;
+    setRating(0);
     var t = document.getElementById('modal-hotel-title');
     var d = document.getElementById('modal-hotel-desc');
     var s = document.getElementById('modal-hotel-submit');
-    if (t) t.textContent = 'Add hotel';
-    if (d) d.textContent = 'Create a property record for rates, packages, and vouchers.';
-    if (s) s.textContent = 'Save hotel';
+    if (t) t.textContent = '{{ js_add_hotel|escapejs }}';
+    if (d) d.textContent = '{{ js_add_hotel_desc|escapejs }}';
+    if (s) s.textContent = '{{ js_save_hotel|escapejs }}';
     openModal(MODAL_ID);
   };
 
@@ -218,7 +247,7 @@
           location.reload();
           return;
         }
-        var msg = 'Delete failed';
+        var msg = '{{ js_delete_failed|escapejs }}';
         try {
           var data = await r.json();
           if (typeof data === 'object' && data !== null && data.detail) {
@@ -227,7 +256,7 @@
         } catch (err) { /* ignore */ }
         if (typeof showToast === 'function') showToast(msg, 'error');
       } catch (e) {
-        if (typeof showToast === 'function') showToast('Delete failed', 'error');
+        if (typeof showToast === 'function') showToast('{{ js_delete_failed|escapejs }}', 'error');
       }
     });
   }
@@ -249,17 +278,16 @@
       form.elements.namedItem('address').value = h.address || '';
       form.elements.namedItem('sale_price').value = h.sale_price != null ? String(h.sale_price) : '';
       form.elements.namedItem('purchase_price').value = h.purchase_price != null ? String(h.purchase_price) : '';
-      var rating = form.elements.namedItem('rating');
-      if (rating) rating.value = h.rating != null ? String(h.rating) : '';
+      setRating(h.rating != null ? parseInt(h.rating, 10) : 0);
       var t = document.getElementById('modal-hotel-title');
       var d = document.getElementById('modal-hotel-desc');
       var s = document.getElementById('modal-hotel-submit');
-      if (t) t.textContent = 'Edit hotel';
-      if (d) d.textContent = 'Update rates and property details.';
-      if (s) s.textContent = 'Update hotel';
+      if (t) t.textContent = '{{ js_edit_hotel|escapejs }}';
+      if (d) d.textContent = '{{ js_edit_hotel_desc|escapejs }}';
+      if (s) s.textContent = '{{ js_update_hotel|escapejs }}';
       openModal(MODAL_ID);
     } catch (e) {
-      if (typeof showToast === 'function') showToast('Could not load hotel.', 'error');
+      if (typeof showToast === 'function') showToast('{{ js_load_failed|escapejs }}', 'error');
     }
   };
 
@@ -282,7 +310,7 @@
         location.reload();
         return;
       }
-      var msg = 'Save failed';
+      var msg = '{{ js_save_failed|escapejs }}';
       try {
         var data = await r.json();
         if (typeof data === 'object' && data !== null) {

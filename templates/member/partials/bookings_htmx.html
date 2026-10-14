@@ -1,2 +1,3 @@
-{% include "member/partials/bookings_table.html" %}
-<span id="booking-count-display" class="text-sm text-muted hotels-toolbar-count" hx-swap-oob="true">{{ bookings|length }} booking{{ bookings|length|pluralize }}</span>
+{% load i18n %}{% include "member/partials/bookings_table.html" %}
+<span id="booking-count-display" class="text-sm text-muted hotels-toolbar-count" hx-swap-oob="true">{% blocktrans count counter=bookings|length %}{{ counter }} voucher{% plural %}{{ counter }} vouchers{% endblocktrans %}</span>
+<a href="{% url 'member-bookings' %}" class="bk-clear" id="bk-clear" hx-swap-oob="true" {% if not filters_active %}hidden{% endif %}>{% trans "Clear" %}</a>

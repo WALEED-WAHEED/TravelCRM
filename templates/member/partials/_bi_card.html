@@ -1,0 +1,11 @@
+{% load i18n %}
+{# id, title, hint, wide (bool), donut (bool). Filled in by the page script. #}
+<section class="bi-card{% if wide %} bi-card--wide{% endif %}" data-bi="{{ id }}" data-view="chart">
+    <div class="bi-card__head">
+        <div><h3>{{ title }}</h3><p>{{ hint }}</p></div>
+        <button type="button" class="bi-toggle">{% trans "Show table" %}</button>
+    </div>
+    <div class="bi-canvas{% if donut %} bi-canvas--donut{% endif %}"><canvas role="img" aria-label="{{ title }}"></canvas></div>
+    <div class="bi-tbl" hidden></div>
+    <div class="bi-empty" hidden>{% trans "No data for these filters." %}</div>
+</section>

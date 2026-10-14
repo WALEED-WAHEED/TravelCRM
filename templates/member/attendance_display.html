@@ -1,0 +1,85 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="referrer" content="no-referrer">
+    <title>{% trans "Attendance check-in" %} — {{ agency.name }}</title>
+    <style>
+        * { box-sizing: border-box; }
+        html, body { margin: 0; height: 100%; }
+        body {
+            display: flex; align-items: center; justify-content: center;
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            background: #0f172a; color: #f8fafc;
+        }
+        .kiosk { width: min(92vw, 560px); text-align: center; }
+        .kiosk h1 { margin: 0; font-size: clamp(1.4rem, 3.5vw, 2rem); }
+        .kiosk .clock { margin: 6px 0 22px; font-size: clamp(1rem, 2.5vw, 1.25rem); color: #cbd5e1; font-variant-numeric: tabular-nums; }
+        .qr { position: relative; background: #fff; border-radius: 24px; padding: 18px; aspect-ratio: 1; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+        .qr img { width: 100%; height: 100%; display: block; }
+        .qr.is-stale img { opacity: .15; }
+        .qr .offline { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; color: #0f172a; font-weight: 700; padding: 20px; }
+        .qr.is-stale .offline { display: flex; }
+        .bar { height: 8px; margin: 18px 0 10px; border-radius: 999px; background: #1e293b; overflow: hidden; }
+        .bar span { display: block; height: 100%; width: 100%; background: #38bdf8; transition: width 1s linear; }
+        .hint { font-size: clamp(1rem, 2.6vw, 1.3rem); font-weight: 600; }
+        .sub { margin-top: 6px; color: #94a3b8; font-size: .95rem; }
+    </style>
+</head>
+<body>
+    <main class="kiosk">
+        <h1>{{ agency.name }}</h1>
+        <div class="clock" id="clock"></div>
+        <div class="qr" id="qr">
+            <img id="qr-img" alt="{% trans 'Attendance QR code' %}">
+            <div class="offline">{% trans "Reconnecting… check this screen's internet connection." %}</div>
+        </div>
+        <div class="bar" aria-hidden="true"><span id="bar"></span></div>
+        <div class="hint">{% trans "Scan with your phone camera to check in or out" %}</div>
+        <div class="sub" id="sub">{% blocktrans %}The code changes every {{ window }} seconds — photos of it don't work.{% endblocktrans %}</div>
+    </main>
+    <script>
+    (function () {
+        var WINDOW = {{ window }};
+        var url = '{% url "attendance-display-qr" token %}';
+        var img = document.getElementById('qr-img'), box = document.getElementById('qr'), bar = document.getElementById('bar');
+        var left = 0, lastObjectUrl = null;
+
+        function tickClock() {
+            document.getElementById('clock').textContent = new Date().toLocaleString(undefined, {
+                weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+        }
+        async function refresh() {
+            try {
+                var r = await fetch(url + '?_=' + Date.now(), { cache: 'no-store' });
+                if (!r.ok) throw new Error(r.status);
+                left = parseInt(r.headers.get('X-Rotates-In'), 10) || WINDOW;
+                var blob = await r.blob();
+                if (lastObjectUrl) URL.revokeObjectURL(lastObjectUrl);
+                lastObjectUrl = URL.createObjectURL(blob);
+                img.src = lastObjectUrl;
+                box.classList.remove('is-stale');
+            } catch (e) {
+                box.classList.add('is-stale');
+                left = 5;
+            }
+        }
+        function tick() {
+            tickClock();
+            left -= 1;
+            bar.style.width = Math.max(0, left / WINDOW * 100) + '%';
+            if (left <= 0) refresh();
+        }
+        tickClock();
+        refresh();
+        setInterval(tick, 1000);
+        // Keep the screen awake where supported (tablets at the entrance).
+        if ('wakeLock' in navigator) { navigator.wakeLock.request('screen').catch(function () {}); }
+    })();
+    </script>
+</body>
+</html>

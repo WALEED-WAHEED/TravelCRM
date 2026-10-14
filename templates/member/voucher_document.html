@@ -1,412 +1,306 @@
-{% load static %}
+{% load static i18n voucher_tags %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}">
 <head>
     <meta charset="utf-8">
-    <title>Voucher {{ booking.voucher_number }}</title>
+    <title>{% blocktrans with vn=booking.voucher_number %}Voucher {{ vn }}{% endblocktrans %}</title>
+    {# Table-only layout: the same file is printed by the browser and turned into a PDF by xhtml2pdf. #}
     <style>
-        @page {
-            size: A4;
-            margin: 12mm;
-        }
+        @page { size: A4; margin: 10mm 11mm; }
         * { box-sizing: border-box; }
-        body {
-            font-family: Helvetica, "DejaVu Sans", Arial, sans-serif;
-            font-size: 9.5pt;
-            color: #1a1a1a;
-            margin: 0;
-            padding: 0;
-            line-height: 1.35;
-        }
-        .vdoc {
-            max-width: 210mm;
-            margin: 0 auto;
-            padding: 0;
-        }
-        .vdoc__accent {
-            height: 4px;
-            background: linear-gradient(90deg, #0d4f4f 0%, #c9a227 50%, #0d4f4f 100%);
-            margin-bottom: 10px;
-        }
-        .vdoc__header {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 14px;
-        }
-        .vdoc__header td {
-            vertical-align: middle;
-            padding: 6px 8px;
-        }
-        .vdoc__header-left {
-            width: 32%;
-            text-align: left;
-            font-size: 8.5pt;
-        }
-        .vdoc__header-left strong {
-            display: block;
-            font-size: 11pt;
-            color: #0d4f4f;
-            margin-bottom: 4px;
-            letter-spacing: 0.02em;
-        }
-        .vdoc__header-center {
-            width: 36%;
-            text-align: center;
-        }
-        .vdoc__header-logo {
-            max-height: 68px;
-            max-width: 180px;
-        }
-        .vdoc__header-right {
-            width: 32%;
-            text-align: right;
-            font-size: 8.5pt;
-        }
-        .vdoc__header-right .vdoc__sh-label {
-            font-weight: bold;
-            color: #0d4f4f;
-            margin-bottom: 4px;
-            font-size: 9pt;
-        }
-        .vdoc__title-block {
-            text-align: center;
-            padding: 10px 8px 12px;
-            border: 1px solid #cfd8dc;
-            background: #f7faf9;
-            margin-bottom: 12px;
-        }
-        .vdoc__title-block h1 {
-            margin: 0 0 4px;
-            font-size: 16pt;
-            font-weight: 700;
-            color: #0d2840;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-        }
-        .vdoc__title-meta {
-            font-size: 9pt;
-            color: #455a64;
-        }
-        .vdoc__grid {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 12px;
-        }
-        .vdoc__grid td {
-            border: 1px solid #cfd8dc;
-            padding: 6px 8px;
-            vertical-align: top;
-        }
-        .vdoc__grid-label {
-            width: 22%;
-            background: #eceff1;
-            font-weight: bold;
-            font-size: 8pt;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: #37474f;
-        }
-        .vdoc__section {
-            margin-top: 14px;
-            margin-bottom: 6px;
-        }
-        .vdoc__section h2 {
-            margin: 0 0 6px;
-            font-size: 10pt;
-            color: #0d4f4f;
-            border-bottom: 2px solid #c9a227;
-            padding-bottom: 3px;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-        }
-        .vdoc__data {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 8.5pt;
-        }
-        .vdoc__data th {
-            background: #0d4f4f;
-            color: #fff;
-            text-align: left;
-            padding: 6px 8px;
-            font-weight: 600;
-            font-size: 8pt;
-        }
-        .vdoc__data td {
-            border: 1px solid #cfd8dc;
-            padding: 5px 8px;
-            vertical-align: top;
-        }
-        .vdoc__data tr:nth-child(even) td {
-            background: #fafbfc;
-        }
-        .vdoc__foot {
-            margin-top: 16px;
-            padding-top: 10px;
-            border-top: 1px solid #cfd8dc;
-            font-size: 8pt;
-            color: #607d8b;
-        }
-        .vdoc__totals {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            max-width: 320px;
-            margin-left: auto;
-        }
-        .vdoc__totals td {
-            padding: 5px 8px;
-            border: 1px solid #cfd8dc;
-        }
-        .vdoc__totals td:first-child {
-            font-weight: bold;
-            background: #eceff1;
-        }
-        .muted { color: #78909c; }
-        @media print {
-            .vdoc__noprint { display: none !important; }
-        }
+        body { margin: 0; font-family: Helvetica, "DejaVu Sans", Arial, sans-serif; font-size: 9.2pt; line-height: 1.35; color: #1a1a1a; }
+        .doc { max-width: 210mm; margin: 0 auto; }
+        table { width: 100%; border-collapse: collapse; }
+        td, th { vertical-align: top; }
+        .head { table-layout: fixed; }
+        .head td { padding: 0 4px 8px; border-bottom: 1px solid #cfd8e6; vertical-align: middle; }
+        .co { width: 33%; }
+        .co .name, .sh .name { font-size: 14pt; font-weight: bold; color: #2f66d0; }
+        .co .line, .sh .line { font-size: 8.4pt; color: #444; line-height: 1.15; margin: 0; padding: 0; }
+        .logo { width: 34%; text-align: center; vertical-align: middle; }
+        .logo img { max-height: 62px; max-width: 190px; }
+        .logo .doc-title { margin-top: 6px; font-size: 10pt; letter-spacing: 1px; color: #333; }
+        .sh { width: 33%; text-align: right; }
+        .meta td { padding: 1px 4px; font-size: 8.6pt; }
+        .meta .k { width: 92px; color: #555; white-space: nowrap; }
+        .meta .v { font-weight: bold; }
+        .info { margin-top: 0; border: 0; border-top: 1px solid #e3e8f0; background: #f5f7fb; }
+        .info td { padding: 3px 10px; border-left: 1px solid #e3e8f0; vertical-align: top; }
+        .info td.first { border-left: 0; }
+        .info tr.r2 td { border-top: 1px solid #e3e8f0; }
+        .info .k { display: block; font-size: 6.8pt; letter-spacing: .8px; text-transform: uppercase; color: #6b7078; }
+        .info .v { display: block; margin-top: 1px; font-size: 10pt; font-weight: bold; color: #111; }
+        .card { border: 1px solid #d5dbe6; border-radius: 12px; overflow: hidden; }
+        .bar { margin-top: 0; border: 0; }
+        .bar td { padding: 4px 12px; font-size: 10pt; border-left: 1px solid #d3d8e0; color: #333; }
+        .bar td.first { border-left: 0; width: 46%; }
+        .bar b { font-size: 12pt; color: #2f66d0; }
+        .sec { margin-top: 8px; }
+        .sec-title { padding: 3px; text-align: center; font-weight: bold; font-size: 9pt; letter-spacing: 1px; text-transform: uppercase; color: #1f2a44; background: #dbe5f2; }
+        .grid th { padding: 4px 6px; font-size: 8.4pt; text-align: left; color: #2f66d0; background: #eef2f8; border-bottom: 1px solid #dde3ed; }
+        .grid td { padding: 3px 6px; font-size: 9pt; border-bottom: 1px solid #e6e9ef; }
+        .grid .nw { white-space: nowrap; }
+        .grid .c { text-align: center; } .grid .r { text-align: right; }
+        .total { margin-top: 4px; }
+        .total td { padding: 2px 4px; }
+        .total .lbl { text-align: right; font-weight: bold; font-style: italic; }
+        .total .box { width: 50px; text-align: center; font-weight: bold; color: #2f66d0; border: 1px solid #2f66d0; border-radius: 8px; background: #eef3fc; }
+        .flights td.half { width: 50%; padding: 0; }
+        .flights td.gap { width: 8px; }
+        .fl-title { padding: 5px; text-align: center; font-weight: bold; color: #1f2a44; background: #dbe5f2; }
+        .fl th { padding: 3px 4px; font-size: 8.4pt; color: #2f66d0; background: #eef2f8; border-bottom: 1px solid #dde3ed; }
+        .fl td { padding: 4px; font-size: 9pt; text-align: center; border-bottom: 1px solid #e6e9ef; }
+        .instr-label { margin-top: 8px; font-weight: bold; font-style: italic; color: #2f66d0; font-size: 10pt; }
+        .teams td.col { width: 33%; padding: 6px 9px 2px; }
+        .team-city { padding: 2px 0 4px; margin-bottom: 2px; font-weight: bold; font-size: 9pt; letter-spacing: 1px; text-transform: uppercase; color: #2f66d0; border-bottom: 1px solid #cfd8e6; }
+        .team-tbl td { padding: 3px 4px 3px 0; font-size: 9pt; line-height: 1.25; border-bottom: 1px solid #eef1f6; vertical-align: top; }
+        .team-tbl .role { font-size: 8pt; font-weight: normal; color: #666; }
+        .team-tbl .who { color: #111; }
+        .team-tbl .ph { width: 44%; font-weight: bold; color: #2f66d0; white-space: nowrap; text-align: right; }
+        .rules { margin: 6px 0 0; padding: 10px 30px; border: 1px solid #dde3ed; border-radius: 12px; background: #fafbfd; font-size: 8.8pt; line-height: 1.7; }
+        .stamp { position: fixed; top: 50%; left: 50%; width: 100%; margin-left: -50%; text-align: center; font-size: 64pt; font-weight: bold; color: rgba(27, 175, 122, 0.16); transform: translateY(-50%) rotate(-30deg); letter-spacing: 4px; white-space: nowrap; }
+        .stamp--draft { color: rgba(201, 133, 0, 0.16); }
+        .stamp--cancelled { color: rgba(217, 58, 58, 0.18); }
+        .rc { width: 100%; border-collapse: collapse; }
+        .rcw { width: 100%; border-collapse: collapse; }
+        .rcc { width: 10px; }
+        .rcm { padding: 0; vertical-align: top; }
+        .rct { padding: 6px 4px; text-align: center; font-weight: bold; font-size: 9.6pt; letter-spacing: 1px; text-transform: uppercase; color: #1f2a44; }
+        .rules-inner td { padding: 2px 10px; font-size: 9.4pt; line-height: 1.4; }
+        .rules-inner .rtl-txt { text-align: right; font-family: NotoNaskhArabic; font-size: 10.4pt; line-height: 1.45; }
+        .rules-inner .rtl-no { width: 26px; text-align: left; }
+        .rules-inner .ltr-no { width: 26px; }
+        .qr { width: 92px; text-align: right; }
+        .qr img { width: 86px; height: 86px; }
+        .foot { margin-top: 12px; padding-top: 5px; border-top: 1px solid #dde3ed; font-size: 7.6pt; color: #666; text-align: center; }
+        .muted { color: #888; }
+        .page-break { page-break-before: always; }
+        .noprint { margin: 22px 0 8px; text-align: center; }
+        .noprint a { display: inline-block; margin: 0 5px; padding: 7px 16px; color: #2f66d0; font-weight: bold; text-decoration: none; border: 1px solid #dde3ed; border-radius: 999px; background: #ffffff; }
+        @media print { .noprint { display: none !important; } }
+        [dir="rtl"] .sh { text-align: left; } [dir="rtl"] .grid th { text-align: right; }
     </style>
+    {% if print_mode %}
+    <style>
+        /* Browser print view only (the PDF engine keeps the compact sizes above): larger type that fills an A4 page,
+           colours that print without ticking "Background graphics", and no browser date/URL header or footer. */
+        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        @page { size: A4; margin: 13mm 0; }          /* space above and below on every page, not just the first and last */
+        body { font-size: 11pt; }
+        .doc { max-width: none; width: 210mm; margin: 0 auto; padding: 0 15mm; }
+        .co .name, .sh .name { font-size: 17pt; }
+        .co .line, .sh .line { font-size: 10pt; }
+        .logo img { max-height: 84px; max-width: 230px; }
+        .bar td { padding: 9px 14px; font-size: 12pt; } .bar b { font-size: 14pt; }
+        .info td { padding: 8px 14px; } .info .k { font-size: 8pt; } .info .v { font-size: 11pt; }
+        .sec { margin-top: 18px; }
+        .sec-title, .fl-title { padding: 7px; font-size: 10.5pt; }
+        .grid th { padding: 6px 6px; font-size: 8.8pt; } .grid td { padding: 5px 6px; font-size: 9.4pt; }
+        .fl th { font-size: 9pt; padding: 5px; } .fl td { font-size: 9.6pt; padding: 6px 5px; }
+        .total .lbl { font-size: 10.5pt; } .total .box { width: 60px; font-size: 11pt; }
+        .qr { width: 110px; } .qr img { width: 100px; height: 100px; }
+        .team-city { font-size: 9.6pt; } .team-tbl td { font-size: 9.6pt; padding: 4px 4px 4px 0; } .team-tbl .role { font-size: 8.4pt; }
+        .instr-label { font-size: 12pt; margin-top: 14px; }
+        .rules { font-size: 10.6pt; line-height: 1.75; }
+        .foot { font-size: 9pt; }
+        .stamp { font-size: 90pt; }
+        {% if embed_font %}@font-face { font-family: NotoNaskhArabic; src: url({{ embed_font|safe }}) format("truetype"); }
+        body { font-family: Helvetica, "DejaVu Sans", Arial, NotoNaskhArabic, sans-serif; }{% endif %}
+        /* A block that does not fit moves whole to the next page instead of being cut; long tables split between rows. */
+        .card, .flights, .bar, .rules li, tr, .team-city { break-inside: avoid; page-break-inside: avoid; }
+        .card.split { break-inside: auto; page-break-inside: auto; }
+        thead { display: table-header-group; }
+        .sec-title, .fl-title, .instr-label { break-after: avoid; page-break-after: avoid; }
+    </style>
+    {% endif %}
 </head>
 <body>
-<div class="vdoc">
-    <div class="vdoc__accent"></div>
-    <table class="vdoc__header">
+<div class="doc">
+    {% if for_pdf %}{% elif booking.status == 'confirmed' or booking.status == 'completed' %}<div class="stamp">{% trans "Confirmed" %}</div>
+    {% elif booking.status == 'cancelled' %}<div class="stamp stamp--cancelled">{% trans "Cancelled" %}</div>
+    {% else %}<div class="stamp stamp--draft">{% trans "Drafted" %}</div>{% endif %}
+
+    {# ── Company · logo · Shirka ── #}
+    <table class="head">
         <tr>
-            <td class="vdoc__header-left">
-                {% if branding %}
-                <strong>{% firstof branding.company_name agency.name "Agency" %}</strong>
-                {% if branding.address %}<div>{{ branding.address|linebreaksbr }}</div>{% endif %}
-                {% if branding.phone %}<div>Tel: {{ branding.phone }}</div>{% endif %}
-                {% if branding.email %}<div>{{ branding.email }}</div>{% endif %}
-                {% if branding.website %}<div class="muted">{{ branding.website }}</div>{% endif %}
-                {% else %}
-                <strong>{{ agency.name }}</strong>
-                {% endif %}
+            <td class="co">
+                {% trans "Agency" as agency_fallback %}
+                <div class="name">{% firstof branding.company_name agency.name agency_fallback %}</div>
+                {% if branding.address %}<div class="line">{{ branding.address|linebreaksbr }}</div>{% endif %}
+                {% if branding.phone %}<div class="line">{{ branding.phone }}</div>{% endif %}
             </td>
-            <td class="vdoc__header-center">
-                {% if branding and branding.logo %}
-                <img class="vdoc__header-logo" src="{{ logo_url }}" alt="">
-                {% elif branding and branding.company_name %}
-                <span style="font-size:14pt;font-weight:bold;color:#0d4f4f;">{{ branding.company_name }}</span>
-                {% else %}
-                <span style="font-size:12pt;font-weight:bold;color:#0d4f4f;">{{ agency.name }}</span>
-                {% endif %}
+            <td class="logo">
+                {% if logo_url %}<img src="{{ logo_url }}" alt="">{% endif %}
             </td>
-            <td class="vdoc__header-right">
-                <div class="vdoc__sh-label">Shirka</div>
-                {% if branding %}
-                    {% if branding.shirka_company_name or branding.shirka_company_country or branding.shirka_company_whatsapp %}
-                    {% if branding.shirka_company_name %}<div>{{ branding.shirka_company_name }}</div>{% endif %}
-                    {% if branding.shirka_company_country %}<div>{{ branding.shirka_company_country }}</div>{% endif %}
-                    {% if branding.shirka_company_whatsapp %}<div>WhatsApp: {{ branding.shirka_company_whatsapp }}</div>{% endif %}
-                    {% else %}
-                    <div class="muted">—</div>
-                    {% endif %}
-                {% endif %}
+            <td class="sh">
+                <div class="name">{% firstof branding.shirka_company_name "Shirka" %}</div>
+                {% if branding.shirka_company_country %}<div class="line"><b>{{ branding.shirka_company_country|upper }}</b></div>{% endif %}
+                {% if branding.shirka_company_whatsapp %}<div class="line"><b>{{ branding.shirka_company_whatsapp }}</b></div>{% endif %}
             </td>
         </tr>
     </table>
 
-    <div class="vdoc__title-block">
-        <h1>Travel voucher</h1>
-        <div class="vdoc__title-meta">
-            <strong>Voucher #</strong> {{ booking.voucher_number }}
-            {% if booking.manual_number %} &nbsp;·&nbsp; <strong>Reference</strong> {{ booking.manual_number }}{% endif %}
-            &nbsp;·&nbsp; <strong>Issued</strong> {{ booking.created_at|date:"d M Y" }}
-        </div>
-    </div>
-
-    <table class="vdoc__grid">
+    {# ── Family head · voucher number ── #}
+    {% pdfcard "" %}
+    <table class="bar">
         <tr>
-            <td class="vdoc__grid-label">Package</td>
-            <td>{{ booking.package_name|default:"—" }}</td>
-            <td class="vdoc__grid-label">Status</td>
-            <td>{{ booking.get_status_display }}</td>
-        </tr>
-        <tr>
-            <td class="vdoc__grid-label">Client</td>
-            <td>{{ booking.client_company|default:"—" }}{% if booking.client_country %} — {{ booking.client_country }}{% endif %}</td>
-            <td class="vdoc__grid-label">WhatsApp</td>
-            <td>{{ booking.client_whatsapp|default:"—" }}</td>
-        </tr>
-        <tr>
-            <td class="vdoc__grid-label">PAX</td>
-            <td>
-                {{ booking.pax_adults }} adult(s){% if booking.pax_children %}, {{ booking.pax_children }} child{% endif %}{% if booking.pax_infants %}, {{ booking.pax_infants }} infant{% endif %}
-                {% if booking.total_beds %} &nbsp;·&nbsp; <strong>Beds</strong> {{ booking.total_beds }}{% endif %}
-            </td>
-            <td class="vdoc__grid-label">Amount (PKR)</td>
-            <td>{{ booking.total_price }}</td>
+            <td class="first" style="width:38%;">{% trans "Voucher No" %}: <b>{{ booking.voucher_number }}</b></td>
+            <td>{% trans "Family Head" %}: <b>{% if family_head %}{{ family_head.name|upper }}{% else %}—{% endif %}</b></td>
         </tr>
     </table>
 
+    {# ── Date · package · PAX ── #}
+    <table class="info">
+        <tr>
+            <td class="first" style="width:62%;"><span class="k">{% trans "Package" %}</span><span class="v">{% if booking.package_name %}{{ booking.package_name }}{% else %}{% trans "Custom trip" %}{% endif %}</span></td>
+            <td><span class="k">{% trans "Voucher Date" %}</span><span class="v">{{ booking.created_at|date:"d-m-y" }}</span></td>
+        </tr>
+        <tr class="r2">
+            <td class="first"><span class="k">{% trans "PAX" %}</span><span class="v">{{ pax_total }} (A:{{ booking.pax_adults }}, C:{{ booking.pax_children }}, I:{{ booking.pax_infants }}) · {% trans "Beds" %} {{ booking.total_beds }}</span></td>
+            <td><span class="k">{% trans "Client WhatsApp" %}</span><span class="v">{{ booking.client_whatsapp|default:"—" }}</span></td>
+        </tr>
+    </table>
+    {% endpdfcard %}
+
+    {# ── Mutamers ── #}
+    {% pdfcard _("Mutamers") split %}
+        <table class="grid">
+            <thead><tr><th class="c" style="width:5%">{% trans "SNO" %}</th><th style="width:12%">{% trans "Passport" %}</th><th style="width:22%">{% trans "Mutamer Name" %}</th><th class="c" style="width:4%">{% trans "G" %}</th><th class="c" style="width:7%">{% trans "PAX" %}</th><th class="c" style="width:5%">{% trans "Bed" %}</th><th style="width:13%">{% trans "MOFA #" %}</th><th style="width:8%">{% trans "GRP #" %}</th><th style="width:12%">{% trans "Visa #" %}</th><th style="width:10%">{% trans "PNR" %}</th></tr></thead>
+            <tbody>
+                {% for m in booking_mutamers %}
+                <tr>
+                    <td class="c">{{ forloop.counter }}</td>
+                    <td class="nw">{{ m.passport_number|upper|default:"—" }}</td>
+                    <td>{{ m.name|upper }}</td>
+                    <td class="c">{% if m.gender == 'male' %}M{% elif m.gender == 'female' %}F{% else %}—{% endif %}</td>
+                    <td class="c">{{ m.get_pax_type_display }}</td>
+                    <td class="c">{% if m.bed %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
+                    <td class="nw">{{ m.mofa_number|default:"&nbsp;" }}</td>
+                    <td>{{ m.group_number|default:"&nbsp;" }}</td>
+                    <td class="nw">{{ m.visa_number|default:"&nbsp;" }}</td>
+                    <td class="nw">{{ m.pnr|default:"&nbsp;" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="10" class="c muted">{% trans "No mutamers added." %}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endpdfcard %}
+
+    {# ── Accommodation ── #}
     {% if booking_hotels %}
-    <div class="vdoc__section">
-        <h2>Hotels</h2>
-        <table class="vdoc__data">
-            <thead>
-                <tr>
-                    <th>Hotel</th>
-                    <th>City</th>
-                    <th>Stay</th>
-                    <th>Nights</th>
-                    <th>Room / meal</th>
-                    <th>Confirmation</th>
-                </tr>
-            </thead>
+    {% pdfcard _("Accommodation") %}
+        <table class="grid">
+            <thead><tr><th style="width:9%">{% trans "City" %}</th><th style="width:22%">{% trans "Hotel Name" %}</th><th style="width:14%">{% trans "View" %}</th><th style="width:6%">{% trans "Meal" %}</th><th style="width:12%">{% trans "Conf#" %}</th><th style="width:10%">{% trans "Room Type" %}</th><th class="c" style="width:10%">{% trans "Checkin" %}</th><th class="c" style="width:10%">{% trans "Checkout" %}</th><th class="c" style="width:7%">{% trans "Nights" %}</th></tr></thead>
             <tbody>
-                {% for row in booking_hotels %}
+                {% for h in booking_hotels %}
                 <tr>
-                    <td>{{ row.hotel_name }}</td>
-                    <td>{{ row.city }}</td>
-                    <td>{{ row.check_in|date:"d M Y" }} – {{ row.check_out|date:"d M Y" }}</td>
-                    <td>{{ row.nights }}</td>
-                    <td>{{ row.room_type }} / {{ row.meal_plan }}{% if row.view %} ({{ row.view }}){% endif %}</td>
-                    <td>{{ row.confirmation_number|default:"—" }}</td>
+                    <td>{{ h.city }}</td><td>{{ h.hotel_name|upper }}</td><td>{{ h.view }}</td><td>{{ h.meal_plan }}</td>
+                    <td>{{ h.confirmation_number|default:"&nbsp;" }}</td><td>{{ h.room_type }}</td>
+                    <td class="c">{{ h.check_in|date:"d-m-y" }}</td><td class="c">{{ h.check_out|date:"d-m-y" }}</td><td class="c">{{ h.nights }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-    </div>
+        <table class="total"><tr><td class="lbl">{% trans "Total Nights:" %}</td><td class="box">{{ total_nights }}</td></tr></table>
+    {% endpdfcard %}
     {% endif %}
 
-    {% if booking_flights %}
-    <div class="vdoc__section">
-        <h2>Flights</h2>
-        <table class="vdoc__data">
-            <thead>
-                <tr>
-                    <th>Leg</th>
-                    <th>Airline / flight</th>
-                    <th>Route</th>
-                    <th>Class</th>
-                    <th>PNR</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for bf in booking_flights %}
-                <tr>
-                    <td>{{ bf.get_flight_type_display }}</td>
-                    <td>{{ bf.flight.airline }} {% if bf.flight.flight_number %}{{ bf.flight.flight_number }}{% endif %}</td>
-                    <td>{{ bf.flight.departure_city }} → {{ bf.flight.arrival_city }}</td>
-                    <td>{{ bf.flight.get_flight_class_display }}</td>
-                    <td>{{ bf.flight.pnr_number|default:"—" }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
+    {# ── Transport / services ── #}
     {% if booking_transports %}
-    <div class="vdoc__section">
-        <h2>Ground transport</h2>
-        <table class="vdoc__data">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Transporter</th>
-                    <th>Vehicle</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
+    {% pdfcard _("Transport/Services") split %}
+        <table class="grid">
+            <thead><tr><th style="width:14%">{% trans "Travel Date" %}</th><th style="width:28%">{% trans "Transporter" %}</th><th style="width:22%">{% trans "Type" %}</th><th style="width:36%">{% trans "Description" %}</th></tr></thead>
             <tbody>
-                {% for bt in booking_transports %}
-                <tr>
-                    <td>{{ bt.travel_date|date:"d M Y" }}</td>
-                    <td>{{ bt.transporter }}</td>
-                    <td>{{ bt.vehicle_type }}</td>
-                    <td>{{ bt.description|default:"—" }}</td>
-                </tr>
+                {% for t in booking_transports %}
+                <tr><td>{{ t.travel_date|date:"d-m-y" }}</td><td>{{ t.transporter }}</td><td>{{ t.vehicle_type }}</td><td>{{ t.description }}</td></tr>
                 {% endfor %}
             </tbody>
         </table>
-    </div>
+    {% endpdfcard %}
     {% endif %}
 
-    {% if booking_mutamers %}
-    <div class="vdoc__section">
-        <h2>Travellers (Mutamers)</h2>
-        <table class="vdoc__data">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Passport</th>
-                    <th>Nationality</th>
-                    <th>Visa</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for bm in booking_mutamers %}
-                <tr>
-                    <td>{{ bm.mutamer.name }}</td>
-                    <td>{{ bm.mutamer.passport_number }}</td>
-                    <td>{{ bm.mutamer.nationality }}</td>
-                    <td>{{ bm.mutamer.visa_number|default:"—" }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    {% if booking_instructions %}
-    <div class="vdoc__section">
-        <h2>Local contacts</h2>
-        <table class="vdoc__data">
-            <thead>
-                <tr>
-                    <th>City</th>
-                    <th>Role</th>
-                    <th>Contact</th>
-                    <th>Phone</th>
-                    <th>Notes</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for bi in booking_instructions %}
-                <tr>
-                    <td>{{ bi.instruction.city }}</td>
-                    <td>{{ bi.instruction.role }}</td>
-                    <td>{{ bi.instruction.contact_name }}</td>
-                    <td>{{ bi.instruction.phone_number }}</td>
-                    <td>{{ bi.instruction.notes|default:"—"|truncatewords:20 }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    {% if booking.notes %}
-    <div class="vdoc__section">
-        <h2>Notes</h2>
-        <p style="margin:0;padding:8px;border:1px solid #cfd8dc;background:#fff;">{{ booking.notes|linebreaksbr }}</p>
-    </div>
-    {% endif %}
-
-    <table class="vdoc__totals">
+    {# ── Flights: departure | arrival, with the QR beside them ── #}
+    {% if outbound_flights or return_flights %}
+    <table class="flights sec">
         <tr>
-            <td>Total amount (PKR)</td>
-            <td>{{ booking.total_amount }}</td>
-        </tr>
-        <tr>
-            <td>Quoted / payable (PKR)</td>
-            <td>{{ booking.total_price }}</td>
+            <td class="half">
+                {% pdfcard _("Departure") plain %}
+                <table class="fl">
+                    <tr><th style="width:16%">{% trans "Flight / Class" %}</th><th style="width:35%">{% trans "Sector" %}</th><th style="width:25%">{% trans "Departure" %}</th><th style="width:25%">{% trans "Arrival" %}</th></tr>
+                    {% for f in outbound_flights %}
+                    <tr><td>{% firstof f.flight_number f.airline %}<br><span class="muted">{{ f.get_flight_class_display }}</span></td><td>{{ f.sector }}</td><td>{{ f.departure_at|date:"d-M H:i"|upper|default:"—" }}</td><td>{{ f.arrival_at|date:"d-M H:i"|upper|default:"—" }}</td></tr>
+                    {% empty %}<tr><td colspan="4" class="muted">—</td></tr>{% endfor %}
+                </table>{% endpdfcard %}
+            </td>
+            <td class="gap"></td>
+            <td class="half">
+                {% pdfcard _("Arrival") plain %}
+                <table class="fl">
+                    <tr><th style="width:16%">{% trans "Flight / Class" %}</th><th style="width:35%">{% trans "Sector" %}</th><th style="width:25%">{% trans "Departure" %}</th><th style="width:25%">{% trans "Arrival" %}</th></tr>
+                    {% for f in return_flights %}
+                    <tr><td>{% firstof f.flight_number f.airline %}<br><span class="muted">{{ f.get_flight_class_display }}</span></td><td>{{ f.sector }}</td><td>{{ f.departure_at|date:"d-M H:i"|upper|default:"—" }}</td><td>{{ f.arrival_at|date:"d-M H:i"|upper|default:"—" }}</td></tr>
+                    {% empty %}<tr><td colspan="4" class="muted">—</td></tr>{% endfor %}
+                </table>{% endpdfcard %}
+            </td>
+            <td class="gap"></td>
+            <td class="qr">{% if voucher_qr %}<img src="{{ voucher_qr }}" alt="">{% endif %}</td>
         </tr>
     </table>
+    {% elif voucher_qr %}
+    <table class="sec"><tr><td></td><td class="qr"><img src="{{ voucher_qr }}" alt=""></td></tr></table>
+    {% endif %}
 
-    <div class="vdoc__foot">
-        {% if branding and branding.tagline %}{{ branding.tagline }} — {% endif %}
-        This voucher was generated electronically and is valid subject to supplier confirmations listed above.
-    </div>
+    {# ── Team contacts, grouped by city ── #}
+    {% if teams %}
+    {% pdfcard _("Team contacts") %}
+        <table class="teams">
+            <tr>
+                {% for city, people in teams %}
+                <td class="col">
+                    <div class="team-city">{% blocktrans with c=city %}{{ c }} team{% endblocktrans %}</div>
+                    <table class="team-tbl">
+                        {% for p in people %}<tr><td class="who"><b>{{ p.contact_name }}</b><br><span class="role">{{ p.role }}</span></td><td class="ph">{{ p.phone_number }}</td></tr>{% endfor %}
+                    </table>
+                </td>
+                {% if forloop.counter|divisibleby:3 and not forloop.last %}</tr><tr>{% endif %}
+                {% endfor %}
+            </tr>
+        </table>
+    {% endpdfcard %}
+    {% endif %}
+
+    {# ── Special instructions on their own page, like the sample ── #}
+    {% if voucher_instructions %}
+    {% if for_pdf %}
+    <div class="instr-label" style="-pdf-keep-with-next: true;">{% trans "Special Instructions" %}</div>
+    {% pdfcard "" plain %}
+        <table class="rules-inner">
+        {% for row in pdf_instructions %}
+        <tr>
+            {% if row.rtl %}
+            <td class="rtl-txt">{% for ln in row.lines %}<div>{{ ln }}</div>{% endfor %}</td>
+            <td class="rtl-no">{{ row.n }}.</td>
+            {% else %}
+            <td class="ltr-no">{{ row.n }}.</td>
+            <td>{{ row.text|linebreaksbr }}</td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+        </table>
+    {% endpdfcard %}
+    {% else %}
+    <div class="instr-label">{% trans "Special Instructions" %}</div>
+    <ol class="rules" dir="auto">
+        {% for it in voucher_instructions %}<li>{{ it.text|linebreaksbr }}</li>{% endfor %}
+    </ol>
+    {% endif %}
+    {% endif %}
 
     {% if print_mode %}
-    <p class="vdoc__noprint" style="margin-top:16px;text-align:center;">
-        <a href="javascript:window.print()" style="color:#0d4f4f;font-weight:bold;">Print</a>
-        &nbsp;·&nbsp;
-        <a href="{% url 'member-bookings' %}" style="color:#455a64;">Back to bookings</a>
+    <p class="noprint">
+        <a href="javascript:window.print()">{% trans "Print" %}</a> ·
+        <a href="{% url 'member-booking-voucher-pdf' booking.id %}">{% trans "Download PDF" %}</a>
     </p>
     {% endif %}
 </div>

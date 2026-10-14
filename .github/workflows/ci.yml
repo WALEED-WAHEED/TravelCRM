@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+env:
+  DJANGO_SECRET_KEY: ci-only-secret-key-not-for-real-use
+  DJANGO_DEBUG: "False"
+  ALLOWED_HOSTS: localhost,127.0.0.1
+  DB_NAME: travelcrm_ci
+  DB_HOST: localhost
+  DB_PORT: 5432
+  # Migrations run as the Postgres superuser (needs CREATEDB for Django's
+  # test-database creation); the app itself — and the RLS-layer tests —
+  # run through the separate scoped role created in the setup step below.
+  DB_USER: postgres
+  DB_PASSWORD: postgres
+  SCOPED_DB_USER: travelcrm_app
+  SCOPED_DB_PASSWORD: ci-scoped-role-password
+  REDIS_URL: redis://localhost:6379/0
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: travelcrm_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install PostgreSQL client tools
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Create scoped travelcrm_app role
+        # Row-Level Security is inert for a table owner or superuser, so
+        # the RLS-layer tests need a real non-superuser role to connect
+        # through — see travelcrm/settings.py DATABASES['scoped'] and
+        # scripts/README.md. Grants on tables/sequences are re-applied by
+        # tests/conftest.py's django_db_setup override once the test
+        # database itself has been created and migrated.
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d travelcrm_ci -c "
+            DO \$\$
+            BEGIN
+              IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'travelcrm_app') THEN
+                CREATE ROLE travelcrm_app WITH LOGIN PASSWORD '${SCOPED_DB_PASSWORD}';
+              END IF;
+            END
+            \$\$;
+          "
+
+      - name: Django system check
+        run: python manage.py check
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Run test suite
+        run: pytest tests/ -v
+
+      - name: Verify backup/restore round-trip
+        env:
+          PG_ADMIN_USER: postgres
+          PG_ADMIN_PASSWORD: postgres
+        run: |
+          python manage.py migrate --noinput
+          python manage.py verify_backup

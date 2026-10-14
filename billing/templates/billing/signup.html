@@ -1,0 +1,135 @@
+{% load static %}
+{% load asset_tags %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    {% include "partials/theme_init.html" %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Start your free trial" %} — {{ saas_config.product_name|default:"Nahd Travels CRM" }}</title>
+    {% if saas_config.favicon %}
+    <link rel="icon" href="{{ saas_config.favicon.url }}">
+    {% endif %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% versioned_static 'css/app.css' %}">
+</head>
+<body>
+    <div class="login-bg" style="align-items:flex-start; padding-top:56px; padding-bottom:56px;">
+        <div style="width:100%; max-width:960px; display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start;">
+
+            <div class="lp-card" style="max-width:none;">
+                <div class="lp-brand">
+                    {% if saas_config.logo %}
+                    <img src="{{ saas_config.logo.url }}" alt="{{ saas_config.product_name }}" class="lp-logo">
+                    {% else %}
+                    <div class="lp-logo-fallback">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                        </svg>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="lp-header">
+                    <h1 class="lp-title">{% trans "Start your free trial" %}</h1>
+                    <p class="lp-subtitle">{% trans "No card required. Set up your agency workspace in under a minute." %}</p>
+                </div>
+
+                {% if messages %}
+                {% for message in messages %}
+                <div class="lp-alert">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                <form method="post" class="lp-form">
+                    {% csrf_token %}
+                    <div class="lp-field">
+                        <label class="lp-label" for="agency_name">{% trans "Agency name" %}</label>
+                        <div class="lp-input-wrap">
+                            <span class="lp-input-icon">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                                </svg>
+                            </span>
+                            <input class="lp-input" type="text" id="agency_name" name="agency_name" value="{{ form_data.agency_name|default:'' }}" required autofocus>
+                        </div>
+                    </div>
+                    <div class="lp-field">
+                        <label class="lp-label" for="owner_username">{% trans "Your username" %}</label>
+                        <div class="lp-input-wrap">
+                            <span class="lp-input-icon">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                                </svg>
+                            </span>
+                            <input class="lp-input" type="text" id="owner_username" name="owner_username" value="{{ form_data.owner_username|default:'' }}" required>
+                        </div>
+                    </div>
+                    <div class="lp-field">
+                        <label class="lp-label" for="owner_email">{% trans "Your email" %}</label>
+                        <div class="lp-input-wrap">
+                            <span class="lp-input-icon">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 4h16v16H4z" /><path d="M22 6l-10 7L2 6" />
+                                </svg>
+                            </span>
+                            <input class="lp-input" type="email" id="owner_email" name="owner_email" value="{{ form_data.owner_email|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="lp-field">
+                        <label class="lp-label" for="owner_password">{% trans "Password" %}</label>
+                        <div class="lp-input-wrap">
+                            <span class="lp-input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                </svg>
+                            </span>
+                            <input class="lp-input" type="password" id="owner_password" name="owner_password" placeholder="{% trans 'At least 8 characters' %}" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="lp-btn">{% trans "Create my workspace" %}</button>
+                </form>
+
+                <p class="lp-footer">{% trans "Already have an account?" %} <a href="{% url 'login' %}">{% trans "Sign in" %}</a></p>
+            </div>
+
+            <div class="card hotels-panel">
+                <div class="hotels-panel__head">
+                    <h2 class="hotels-panel__title">{% trans "What you get" %}</h2>
+                </div>
+                <div class="card-content hotels-panel__body" style="display:flex; flex-direction:column; gap:12px;">
+                    {% for plan in plans %}
+                    <div style="padding:16px; border:1px solid var(--border); border-radius:var(--radius-sm); {% if plan.is_default_trial %}border-color:var(--primary);{% endif %}">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold">{{ plan.name }}</span>
+                            {% if plan.is_default_trial %}<span class="badge badge-primary">{% trans "Your trial plan" %}</span>{% endif %}
+                        </div>
+                        <div class="text-sm text-muted mt-1">
+                            {{ plan.currency }} {{ plan.price_amount }}/{{ plan.get_billing_interval_display|lower }}
+                            {% if plan.max_seats %} · {% blocktrans with seats=plan.max_seats %}{{ seats }} seats{% endblocktrans %}{% endif %}
+                            {% if plan.max_bookings_per_month %} · {% blocktrans with n=plan.max_bookings_per_month %}{{ n }} bookings/mo{% endblocktrans %}{% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-sm">{% trans "Plans will appear here once configured." %}</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <button type="button" id="theme-toggle" class="theme-toggle theme-toggle-floating" aria-label="{% trans 'Toggle light or dark theme' %}">
+        <svg class="icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
+        <svg class="icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+    </button>
+    <script src="{% versioned_static 'js/app.js' %}"></script>
+</body>
+</html>

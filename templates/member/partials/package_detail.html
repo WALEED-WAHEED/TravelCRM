@@ -1,0 +1,56 @@
+{% load i18n currency_tags %}
+<div class="pkd">
+  <div class="pkd-head">
+    <div>
+      <div class="pkd-code">{{ p.code }} · {{ p.get_package_type_display }}{% if not p.is_active %} · <em>{% trans "Inactive" %}</em>{% endif %}</div>
+      <h3 class="pkd-name" dir="auto">{{ p.name }}</h3>
+      {% if p.group_leader %}<div class="pkd-leader" dir="auto">{% trans "Group leader" %}: <b>{{ p.group_leader }}</b></div>{% endif %}
+    </div>
+    {% if p.starting_price is not None %}<div class="pkd-from"><span>{% trans "from" %}</span><b>{{ p.starting_price|pkr }}</b><span>{% trans "per person" %}</span></div>{% endif %}
+  </div>
+
+  <div class="pkd-facts">
+    <div><span>{% trans "Departure" %}</span><b>{% if p.departure_date %}{{ p.departure_date|date:"d M Y" }}{% else %}—{% endif %}</b></div>
+    <div><span>{% trans "Return" %}</span><b>{% if p.return_date %}{{ p.return_date|date:"d M Y" }}{% else %}—{% endif %}</b></div>
+    <div><span>{% trans "Total stay" %}</span><b>{% if p.total_nights %}{% blocktrans count n=p.total_nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}{% else %}—{% endif %}</b></div>
+    <div><span>{% trans "Seats" %}</span><b>{{ p.total_seats|default:"—" }}</b></div>
+  </div>
+
+  <div class="pkd-grid">
+    <section class="pkd-box">
+      <h4>{% trans "Makkah" %}</h4>
+      <b dir="auto">{% if p.makkah_hotel %}{{ p.makkah_hotel.name }}{% else %}—{% endif %}</b>
+      <p>{% if p.makkah_nights %}{% blocktrans count n=p.makkah_nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}{% endif %}{% if p.makkah_distance %} · {{ p.makkah_distance }} {% trans "m from the Haram" %}{% endif %}{% if p.makkah_shuttle %} · {% trans "shuttle" %}{% endif %}</p>
+    </section>
+    <section class="pkd-box">
+      <h4>{% trans "Madina" %}</h4>
+      <b dir="auto">{% if p.madina_hotel %}{{ p.madina_hotel.name }}{% else %}—{% endif %}</b>
+      <p>{% if p.madina_nights %}{% blocktrans count n=p.madina_nights %}{{ n }} night{% plural %}{{ n }} nights{% endblocktrans %}{% endif %}{% if p.madina_distance %} · {{ p.madina_distance }} {% trans "m from the Masjid" %}{% endif %}{% if p.madina_shuttle %} · {% trans "shuttle" %}{% endif %}</p>
+    </section>
+    <section class="pkd-box">
+      <h4>{% trans "Flights" %}</h4>
+      {% if p.flight or p.return_flight %}
+      {% if p.flight %}<p><b>{% trans "Departure" %}</b> {{ p.flight.airline }} {{ p.flight.flight_number }} · {{ p.flight.sector }}</p>{% endif %}
+      {% if p.return_flight %}<p><b>{% trans "Return" %}</b> {{ p.return_flight.airline }} {{ p.return_flight.flight_number }} · {{ p.return_flight.sector }}</p>{% endif %}
+      {% if p.baggage %}<p><b>{% trans "Baggage" %}</b> {{ p.baggage }}</p>{% endif %}
+      {% else %}<p>—</p>{% endif %}
+    </section>
+    <section class="pkd-box">
+      <h4>{% trans "Transport" %}</h4>
+      <p>{% if p.transport %}{{ p.transport.name }} · {{ p.transport.get_transport_type_display }}{% else %}—{% endif %}</p>
+    </section>
+  </div>
+
+  <h4 class="pkd-title">{% trans "Price per person" %}</h4>
+  <div class="pkd-prices">
+    {% for label, price in p.sharing_prices %}<div><span>{{ label }}</span><b>{{ price|amt }}</b></div>{% endfor %}
+    {% if p.price_child is not None %}<div><span>{% trans "Child without bed" %}</span><b>{{ p.price_child|amt }}</b></div>{% endif %}
+    {% if p.price_infant is not None %}<div><span>{% trans "Infant" %}</span><b>{{ p.price_infant|amt }}</b></div>{% endif %}
+    {% if p.cost_price %}<div class="pkd-cost"><span>{% trans "Your cost" %}</span><b>{{ p.cost_price|amt }}</b></div>{% endif %}
+  </div>
+
+  <h4 class="pkd-title">{% trans "What's included" %}</h4>
+  <div class="pkd-chips">{% for label in p.get_inclusions_display %}<span>{{ label }}</span>{% empty %}<span class="pkd-none">—</span>{% endfor %}</div>
+
+  {% if p.notes %}<h4 class="pkd-title">{% trans "Notes" %}</h4><p class="pkd-notes" dir="auto">{{ p.notes|linebreaksbr }}</p>{% endif %}
+</div>

@@ -1,16 +1,23 @@
 from rest_framework import serializers
-from .models import (
-    SAASProductConfig, SystemConfiguration, AgencyBranding, EmailTemplate,
-    NotificationSettings, APIKey, AuditLog
-)
-from agencies.serializers import AgencySerializer
+
 from accounts.serializers import UserSerializer
+from agencies.serializers import AgencySerializer
+
+from .models import (
+    AgencyBranding,
+    APIKey,
+    AuditLog,
+    EmailTemplate,
+    NotificationSettings,
+    SAASProductConfig,
+    SystemConfiguration,
+)
 
 
 class SAASProductConfigSerializer(serializers.ModelSerializer):
     """Serializer for SAAS Product Configuration"""
     logo_url = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = SAASProductConfig
         fields = [
@@ -19,7 +26,7 @@ class SAASProductConfigSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'logo_url']
-    
+
     def get_logo_url(self, obj):
         """Get logo URL if logo exists"""
         if obj.logo:
@@ -32,7 +39,7 @@ class SAASProductConfigSerializer(serializers.ModelSerializer):
 
 class SystemConfigurationSerializer(serializers.ModelSerializer):
     """Serializer for system configuration"""
-    
+
     class Meta:
         model = SystemConfiguration
         fields = [
@@ -40,7 +47,7 @@ class SystemConfigurationSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
-    
+
     def validate_key(self, value):
         """Ensure key is unique"""
         instance = self.instance
@@ -53,7 +60,7 @@ class AgencyBrandingSerializer(serializers.ModelSerializer):
     """Serializer for agency branding"""
     agency = AgencySerializer(read_only=True)
     logo_url = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = AgencyBranding
         fields = [
@@ -65,19 +72,19 @@ class AgencyBrandingSerializer(serializers.ModelSerializer):
             'custom_fields', 'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
-    
+
     def validate_primary_color(self, value):
         """Validate hex color format"""
         if not value.startswith('#') or len(value) != 7:
             raise serializers.ValidationError("Primary color must be a valid hex color (e.g., #2bb7ff).")
         return value
-    
+
     def validate_secondary_color(self, value):
         """Validate hex color format"""
         if not value.startswith('#') or len(value) != 7:
             raise serializers.ValidationError("Secondary color must be a valid hex color (e.g., #4ea8ff).")
         return value
-    
+
     def get_logo_url(self, obj):
         """Get logo URL if logo exists"""
         if obj.logo:
@@ -90,7 +97,7 @@ class AgencyBrandingSerializer(serializers.ModelSerializer):
 
 class AgencyBrandingCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating agency branding"""
-    
+
     class Meta:
         model = AgencyBranding
         fields = [
@@ -101,13 +108,13 @@ class AgencyBrandingCreateSerializer(serializers.ModelSerializer):
             'booking_confirmation_template', 'payment_receipt_template', 'voucher_template',
             'custom_fields', 'is_active'
         ]
-    
+
     def validate_primary_color(self, value):
         """Validate hex color format"""
         if not value.startswith('#') or len(value) != 7:
             raise serializers.ValidationError("Primary color must be a valid hex color (e.g., #2bb7ff).")
         return value
-    
+
     def validate_secondary_color(self, value):
         """Validate hex color format"""
         if not value.startswith('#') or len(value) != 7:
@@ -118,7 +125,7 @@ class AgencyBrandingCreateSerializer(serializers.ModelSerializer):
 class EmailTemplateSerializer(serializers.ModelSerializer):
     """Serializer for email templates"""
     agency = AgencySerializer(read_only=True)
-    
+
     class Meta:
         model = EmailTemplate
         fields = [
@@ -127,7 +134,7 @@ class EmailTemplateSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
-    
+
     def validate(self, data):
         """Validate template data"""
         if data['template_type'] != 'custom' and not data.get('is_default'):
@@ -148,14 +155,14 @@ class EmailTemplateSerializer(serializers.ModelSerializer):
 
 class EmailTemplateCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating email templates"""
-    
+
     class Meta:
         model = EmailTemplate
         fields = [
             'name', 'template_type', 'subject', 'html_content',
             'text_content', 'variables', 'agency', 'is_active', 'is_default'
         ]
-    
+
     def validate(self, data):
         """Validate template data"""
         if data['template_type'] != 'custom' and not data.get('is_default'):
@@ -175,7 +182,7 @@ class EmailTemplateCreateSerializer(serializers.ModelSerializer):
 class NotificationSettingsSerializer(serializers.ModelSerializer):
     """Serializer for notification settings"""
     agency = AgencySerializer(read_only=True)
-    
+
     class Meta:
         model = NotificationSettings
         fields = [
@@ -190,7 +197,7 @@ class NotificationSettingsSerializer(serializers.ModelSerializer):
 
 class NotificationSettingsCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating notification settings"""
-    
+
     class Meta:
         model = NotificationSettings
         fields = [
@@ -205,7 +212,7 @@ class NotificationSettingsCreateSerializer(serializers.ModelSerializer):
 class APIKeySerializer(serializers.ModelSerializer):
     """Serializer for API keys"""
     agency = AgencySerializer(read_only=True)
-    
+
     class Meta:
         model = APIKey
         fields = [
@@ -222,7 +229,7 @@ class APIKeySerializer(serializers.ModelSerializer):
 
 class APIKeyCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating API keys"""
-    
+
     class Meta:
         model = APIKey
         fields = [
@@ -235,7 +242,7 @@ class APIKeyListSerializer(serializers.ModelSerializer):
     """Serializer for API key list (without sensitive data)"""
     agency = AgencySerializer(read_only=True)
     api_key_masked = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = APIKey
         fields = [
@@ -244,7 +251,7 @@ class APIKeyListSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
-    
+
     def get_api_key_masked(self, obj):
         """Return masked API key for security"""
         if obj.api_key:
@@ -255,7 +262,7 @@ class APIKeyListSerializer(serializers.ModelSerializer):
 class AuditLogSerializer(serializers.ModelSerializer):
     """Serializer for audit logs"""
     user = UserSerializer(read_only=True)
-    
+
     class Meta:
         model = AuditLog
         fields = [

@@ -1,16 +1,25 @@
-Django>=5.2
-djangorestframework>=3.15
-djangorestframework-simplejwt>=5.3
-django-cors-headers>=4.3
-django-filter>=23.3
-drf-spectacular>=0.27
-Pillow>=10.1
-psycopg2-binary>=2.9
-python-dotenv>=1.0
-gunicorn>=21.2
-whitenoise>=6.6
-pandas>=2.1
-openpyxl>=3.1
-qrcode[pil]>=7.4
-reportlab>=4.0
-xhtml2pdf>=0.2
+# Pinned to exact versions actually installed and verified working in this
+# environment — previously `>=` ranges meant a fresh `pip install` could
+# silently pull a newer major version (this install had drifted to Django
+# 6.0.3 despite the code only having been verified against 5.2.x). Bump
+# deliberately, one package at a time, not by relaxing these back to `>=`.
+Django==6.0.3
+djangorestframework==3.16.1
+djangorestframework-simplejwt==5.5.1
+django-cors-headers==4.9.0
+django-filter==25.2
+drf-spectacular==0.29.0
+Pillow==12.1.1
+psycopg2-binary==2.9.11
+python-dotenv==1.2.2
+gunicorn==25.1.0
+whitenoise==6.12.0
+openpyxl==3.1.5
+qrcode[pil]==8.2
+reportlab==4.4.10
+xhtml2pdf==0.2.17
+celery==5.6.3
+redis==6.4.0
+google-genai==2.17.0
+polib==1.2.0
+sentry-sdk==2.66.1

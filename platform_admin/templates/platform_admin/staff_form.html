@@ -1,0 +1,47 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% if access %}{% trans "Edit Staff Access" %}{% else %}{% trans "Grant Staff Access" %}{% endif %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{% if access %}{% blocktrans with u=access.user.username %}Edit access — {{ u }}{% endblocktrans %}{% else %}{% trans "Grant staff access" %}{% endif %}</h1>
+  <p class="page-subtitle">{% trans "Pick an existing username, then choose which parts of the panel they can reach." %}</p>
+</div>
+
+<div class="card" style="max-width:640px;">
+  <div class="card-content" style="padding-top:20px;">
+    <form method="post" style="display:flex; flex-direction:column; gap:16px;">
+      {% csrf_token %}
+      {% if not access %}
+      <div class="form-group">
+        <label class="form-label" for="username">{% trans "Username" %}</label>
+        <input class="form-input" type="text" id="username" name="username" value="{{ form_data.username|default:'' }}" required>
+      </div>
+      {% else %}
+      <div class="form-group">
+        <label class="form-label">{% trans "User" %}</label>
+        <p class="text-sm font-medium">{{ access.user.username }}</p>
+      </div>
+      {% endif %}
+      <div class="form-group">
+        <label class="form-label" for="role_label">{% trans "Label (for your own bookkeeping)" %}</label>
+        <input class="form-input" type="text" id="role_label" name="role_label" value="{% firstof access.role_label form_data.role_label '' %}" placeholder="{% trans 'e.g. Support Agent, Billing Ops' %}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">{% trans "Capabilities" %}</label>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
+          {% for key, label in capabilities %}
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" name="capabilities" value="{{ key }}" {% if key in access.capabilities %}checked{% endif %}>
+            {{ label }} <span class="text-muted text-sm">({{ key }})</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="flex gap-3 mt-2">
+        <button class="btn btn-primary" type="submit">{% trans "Save" %}</button>
+        <a class="btn btn-outline" href="{% url 'platform_admin:staff' %}">{% trans "Cancel" %}</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

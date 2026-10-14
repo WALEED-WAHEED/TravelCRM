@@ -1,8 +1,14 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
+
 from .views import (
-    UserViewSet, CustomTokenObtainPairView, 
-    request_password_reset, reset_password, MemberProfileView, upload_logo, generate_voucher_number
+    CustomTokenObtainPairView,
+    MemberProfileView,
+    UserViewSet,
+    generate_voucher_number,
+    request_password_reset,
+    reset_password,
+    upload_logo,
 )
 
 router = DefaultRouter()

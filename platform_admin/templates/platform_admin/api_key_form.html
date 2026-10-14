@@ -1,0 +1,62 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% if key %}{% trans "Edit API Key" %}{% else %}{% trans "New API Key" %}{% endif %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{% if key %}{% trans "Edit API key" %}{% else %}{% trans "New API key" %}{% endif %}</h1>
+</div>
+
+<div class="card" style="max-width:640px;">
+  <div class="card-content" style="padding-top:20px;">
+    <form method="post" style="display:flex; flex-direction:column; gap:16px;">
+      {% csrf_token %}
+      <div class="grid grid-2">
+        <div class="form-group">
+          <label class="form-label" for="name">{% trans "Name" %}</label>
+          <input class="form-input" type="text" id="name" name="name" value="{% firstof key.name form_data.name '' %}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="key_type">{% trans "Type" %}</label>
+          <select class="form-select" id="key_type" name="key_type">
+            {% for k, label in type_choices %}
+            <option value="{{ k }}" {% if key.key_type == k %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="agency_id">{% trans "Scope" %}</label>
+        <select class="form-select" id="agency_id" name="agency_id">
+          <option value="">{% trans "Platform-wide (no specific agency)" %}</option>
+          {% for agency in agencies %}
+          <option value="{{ agency.id }}" {% if key.agency_id == agency.id %}selected{% endif %}>{{ agency.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="api_key">{% trans "API key" %}{% if key %} <span class="text-muted text-sm">({% trans "leave blank to keep the current value" %})</span>{% endif %}</label>
+        <input class="form-input" type="text" id="api_key" name="api_key" autocomplete="off" placeholder="{% if key %}••••••••{% endif %}" {% if not key %}required{% endif %}>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="api_secret">{% trans "API secret" %}{% if key %} <span class="text-muted text-sm">({% trans "leave blank to keep the current value" %})</span>{% endif %}</label>
+        <input class="form-input" type="text" id="api_secret" name="api_secret" autocomplete="off" placeholder="{% if key.api_secret %}••••••••{% endif %}">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="endpoint_url">{% trans "Endpoint URL" %}</label>
+        <input class="form-input" type="text" id="endpoint_url" name="endpoint_url" value="{{ key.endpoint_url|default:'' }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="description">{% trans "Description" %}</label>
+        <input class="form-input" type="text" id="description" name="description" value="{{ key.description|default:'' }}">
+      </div>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="is_active" {% if key.is_active or not key %}checked{% endif %}> {% trans "Active" %}
+      </label>
+      <div class="flex gap-3 mt-2">
+        <button class="btn btn-primary" type="submit">{% trans "Save key" %}</button>
+        <a class="btn btn-outline" href="{% url 'platform_admin:api-keys' %}">{% trans "Cancel" %}</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,350 +1,1141 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load currency_tags %}
-{% block title %}Ledger{% endblock %}
+{% block title %}{% trans "Ledger" %}{% endblock %}
+{% block extra_head %}
+<style>
+    /* .grid / .form-group / flex rows set `display`, which beats the
+       [hidden] attribute — without this, mode-specific fields never hide. */
+    .page-ledger [hidden], #modal-add-entry [hidden] { display: none !important; }
+    .ledger-stat-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .ledger-stat-hint { display: block; font-size: 0.75rem; color: var(--muted-foreground); margin-top: 2px; }
+    .ledger-filters { display: grid; grid-template-columns: minmax(180px, 1.4fr) minmax(160px, 1fr) minmax(150px, 0.9fr) minmax(150px, 0.9fr) minmax(150px, 0.9fr); gap: 10px; align-items: center; }
+    .ledger-filters .form-input, .ledger-filters .form-select { width: 100%; min-width: 0; }
+    .ledger-custom-range { display: flex; gap: 8px; align-items: center; grid-column: 1 / -1; }
+    .ledger-custom-range .form-input { max-width: 180px; }
+    .ledger-toolbar-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin: 12px 0 14px; }
+    .ledger-toolbar-row .ledger-toolbar-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .ledger-num { text-align: end !important; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .ledger-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8rem; }
+    .ledger-nowrap { white-space: nowrap; }
+    .ledger-code { display: inline-block; min-width: 2.4rem; text-align: center; padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; border: 1px solid var(--border); }
+    .ledger-code--credit { color: var(--success); background: color-mix(in srgb, var(--success) 10%, transparent); border-color: color-mix(in srgb, var(--success) 30%, transparent); }
+    .ledger-code--debit { color: var(--primary); background: color-mix(in srgb, var(--primary) 9%, transparent); border-color: color-mix(in srgb, var(--primary) 28%, transparent); }
+    .ledger-particulars { max-width: 380px; }
+    .ledger-sub { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 2px; }
+    .ledger-party-link { background: none; border: 0; padding: 0; color: var(--foreground); font: inherit; cursor: pointer; text-align: start; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--primary) 35%, transparent); text-underline-offset: 3px; }
+    .ledger-party-link:hover { color: var(--primary); }
+    .ledger-actions-col { width: 1%; white-space: nowrap; text-align: end !important; }
+    .ledger-row-actions { display: inline-flex; gap: 2px; }
+    .ledger-opening-row td { background: color-mix(in srgb, var(--muted) 60%, transparent); }
+    .ledger-totals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 14px; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius); background: color-mix(in srgb, var(--muted) 55%, var(--card)); }
+    .ledger-totals__cell { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); }
+    .ledger-totals__label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-foreground); }
+    .ledger-totals__value { font-size: 1.25rem; font-weight: 700; color: var(--foreground); }
+    .ledger-totals__hint { font-size: 0.75rem; color: var(--muted-foreground); }
+    .ledger-totals__cell--net.is-dr { border-color: color-mix(in srgb, var(--success) 45%, var(--border)); }
+    .ledger-totals__cell--net.is-dr .ledger-totals__value { color: var(--success); }
+    .ledger-totals__cell--net.is-cr { border-color: color-mix(in srgb, var(--destructive) 45%, var(--border)); }
+    .ledger-totals__cell--net.is-cr .ledger-totals__value { color: var(--destructive); }
+    .ledger-totals__meta { grid-column: 1 / -1; text-align: end; }
+    @media (max-width: 700px) { .ledger-totals { grid-template-columns: 1fr; } }
+    .ledger-dr { color: var(--success); }
+    .ledger-cr { color: var(--destructive); }
+    .ledger-hint { display: block; font-size: 0.72rem; color: var(--muted-foreground); font-weight: 400; }
+    .ledger-party-summary { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: center; padding: 14px 16px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: color-mix(in srgb, var(--primary) 4%, var(--card)); }
+    .ledger-party-summary__label { margin: 0; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted-foreground); }
+    .ledger-party-summary__name { margin: 2px 0 0; font-size: 1.05rem; font-weight: 700; }
+    .ledger-party-summary__figures { display: flex; flex-wrap: wrap; gap: 18px; font-size: 0.85rem; color: var(--muted-foreground); }
+    .ledger-party-summary__figures strong { display: block; color: var(--foreground); font-size: 1rem; font-variant-numeric: tabular-nums; }
+    .ledger-party-summary__figures strong.ledger-dr { color: var(--success); }
+    .ledger-party-summary__figures strong.ledger-cr { color: var(--destructive); }
+    .ledger-balance-strip { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 12px; font-size: 0.875rem; color: var(--muted-foreground); }
+    .ledger-balance-strip strong { font-variant-numeric: tabular-nums; }
+    .ledger-pager { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 14px; }
+    #ledger-results.htmx-request { opacity: 0.55; transition: opacity 0.15s; }
+    /* Panels */
+    .ledger-panel { padding: 20px 22px 22px; }
+    .ledger-panel__top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+    .ledger-panel__title { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--foreground); }
+    .ledger-panel__hint { margin: 3px 0 0; font-size: 0.85rem; color: var(--muted-foreground); }
+    .ledger-panel__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .ledger-panel__actions .btn { display: inline-flex; align-items: center; gap: 6px; }
+    .ledger-toolbar-row { justify-content: flex-start !important; gap: 14px !important; margin: 12px 0 12px !important; }
+    .ledger-table-box { position: relative; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+    .ledger-table-box .hotels-data-table { margin: 0; }
+    .ledger-table-box .ledger-totals { margin: 0; border: 0; border-top: 1px solid var(--border); border-radius: 0; }
+    .ledger-table-box .hotels-empty { border: 0; }
+    .ev-badge { display: inline-block; margin: -6px 0 16px; padding: 4px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; }
+    .ev-badge--dr { color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); }
+    .ev-badge--cr { color: var(--success); background: color-mix(in srgb, var(--success) 12%, transparent); }
+    .ev-list { display: grid; gap: 12px; }
+    .ev-card { padding: 12px 16px; border: 1px solid var(--border); border-radius: 14px; }
+    .ev-card h4 { margin: 0 0 8px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-foreground); }
+    .ev-line { display: flex; justify-content: space-between; gap: 16px; padding: 6px 0; font-size: 0.9rem; border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent); }
+    .ev-line:first-of-type { border-top: 0; }
+    .ev-line span { flex: none; color: var(--muted-foreground); }
+    .ev-line b { text-align: end; font-weight: 600; overflow-wrap: anywhere; }
+    .ledger-table td { vertical-align: middle; }
+    .ledger-table tbody tr:hover td { background: color-mix(in srgb, var(--primary) 4%, transparent); }
+    .ledger-table .ledger-num { font-weight: 600; color: var(--foreground); }
+    .ledger-table .ledger-mono { color: var(--muted-foreground); }
+    .ledger-party-link { text-decoration: none !important; font-weight: 500; }
+    .ledger-party-link:hover { text-decoration: underline !important; }
+    /* Suppliers to pay */
+
+    /* Entry modal */
+    #modal-add-entry .hotels-modal-sub, #modal-ledger-help .hotels-modal-sub { max-width: none; }
+    .ledger-step { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; }
+    .ledger-step__num { flex: none; width: 24px; height: 24px; border-radius: 999px; display: inline-grid; place-items: center; font-size: 0.75rem; font-weight: 700; color: var(--primary-foreground); background: var(--primary); }
+    .ledger-step__title { font-weight: 700; font-size: 0.95rem; }
+    .ledger-step__hint { font-size: 0.8rem; color: var(--muted-foreground); }
+    .ledger-step--later { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
+    .ledger-modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .ledger-mode { --mode-c: var(--primary); position: relative; display: block; cursor: pointer; }
+    .ledger-mode--in { --mode-c: var(--success); }
+    .ledger-mode--out { --mode-c: #2563eb; }
+    .ledger-mode--sale { --mode-c: #7c3aed; }
+    .ledger-mode--bill { --mode-c: #d97706; }
+    .ledger-mode--expense { --mode-c: var(--destructive); }
+    .ledger-mode--adjust { --mode-c: var(--muted-foreground); }
+    .ledger-mode input { position: absolute; opacity: 0; pointer-events: none; }
+    .ledger-mode__card { display: flex; gap: 10px; align-items: flex-start; height: 100%; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); transition: var(--transition-fast); }
+    .ledger-mode__icon { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: var(--mode-c); background: color-mix(in srgb, var(--mode-c) 12%, transparent); }
+    .ledger-mode strong { display: block; font-size: 0.875rem; }
+    .ledger-mode small { display: block; color: var(--muted-foreground); font-size: 0.75rem; line-height: 1.35; margin-top: 2px; }
+    .ledger-mode:hover .ledger-mode__card { border-color: color-mix(in srgb, var(--mode-c) 50%, var(--border)); }
+    .ledger-mode input:checked + .ledger-mode__card { border-color: var(--mode-c); background: color-mix(in srgb, var(--mode-c) 7%, var(--card)); box-shadow: 0 0 0 1px var(--mode-c) inset; }
+    .ledger-mode input:checked + .ledger-mode__card .ledger-mode__icon { color: #fff; background: var(--mode-c); }
+    .ledger-mode input:focus-visible + .ledger-mode__card { outline: 2px solid var(--ring); outline-offset: 2px; }
+    .ledger-pick-prompt { margin: 16px 0 4px; padding: 14px; text-align: center; font-size: 0.875rem; color: var(--muted-foreground); border: 1px dashed var(--border); border-radius: var(--radius); }
+    .ledger-mode-explain { margin: 0 0 14px; padding: 10px 12px; font-size: 0.85rem; border-radius: var(--radius); background: var(--muted); color: var(--foreground); }
+    .ledger-party-balance { margin: 6px 0 0; font-size: 0.8rem; color: var(--muted-foreground); }
+    .ledger-party-balance strong { font-variant-numeric: tabular-nums; }
+    .ledger-link-btn { background: none; border: 0; padding: 0; color: var(--primary); font: inherit; font-size: 0.8rem; cursor: pointer; }
+    .ledger-link-btn:hover { text-decoration: underline; }
+    .ledger-fx { border: 1px dashed var(--border); border-radius: var(--radius); padding: 12px 12px 0; margin-bottom: 14px; }
+    .ledger-fx-result { margin: -4px 0 12px; font-size: 0.85rem; color: var(--muted-foreground); }
+    .ledger-more { margin-top: 4px; }
+    .ledger-more summary { cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--primary); padding: 2px 0 10px; }
+    .ledger-side-hint { display: block; width: auto; margin: 6px 0 0 !important; text-align: start; }
+    #ledger-details .form-group { margin-bottom: 14px; }
+    #ledger-details .grid { column-gap: 16px; row-gap: 0; }
+    .ledger-summary__tag:empty, .ledger-summary__balance:empty, .ledger-party-balance:empty { display: none; }
+    .ledger-side-pills { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .ledger-side-pills label { display: block; cursor: pointer; }
+    .ledger-side-pills input { position: absolute; opacity: 0; pointer-events: none; }
+    .ledger-side-pills span { display: block; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.85rem; }
+    .ledger-side-pills small { display: block; color: var(--muted-foreground); font-size: 0.75rem; }
+    .ledger-side-pills input:checked + span { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 7%, var(--card)); box-shadow: 0 0 0 1px var(--primary) inset; }
+    .ledger-summary { display: grid; gap: 8px; padding: 14px 16px; border-radius: var(--radius); border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--border)); background: color-mix(in srgb, var(--primary) 5%, var(--card)); }
+    .ledger-summary__text { margin: 0; font-size: 0.95rem; font-weight: 600; }
+    .ledger-summary__balance { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--muted-foreground); }
+    .ledger-summary__balance strong { color: var(--foreground); font-variant-numeric: tabular-nums; }
+    .ledger-summary__arrow { color: var(--muted-foreground); }
+    .ledger-summary__tag { justify-self: start; font-size: 0.75rem; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--muted-foreground); }
+
+    /* Help dialog */
+    .ledger-help h3 { margin: 18px 0 8px; font-size: 0.95rem; }
+    .ledger-help h3:first-child { margin-top: 0; }
+    .ledger-help p { margin: 0 0 8px; font-size: 0.875rem; line-height: 1.5; }
+    .ledger-help table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .ledger-help th, .ledger-help td { text-align: start; padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .ledger-help th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted-foreground); }
+    .ledger-help .ledger-codes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 14px; font-size: 0.85rem; }
+    .ledger-help .ledger-balance-key { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .ledger-help .ledger-balance-key div { padding: 10px 12px; border-radius: var(--radius); border: 1px solid var(--border); font-size: 0.85rem; }
+
+    @media (max-width: 900px) {
+        .ledger-filters { grid-template-columns: 1fr 1fr; }
+        .ledger-filters .ledger-search { grid-column: 1 / -1; }
+    }
+    @media (max-width: 600px) {
+        .ledger-modes { grid-template-columns: 1fr; }
+        .ledger-side-pills { grid-template-columns: 1fr; }
+        .ledger-filters { grid-template-columns: 1fr; }
+        .ledger-custom-range { flex-wrap: wrap; }
+    }
+</style>
+{% endblock %}
 {% block content %}
 <div class="page-ledger page-hotels">
     <header class="hotels-hero hotels-reveal" style="--d:0ms">
         <div class="hotels-hero__copy">
-            <p class="hotels-eyebrow">Finance</p>
-            <h1 class="page-title hotels-hero__title">Ledger</h1>
-            <p class="page-subtitle hotels-hero__sub">Track income, expenses, and voucher-related movements across your agency — searchable and filterable.</p>
+            <p class="hotels-eyebrow">{% trans "Finance" %}</p>
+            <h1 class="page-title hotels-hero__title">{% trans "Ledger" %}</h1>
         </div>
-        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms">
+        <div class="hotels-hero__actions hotels-reveal" style="--d:60ms; display:flex; flex-wrap:wrap; align-items:center; gap:10px;">
+            <a href="{% url 'member-inventory-insights' 'ledger' %}" class="btn btn-outline"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>{% trans "Ledger insights" %}</a>
+            <button type="button" class="btn btn-outline" onclick="openModal('modal-ledger-help')">
+                {% trans "How it works" %}
+            </button>
             <button type="button" class="btn btn-primary hotels-cta-btn" onclick="openLedgerAddModal()">
-                Add entry
+                {% trans "Add entry" %}
             </button>
         </div>
     </header>
 
-    <div class="hotels-stat-grid">
-        <div class="hotels-stat-card hotels-reveal" style="--d:80ms">
+    <div class="hotels-stat-grid ledger-stat-grid">
+        <div class="hotels-stat-card hotels-stat-card--success hotels-reveal" style="--d:80ms">
             <div class="hotels-stat-card__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <line x1="12" y1="1" x2="12" y2="23" />
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="12" y1="5" x2="12" y2="19" /><polyline points="5 12 12 19 19 12" /></svg>
             </div>
             <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Entries</span>
-                <span class="hotels-stat-card__value">{{ ledger_stats.total_entries }}</span>
+                <span class="hotels-stat-card__label">{% trans "Parties owe you" %}</span>
+                <span class="hotels-stat-card__value">Rs. {{ stats.receivable|amt }}</span>
+                <span class="ledger-stat-hint">{% trans "Receivable (Dr balances)" %}</span>
             </div>
         </div>
-        <div class="hotels-stat-card hotels-reveal" style="--d:120ms">
+        <div class="hotels-stat-card hotels-stat-card--danger hotels-reveal" style="--d:110ms">
             <div class="hotels-stat-card__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                    <polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" /></svg>
             </div>
             <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Income (PKR)</span>
-                <span class="hotels-stat-card__value">{{ ledger_stats.income_total|pkr }}</span>
+                <span class="hotels-stat-card__label">{% trans "You owe parties" %}</span>
+                <span class="hotels-stat-card__value">Rs. {{ stats.payable|amt }}</span>
+                <span class="ledger-stat-hint">{% trans "Payable (Cr balances)" %}</span>
             </div>
         </div>
-        <div class="hotels-stat-card hotels-reveal" style="--d:160ms">
+        <div class="hotels-stat-card hotels-stat-card--info hotels-reveal" style="--d:140ms">
             <div class="hotels-stat-card__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-                    <path d="M12 2a10 10 0 1 0 10 10" />
-                    <path d="M22 2 12 12" />
-                </svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
             </div>
             <div class="hotels-stat-card__meta">
-                <span class="hotels-stat-card__label">Expenses (PKR)</span>
-                <span class="hotels-stat-card__value">{{ ledger_stats.expense_total|pkr }}</span>
+                <span class="hotels-stat-card__label">{% trans "Received this month" %}</span>
+                <span class="hotels-stat-card__value">Rs. {{ stats.received_month|amt }}</span>
+                <span class="ledger-stat-hint">{% trans "Payments from parties" %}</span>
+            </div>
+        </div>
+        <div class="hotels-stat-card hotels-stat-card--warning hotels-reveal" style="--d:170ms">
+            <div class="hotels-stat-card__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" /></svg>
+            </div>
+            <div class="hotels-stat-card__meta">
+                <span class="hotels-stat-card__label">{% trans "Expenses this month" %}</span>
+                <span class="hotels-stat-card__value">Rs. {{ stats.expenses_month|amt }}</span>
+                <span class="ledger-stat-hint">{% trans "Company expenses" %}</span>
             </div>
         </div>
     </div>
 
-    <section class="card hotels-panel hotels-reveal" style="--d:200ms">
-        <div class="hotels-panel__head">
-            <div>
-                <h2 class="hotels-panel__title">Transactions</h2>
-                <p class="hotels-panel__hint text-muted text-sm">Search by reference, description, category, or payment method. Filter by type.</p>
-            </div>
-        </div>
-        <div class="card-content hotels-panel__body">
-            <div class="toolbar hotels-toolbar">
-                <div class="search-bar hotels-search">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <circle cx="11" cy="11" r="8" />
-                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                    </svg>
-                    <input type="search"
-                        name="q"
-                        placeholder="Search ledger…"
-                        value="{{ search_q }}"
-                        autocomplete="off"
-                        aria-label="Search ledger"
-                        hx-get="{% url 'member-ledger' %}"
-                        hx-trigger="keyup changed delay:350ms, search"
-                        hx-target="#ledger-table"
-                        hx-push-url="false"
-                        hx-include="#ledger-type-filter,#ledger-bucket-filter,#ledger-month-filter">
+    <section class="card ledger-panel hotels-reveal" style="--d:200ms">
+            <div class="ledger-panel__top">
+                <div>
+                    <h2 class="ledger-panel__title">{% trans "Transactions" %}</h2>
+                    <p class="ledger-panel__hint">{% trans "Click a party name to see their running balance, then print their statement." %}</p>
                 </div>
-                <select id="ledger-bucket-filter" name="bucket" class="form-select" style="width:auto;min-width:220px;"
-                    hx-get="{% url 'member-ledger' %}"
-                    hx-trigger="change"
-                    hx-target="#ledger-table"
-                    hx-push-url="false"
-                    hx-include="[name='q']">
-                    <option value="" {% if not bucket_filter %}selected{% endif %}>All buckets</option>
-                    <option value="lein_dein" {% if bucket_filter == 'lein_dein' %}selected{% endif %}>Party accounts (people/companies)</option>
-                    <option value="company_expense" {% if bucket_filter == 'company_expense' %}selected{% endif %}>Company expenses</option>
-                </select>
-                <select id="ledger-type-filter" name="type" class="form-select" style="width:auto;min-width:200px;"
-                    hx-get="{% url 'member-ledger' %}"
-                    hx-trigger="change"
-                    hx-target="#ledger-table"
-                    hx-push-url="false"
-                    hx-include="[name='q'],#ledger-bucket-filter,#ledger-month-filter">
-                    <option value="" {% if not type_filter %}selected{% endif %}>All types</option>
-                    <option value="income" {% if type_filter == 'income' %}selected{% endif %}>Income</option>
-                    <option value="expense" {% if type_filter == 'expense' %}selected{% endif %}>Expense</option>
-                    <option value="booking" {% if type_filter == 'booking' %}selected{% endif %}>Booking</option>
-                    <option value="voucher" {% if type_filter == 'voucher' %}selected{% endif %}>Voucher</option>
-                    <option value="refund" {% if type_filter == 'refund' %}selected{% endif %}>Refund</option>
-                    <option value="commission" {% if type_filter == 'commission' %}selected{% endif %}>Commission</option>
-                    <option value="other" {% if type_filter == 'other' %}selected{% endif %}>Other</option>
-                </select>
-                <input id="ledger-month-filter" name="month" class="form-input" style="width:auto;min-width:150px;"
-                    type="month" value="{{ month_filter }}"
-                    hx-get="{% url 'member-ledger' %}"
-                    hx-trigger="change"
-                    hx-target="#ledger-table"
-                    hx-push-url="false"
-                    hx-include="[name='q'],#ledger-bucket-filter,#ledger-type-filter"
-                    aria-label="Filter by month">
-                <span id="ledger-count-display" class="text-sm text-muted hotels-toolbar-count">{{ entries|length }} entry{{ entries|length|pluralize }}</span>
+                <div class="ledger-panel__actions">
+                    <button type="button" class="btn btn-outline btn-sm" id="ledger-export-btn">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        {% trans "Export to Excel" %}
+                    </button>
+                    <button type="button" class="btn btn-outline btn-sm" id="ledger-report-btn">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                        {% trans "Print statement" %}
+                    </button>
+                </div>
             </div>
 
-            <div style="display:flex;justify-content:flex-end;gap:10px;margin:-4px 0 12px;">
-                <a class="btn btn-outline btn-sm" target="_blank"
-                    href="{% url 'member-ledger-report' %}?month={{ month_filter|default:'' }}">
-                    Monthly report
-                </a>
-                <a class="btn btn-outline btn-sm" target="_blank"
-                    href="{% url 'member-ledger-report' %}?month={{ month_filter|default:'' }}&autoprint=1">
-                    Print / Save PDF
-                </a>
+            <form id="ledger-filters" class="ledger-filters" method="get" action="{% url 'member-ledger' %}"
+                  hx-get="{% url 'member-ledger' %}"
+                  hx-target="#ledger-results"
+                  hx-swap="innerHTML"
+                  hx-push-url="true"
+                  hx-trigger="submit, change, keyup changed delay:400ms from:#ledger-q, ledgerRefresh">
+                <input type="hidden" name="page" id="ledger-page-input" value="">
+                <div class="search-bar hotels-search ledger-search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                    <input type="search" id="ledger-q" name="q" value="{{ f.q }}" autocomplete="off"
+                           placeholder="{% trans 'Search particulars, Trans.#, Inv/Ref…' %}" aria-label="{% trans 'Search ledger' %}">
+                </div>
+                <input type="search" id="ledger-party-filter" name="party" class="form-input" list="ledger-party-list" value="{{ f.party }}"
+                       placeholder="{% trans 'All parties' %}" aria-label="{% trans 'Filter by party' %}" autocomplete="off">
+                <select id="ledger-preset" name="preset" class="form-select" aria-label="{% trans 'Period' %}">
+                    <option value="" {% if not f.preset and not f.date_from and not f.date_to %}selected{% endif %}>{% trans "All time" %}</option>
+                    <option value="this_month" {% if f.preset == 'this_month' %}selected{% endif %}>{% trans "This month" %}</option>
+                    <option value="last_month" {% if f.preset == 'last_month' %}selected{% endif %}>{% trans "Last month" %}</option>
+                    <option value="this_year" {% if f.preset == 'this_year' %}selected{% endif %}>{% trans "This year" %}</option>
+                    <option value="custom" {% if not f.preset and f.date_from or not f.preset and f.date_to %}selected{% endif %}>{% trans "Custom dates…" %}</option>
+                </select>
+                <select name="type" class="form-select" aria-label="{% trans 'Entry type' %}">
+                    <option value="">{% trans "All types" %}</option>
+                    {% for value, label in type_choices %}
+                    <option value="{{ value }}" {% if f.type == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <select name="bucket" class="form-select" aria-label="{% trans 'Account' %}">
+                    <option value="">{% trans "All accounts" %}</option>
+                    <option value="lein_dein" {% if f.bucket == 'lein_dein' %}selected{% endif %}>{% trans "Party accounts" %}</option>
+                    <option value="company_expense" {% if f.bucket == 'company_expense' %}selected{% endif %}>{% trans "Company expenses" %}</option>
+                </select>
+                <div class="ledger-custom-range" id="ledger-custom-range" {% if f.preset or not f.date_from and not f.date_to %}hidden{% endif %}>
+                    <label class="text-sm text-muted" for="ledger-from">{% trans "From" %}</label>
+                    <input type="date" id="ledger-from" name="from" class="form-input" value="{{ f.date_from|date:'Y-m-d' }}">
+                    <label class="text-sm text-muted" for="ledger-to">{% trans "To" %}</label>
+                    <input type="date" id="ledger-to" name="to" class="form-input" value="{{ f.date_to|date:'Y-m-d' }}">
+                </div>
+            </form>
+            <datalist id="ledger-party-list">
+                {# label shows the balance next to each name in the browser's suggestion list #}
+                {% for p in party_options %}<option value="{{ p.name }}"{% if p.balance is not None %} label="{{ p.balance|drcr }}{% if p.balance > 0 %} · {% trans 'owes you' %}{% elif p.balance < 0 %} · {% trans 'you owe' %}{% endif %}"{% endif %}></option>{% endfor %}
+            </datalist>
+
+            <div class="ledger-toolbar-row">
+                {% include "member/partials/ledger_count.html" %}
+                <button type="button" class="ledger-link-btn" id="ledger-clear-btn">{% trans "Clear filters" %}</button>
             </div>
 
-            <div class="table-wrapper hotels-table-wrap" id="ledger-table">
-                {% include "member/partials/ledger_table.html" %}
+            <div class="ledger-table-box" id="ledger-results">
+                {% include "member/partials/ledger_results.html" %}
             </div>
-            {% if month_filter %}
-            <div class="text-sm text-muted" style="margin-top:10px;">
-                Month total expense: <span class="font-medium">{{ month_expense_total|pkr }}</span>
-            </div>
-            {% endif %}
-        </div>
     </section>
 </div>
 
-<div id="modal-add-entry" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-add-entry-title" aria-describedby="modal-add-entry-desc">
-    <div class="modal-box hotels-modal" style="max-width:720px;">
+<div id="modal-add-entry" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-add-entry-title">
+    <div class="modal-box hotels-modal" style="max-width:780px;">
         <div class="modal-header hotels-modal__header">
             <div>
-                <span id="modal-add-entry-title" class="modal-title">Add ledger entry</span>
-                <p id="modal-add-entry-desc" class="hotels-modal-sub">Record party debit/credit or company expenses.</p>
+                <span id="modal-add-entry-title" class="modal-title">{% trans "Add ledger entry" %}</span>
+                <p class="hotels-modal-sub">{% trans "Choose what happened, fill in the details, check the summary, save." %}
+                    <button type="button" class="ledger-link-btn" onclick="openModal('modal-ledger-help')">{% trans "How does this work?" %}</button></p>
             </div>
-            <button type="button" class="modal-close" onclick="closeModal('modal-add-entry')" aria-label="Close dialog">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
+            <button type="button" class="modal-close" onclick="closeModal('modal-add-entry')" aria-label="{% trans 'Close dialog' %}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
             </button>
         </div>
-        <form id="ledger-entry-form" class="hotels-modal-form" method="post" action="#">
+        <form id="ledger-entry-form" class="hotels-modal-form" novalidate>
             {% csrf_token %}
+            <input type="hidden" name="bucket" id="ledger-bucket">
+            <input type="hidden" name="direction" id="ledger-direction-hidden">
+            <input type="hidden" name="transaction_type" id="ledger-type-hidden">
             <div class="modal-body hotels-modal__body">
-                <div class="grid grid-2">
-                    <div class="form-group">
-                        <label class="form-label" for="ledger-date">Date *</label>
-                        <input id="ledger-date" class="form-input" name="transaction_date" type="date" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="ledger-bucket">Bucket *</label>
-                        <select id="ledger-bucket" class="form-select" name="bucket" required>
-                            <option value="lein_dein">Party accounts (people/companies)</option>
-                            <option value="company_expense">Company expense</option>
-                        </select>
-                    </div>
+                <div class="ledger-step"><span class="ledger-step__num">1</span><span class="ledger-step__title" id="ledger-mode-label">{% trans "What happened?" %}</span></div>
+                <div class="ledger-modes" role="radiogroup" aria-labelledby="ledger-mode-label">
+                    <label class="ledger-mode ledger-mode--in"><input type="radio" name="mode" value="received">
+                        <span class="ledger-mode__card">
+                            <span class="ledger-mode__icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></span>
+                            <span><strong>{% trans "Received payment" %}</strong><small>{% trans "A party paid you money" %}</small></span>
+                        </span></label>
+                    <label class="ledger-mode ledger-mode--out"><input type="radio" name="mode" value="paid">
+                        <span class="ledger-mode__card">
+                            <span class="ledger-mode__icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M5 3h14"/></svg></span>
+                            <span><strong>{% trans "Made payment" %}</strong><small>{% trans "You paid money to a party" %}</small></span>
+                        </span></label>
+                    <label class="ledger-mode ledger-mode--sale"><input type="radio" name="mode" value="sale">
+                        <span class="ledger-mode__card">
+                            <span class="ledger-mode__icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9a3 3 0 0 0 0 6v3h18v-3a3 3 0 0 1 0-6V6H3z"/><path d="M13 6v12" stroke-dasharray="2 2"/></svg></span>
+                            <span><strong>{% trans "Sale to party" %}</strong><small>{% trans "You sold a ticket, hotel or visa" %}</small></span>
+                        </span></label>
+                    <label class="ledger-mode ledger-mode--bill"><input type="radio" name="mode" value="bill">
+                        <span class="ledger-mode__card">
+                            <span class="ledger-mode__icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg></span>
+                            <span><strong>{% trans "Supplier bill" %}</strong><small>{% trans "A supplier charged you" %}</small></span>
+                        </span></label>
+                    <label class="ledger-mode ledger-mode--expense"><input type="radio" name="mode" value="expense">
+                        <span class="ledger-mode__card">
+                            <span class="ledger-mode__icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M16 15h2"/></svg></span>
+                            <span><strong>{% trans "Company expense" %}</strong><small>{% trans "Rent, salary, fuel, office" %}</small></span>
+                        </span></label>
+                    <label class="ledger-mode ledger-mode--adjust"><input type="radio" name="mode" value="adjust">
+                        <span class="ledger-mode__card">
+                            <span class="ledger-mode__icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></span>
+                            <span><strong>{% trans "Adjustment (JV)" %}</strong><small>{% trans "Correction, discount, extra charge" %}</small></span>
+                        </span></label>
                 </div>
+                <p class="ledger-pick-prompt" id="ledger-pick-prompt">{% trans "Choose one option above to continue." %}</p>
 
-                <div class="grid grid-2">
-                    <div class="form-group">
-                        <label class="form-label" for="ledger-direction">Debit / Credit *</label>
-                        <select id="ledger-direction" class="form-select" name="direction" required>
-                            <option value="debit">Debit (Paid / Given)</option>
-                            <option value="credit">Credit (Received / Taken)</option>
-                        </select>
-                        <p class="form-hint">For party accounts, debit/credit tracks party balance. For expenses, use debit.</p>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="ledger-amount">Amount (PKR) *</label>
-                        <input id="ledger-amount" class="form-input" name="amount" type="number" step="0.01" min="0" required placeholder="0.00" inputmode="decimal">
-                    </div>
-                </div>
+                <div id="ledger-details" hidden>
+                    <div class="ledger-step ledger-step--later"><span class="ledger-step__num">2</span><span class="ledger-step__title">{% trans "Details" %}</span></div>
+                    <p class="ledger-mode-explain" id="ledger-mode-explain"></p>
 
-                <div id="ledger-party-block" class="grid grid-2">
-                    <div class="form-group">
-                        <label class="form-label" for="ledger-party-type">Party type</label>
-                        <select id="ledger-party-type" class="form-select" name="counterparty_type">
-                            <option value="">— Select —</option>
-                            <option value="person">Person</option>
-                            <option value="company">Company</option>
-                            <option value="other">Other</option>
-                        </select>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label" for="ledger-date">{% trans "Date" %} *</label>
+                            <input id="ledger-date" class="form-input" name="transaction_date" type="date" required>
+                        </div>
+                        <div class="form-group" data-show="party">
+                            <label class="form-label" for="ledger-party"><span id="ledger-party-label">{% trans "Party" %}</span> *</label>
+                            <input id="ledger-party" class="form-input" name="counterparty_name" list="ledger-party-list" autocomplete="off"
+                                   placeholder="{% trans 'Start typing a name…' %}">
+                            <p class="ledger-party-balance" id="ledger-party-balance" aria-live="polite"></p>
+                        </div>
+                        <div class="form-group" data-show="category">
+                            <label class="form-label" for="ledger-category">{% trans "Expense category" %}</label>
+                            <input id="ledger-category" class="form-input" name="category" list="ledger-category-list" placeholder="{% trans 'e.g. Rent, Salary, Fuel' %}">
+                            <datalist id="ledger-category-list">
+                                <option value="{% trans 'Rent' %}"></option><option value="{% trans 'Salary' %}"></option>
+                                <option value="{% trans 'Utilities' %}"></option><option value="{% trans 'Fuel' %}"></option>
+                                <option value="{% trans 'Office' %}"></option><option value="{% trans 'Marketing' %}"></option>
+                                <option value="{% trans 'Bank charges' %}"></option>
+                            </datalist>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label" for="ledger-party-name">Party name</label>
-                        <input id="ledger-party-name" class="form-input" name="counterparty_name" placeholder="e.g. Ali / Al Noor Hotel">
-                    </div>
-                </div>
 
-                <div class="grid grid-2">
-                    <div class="form-group">
-                        <label class="form-label" for="ledger-type">Transaction type *</label>
-                        <select id="ledger-type" class="form-select" name="transaction_type" required>
-                            <option value="expense">Expense</option>
-                            <option value="income">Income</option>
-                            <option value="refund">Refund</option>
-                            <option value="commission">Commission</option>
-                            <option value="booking">Booking</option>
-                            <option value="voucher">Voucher</option>
-                            <option value="other">Other</option>
-                        </select>
+                    <div class="grid grid-2" data-show="service">
+                        <div class="form-group">
+                            <label class="form-label" for="ledger-service">{% trans "Service" %} *</label>
+                            <select id="ledger-service" class="form-select">
+                                <option value="ticket">{% trans "Ticket" %}</option>
+                                <option value="hotel">{% trans "Hotel" %}</option>
+                                <option value="visa">{% trans "Visa / MOFA" %}</option>
+                                <option value="transport">{% trans "Transport" %}</option>
+                                <option value="package">{% trans "Package" %}</option>
+                                <option value="other">{% trans "Other" %}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="ledger-pax">{% trans "No. of travellers (PAX)" %}</label>
+                            <input id="ledger-pax" class="form-input" name="pax" type="number" min="0" step="1" inputmode="numeric" placeholder="{% trans 'e.g. 5' %}">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label" for="ledger-method">Payment method *</label>
-                        <select id="ledger-method" class="form-select" name="payment_method" required>
-                            <option value="cash">Cash</option>
-                            <option value="card">Card</option>
-                            <option value="bank_transfer">Bank transfer</option>
-                            <option value="cheque">Cheque</option>
-                            <option value="online">Online</option>
-                        </select>
-                    </div>
-                </div>
 
-                <div class="grid grid-2">
-                    <div class="form-group">
-                        <label class="form-label" for="ledger-ref">Reference</label>
-                        <input id="ledger-ref" class="form-input" name="reference_number" placeholder="Optional">
+                    <div class="form-group" data-show="side">
+                        <span class="form-label">{% trans "What should this do to their balance?" %} *</span>
+                        <div class="ledger-side-pills">
+                            <label><input type="radio" name="side" value="debit" checked><span>{% trans "Add to what they owe" %}<small>{% trans "Debit (Dr) — e.g. extra charges" %}</small></span></label>
+                            <label><input type="radio" name="side" value="credit"><span>{% trans "Reduce what they owe" %}<small>{% trans "Credit (Cr) — e.g. discount, refund" %}</small></span></label>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label" for="ledger-category">Category</label>
-                        <input id="ledger-category" class="form-input" name="category" placeholder="e.g. Office, Fuel, Food">
-                    </div>
-                </div>
 
-                <div class="grid grid-3" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
-                    <div class="form-group">
-                        <label class="form-label" for="ledger-trans">Trans.#</label>
-                        <input id="ledger-trans" class="form-input" name="trans_no" placeholder="Optional">
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label" for="ledger-amount"><span id="ledger-amount-label">{% trans "Amount" %}</span> (Rs.) *</label>
+                            <input id="ledger-amount" class="form-input" name="amount" type="number" step="0.01" min="0" placeholder="0" inputmode="decimal">
+                            <button type="button" class="ledger-link-btn ledger-side-hint" id="ledger-fx-toggle">{% trans "Amount in SAR or another currency?" %}</button>
+                        </div>
+                        <div class="form-group" data-show="method">
+                            <label class="form-label" for="ledger-method"><span id="ledger-method-label">{% trans "Paid via" %}</span> *</label>
+                            <select id="ledger-method" class="form-select" name="payment_method">
+                                {% for value, label in method_choices %}
+                                <option value="{{ value }}" {% if value == 'bank_transfer' %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label" for="ledger-inv">Inv/Ref</label>
-                        <input id="ledger-inv" class="form-input" name="inv_ref" placeholder="Optional">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="ledger-rate">Rate</label>
-                        <input id="ledger-rate" class="form-input" name="rate" type="number" step="0.01" min="0" placeholder="0.00" inputmode="decimal">
-                    </div>
-                </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="ledger-desc">Description *</label>
-                    <textarea id="ledger-desc" class="form-textarea" name="description" rows="2" required placeholder="Write details (kis khaya, kya piya, etc.)"></textarea>
+                    <div class="ledger-fx" id="ledger-fx-block" hidden>
+                        <div class="grid grid-3" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+                            <div class="form-group">
+                                <label class="form-label" for="ledger-fx-currency">{% trans "Currency" %}</label>
+                                <select id="ledger-fx-currency" class="form-select" name="fx_currency">
+                                    {% for value, label in fx_choices %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="ledger-fx-amount">{% trans "Foreign amount" %}</label>
+                                <input id="ledger-fx-amount" class="form-input" name="fx_amount" type="number" step="0.01" min="0" inputmode="decimal" placeholder="{% trans 'e.g. 400' %}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="ledger-rate">{% trans "Rate (Rs. per 1)" %}</label>
+                                <input id="ledger-rate" class="form-input" name="rate" type="number" step="0.01" min="0" inputmode="decimal" placeholder="{% trans 'e.g. 77.75' %}">
+                            </div>
+                        </div>
+                        <p class="ledger-fx-result" id="ledger-fx-result" aria-live="polite"></p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="ledger-desc">{% trans "Particulars (description)" %} *</label>
+                        <textarea id="ledger-desc" class="form-textarea" name="description" rows="2" required></textarea>
+                    </div>
+
+                    <details class="ledger-more" id="ledger-more">
+                        <summary>{% trans "+ Add Trans.#, Inv/Ref or bank reference (optional)" %}</summary>
+                        <div class="grid grid-3" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+                            <div class="form-group">
+                                <label class="form-label" for="ledger-trans">{% trans "Trans.#" %}</label>
+                                <input id="ledger-trans" class="form-input" name="trans_no" placeholder="{% trans 'Auto if blank' %}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="ledger-inv">{% trans "Inv/Ref" %}</label>
+                                <input id="ledger-inv" class="form-input" name="inv_ref" placeholder="{% trans 'e.g. UB-101040' %}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="ledger-ref">{% trans "Bank / cheque ref." %}</label>
+                                <input id="ledger-ref" class="form-input" name="reference_number" placeholder="{% trans 'Optional' %}">
+                            </div>
+                        </div>
+                    </details>
+
+                    <div class="ledger-step ledger-step--later"><span class="ledger-step__num">3</span><span class="ledger-step__title">{% trans "Check before saving" %}</span></div>
+                    <div class="ledger-summary" aria-live="polite">
+                        <p class="ledger-summary__text" id="ledger-summary-text"></p>
+                        <div class="ledger-summary__balance" id="ledger-summary-balance"></div>
+                        <span class="ledger-summary__tag" id="ledger-summary-tag"></span>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-entry')">Cancel</button>
-                <button type="submit" class="btn btn-primary" id="ledger-entry-submit">Save entry</button>
+                <button type="button" class="btn btn-outline" onclick="closeModal('modal-add-entry')">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn btn-outline" id="ledger-save-another" data-another="1">{% trans "Save & add another" %}</button>
+                <button type="submit" class="btn btn-primary" id="ledger-entry-submit">{% trans "Save entry" %}</button>
             </div>
         </form>
+    </div>
+</div>
+
+<div id="modal-ledger-help" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-ledger-help-title">
+    <div class="modal-box hotels-modal" style="max-width:720px;">
+        <div class="modal-header hotels-modal__header">
+            <div>
+                <span id="modal-ledger-help-title" class="modal-title">{% trans "How the ledger works" %}</span>
+                <p class="hotels-modal-sub">{% trans "A 2-minute guide. You never have to choose debit or credit yourself." %}</p>
+            </div>
+            <button type="button" class="modal-close" onclick="closeModal('modal-ledger-help')" aria-label="{% trans 'Close dialog' %}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+        </div>
+        <div class="modal-body hotels-modal__body ledger-help">
+            <h3>{% trans "1. Every party has one running balance" %}</h3>
+            <p>{% trans "A party is anyone you deal with on credit: a client, a sub-agent, a hotel, an airline or a visa supplier. Each entry moves their balance up or down." %}</p>
+            <div class="ledger-balance-key">
+                <div><strong class="ledger-dr">Dr</strong> — {% trans "the party owes you (receivable)" %}</div>
+                <div><strong class="ledger-cr">Cr</strong> — {% trans "you owe the party (payable)" %}</div>
+            </div>
+
+            <h3>{% trans "2. Which option should I pick?" %}</h3>
+            <table>
+                <thead><tr><th>{% trans "If this happened…" %}</th><th>{% trans "Pick" %}</th><th>{% trans "Their balance" %}</th></tr></thead>
+                <tbody>
+                    <tr><td>{% trans "NAHD Travel sent you Rs. 400,000 by bank" %}</td><td>{% trans "Received payment" %}</td><td>{% trans "goes down (Cr)" %}</td></tr>
+                    <tr><td>{% trans "You transferred Rs. 300,000 to Noor Al Hojj" %}</td><td>{% trans "Made payment" %}</td><td>{% trans "goes up (Dr)" %}</td></tr>
+                    <tr><td>{% trans "You sold 3 visas / a hotel to a client on credit" %}</td><td>{% trans "Sale to party" %}</td><td>{% trans "goes up (Dr)" %}</td></tr>
+                    <tr><td>{% trans "A hotel or airline sent you their invoice" %}</td><td>{% trans "Supplier bill" %}</td><td>{% trans "goes down (Cr)" %}</td></tr>
+                    <tr><td>{% trans "Office rent, salaries, fuel" %}</td><td>{% trans "Company expense" %}</td><td>{% trans "no party" %}</td></tr>
+                    <tr><td>{% trans "Flight change charges, a discount, a correction" %}</td><td>{% trans "Adjustment (JV)" %}</td><td>{% trans "you choose" %}</td></tr>
+                </tbody>
+            </table>
+
+            <h3>{% trans "3. Codes you will see" %}</h3>
+            <div class="ledger-codes">
+                <span><strong>BR</strong> {% trans "Bank receipt" %}</span>
+                <span><strong>CR</strong> {% trans "Cash receipt" %}</span>
+                <span><strong>BP</strong> {% trans "Bank payment" %}</span>
+                <span><strong>CP</strong> {% trans "Cash payment" %}</span>
+                <span><strong>TK</strong> {% trans "Ticket" %}</span>
+                <span><strong>HT</strong> {% trans "Hotel" %}</span>
+                <span><strong>VS</strong> {% trans "Visa / MOFA" %}</span>
+                <span><strong>TR</strong> {% trans "Transport" %}</span>
+                <span><strong>PK</strong> {% trans "Package" %}</span>
+                <span><strong>JV</strong> {% trans "Adjustment" %}</span>
+                <span><strong>EX</strong> {% trans "Expense" %}</span>
+            </div>
+
+            <h3>{% trans "4. Statements" %}</h3>
+            <p>{% trans "Click a party name to see their running balance, then Print statement to get the same layout as a printed account ledger — ready to save as PDF or share on WhatsApp." %}</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" onclick="closeModal('modal-ledger-help')">{% trans "Got it" %}</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-entry-view" class="modal-overlay drawer-wrap hidden" role="dialog" aria-modal="true" aria-labelledby="modal-entry-view-title">
+    <aside class="drawer">
+        <div class="drawer__head">
+            <span id="modal-entry-view-title" class="modal-title">{% trans "Entry details" %}</span>
+            <button type="button" class="modal-close" onclick="closeModal('modal-entry-view')" aria-label="{% trans 'Close dialog' %}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+        </div>
+        <div class="drawer__body">
+            <div class="drawer-who">
+                <span class="drawer-who__av" id="ev-code" aria-hidden="true"></span>
+                <div>
+                    <p class="drawer-who__name" id="ev-amount"></p>
+                    <p class="drawer-who__sub" id="ev-side"></p>
+                </div>
+            </div>
+            <span id="ev-badge" class="ev-badge"></span>
+            <div id="ev-list" class="ev-list"></div>
+        </div>
+        <div class="drawer__foot">
+            <button type="button" class="btn btn-outline" onclick="closeModal('modal-entry-view')">{% trans "Close" %}</button>
+            <button type="button" class="btn btn-primary" id="ev-edit">{% trans "Edit" %}</button>
+        </div>
+    </aside>
+</div>
+
+<div id="modal-delete-entry" class="modal-overlay modal-overlay--center hidden" role="dialog" aria-modal="true" aria-labelledby="modal-delete-entry-title">
+    <div class="modal-box hotels-modal" style="max-width:460px;">
+        <div class="modal-header hotels-modal__header">
+            <div>
+                <span id="modal-delete-entry-title" class="modal-title">{% trans "Delete entry?" %}</span>
+                <p class="hotels-modal-sub">{% trans "Balances will be recalculated. This can't be undone." %}</p>
+            </div>
+            <button type="button" class="modal-close" onclick="closeModal('modal-delete-entry')" aria-label="{% trans 'Close dialog' %}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <p class="text-sm" id="ledger-delete-summary"></p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('modal-delete-entry')">{% trans "Cancel" %}</button>
+            <button type="button" class="btn btn-danger" id="ledger-delete-confirm">{% trans "Delete" %}</button>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+{{ party_balance_map|json_script:"ledger-party-balances" }}
+{% trans "Save failed" as t_save_failed %}
+{% trans "Entry saved" as t_saved %}
+{% trans "Entry deleted" as t_deleted %}
+{% trans "Could not delete the entry" as t_delete_failed %}
+{% trans "Add ledger entry" as t_add_title %}
+{% trans "Edit ledger entry" as t_edit_title %}
+{% trans "Choose what happened first." as t_pick_mode %}
+{% trans "Enter the party name." as t_need_party %}
+{% trans "Enter an amount, or a foreign amount and rate." as t_need_amount %}
+{% trans "Write the particulars." as t_need_desc %}
+{% trans "Amount in SAR or another currency?" as t_fx_open %}
+{% trans "Enter amount directly in Rs." as t_fx_close %}
+{% trans "owes you" as t_owes_you %}
+{% trans "you owe them" as t_you_owe %}
+{% trans "settled" as t_settled %}
+{% trans "Current balance:" as t_current %}
+{% trans "New party — balance starts at 0." as t_new_party %}
+{% trans "Balance" as t_balance %}
+{% trans "Saved as" as t_saved_as %}
+{% trans "Debit" as t_debit %}
+{% trans "Credit" as t_credit %}
+{% trans "Party owes more" as t_v_owes %}{% trans "Party owes less" as t_v_reduces %}{% trans "Entry type" as t_v_type %}{% trans "See party statement" as t_v_statement %}{% trans "Entry" as t_g_entry %}{% trans "Party" as t_g_party %}{% trans "Details" as t_g_details %}{% trans "Payment" as t_g_payment %}{% trans "Foreign currency" as t_g_fx %}{% trans "Date" as t_v_date %}{% trans "Party" as t_v_party %}{% trans "Trans.#" as t_v_trans %}{% trans "Particulars" as t_v_desc %}{% trans "Payment method" as t_v_method %}{% trans "Inv/Ref" as t_v_inv %}{% trans "Reference" as t_v_ref %}{% trans "Category" as t_v_cat %}{% trans "PAX" as t_v_pax %}{% trans "Currency conversion" as t_v_fx %}{% trans "Company expense" as t_v_exp %}
+{% trans "the party" as t_the_party %}
+{% trans "Fill in the amount to see the summary." as t_need_amount_summary %}
 <script>
 (function () {
-  var MODAL_ID = 'modal-add-entry';
-  var form = document.getElementById('ledger-entry-form');
-  var bucketEl = document.getElementById('ledger-bucket');
-  var typeEl = document.getElementById('ledger-type');
-  var dirEl = document.getElementById('ledger-direction');
-  var partyBlock = document.getElementById('ledger-party-block');
-  var submitBtn = document.getElementById('ledger-entry-submit');
-
-  function csrfToken() {
-    var el = document.querySelector('#ledger-entry-form input[name="csrfmiddlewaretoken"]');
-    return el ? el.value : '';
-  }
-
-  function todayISO() {
-    var d = new Date();
-    var mm = String(d.getMonth() + 1).padStart(2, '0');
-    var dd = String(d.getDate()).padStart(2, '0');
-    return d.getFullYear() + '-' + mm + '-' + dd;
-  }
-
-  function syncBucketDefaults() {
-    if (!bucketEl || !typeEl || !dirEl) return;
-    var b = bucketEl.value;
-    if (b === 'company_expense') {
-      typeEl.value = 'expense';
-      dirEl.value = 'debit';
-      if (partyBlock) partyBlock.style.display = 'none';
-    } else {
-      if (partyBlock) partyBlock.style.display = '';
-      // Party accounts usually tracked as "other" (or keep whatever user selected)
-      if (!typeEl.value) typeEl.value = 'other';
+  var T = {
+    saveFailed: '{{ t_save_failed|escapejs }}', saved: '{{ t_saved|escapejs }}',
+    deleted: '{{ t_deleted|escapejs }}', deleteFailed: '{{ t_delete_failed|escapejs }}',
+    addTitle: '{{ t_add_title|escapejs }}', editTitle: '{{ t_edit_title|escapejs }}',
+    pickMode: '{{ t_pick_mode|escapejs }}', needParty: '{{ t_need_party|escapejs }}',
+    needAmount: '{{ t_need_amount|escapejs }}', needDesc: '{{ t_need_desc|escapejs }}',
+    fxOpen: '{{ t_fx_open|escapejs }}', fxClose: '{{ t_fx_close|escapejs }}',
+    owesYou: '{{ t_owes_you|escapejs }}', youOwe: '{{ t_you_owe|escapejs }}', settled: '{{ t_settled|escapejs }}',
+    current: '{{ t_current|escapejs }}', newParty: '{{ t_new_party|escapejs }}', balance: '{{ t_balance|escapejs }}',
+    vOwes: '{{ t_v_owes|escapejs }}', vReduces: '{{ t_v_reduces|escapejs }}', vType: '{{ t_v_type|escapejs }}', vStatement: '{{ t_v_statement|escapejs }}', gEntry: '{{ t_g_entry|escapejs }}', gParty: '{{ t_g_party|escapejs }}', gDetails: '{{ t_g_details|escapejs }}', gPayment: '{{ t_g_payment|escapejs }}', gFx: '{{ t_g_fx|escapejs }}',
+    vDate: '{{ t_v_date|escapejs }}', vParty: '{{ t_v_party|escapejs }}', vTrans: '{{ t_v_trans|escapejs }}', vDesc: '{{ t_v_desc|escapejs }}', vMethod: '{{ t_v_method|escapejs }}', vInv: '{{ t_v_inv|escapejs }}', vRef: '{{ t_v_ref|escapejs }}', vCategory: '{{ t_v_cat|escapejs }}', vPax: '{{ t_v_pax|escapejs }}', vFx: '{{ t_v_fx|escapejs }}', vExpense: '{{ t_v_exp|escapejs }}',
+    savedAs: '{{ t_saved_as|escapejs }}', debit: '{{ t_debit|escapejs }}', credit: '{{ t_credit|escapejs }}',
+    theParty: '{{ t_the_party|escapejs }}', needAmountSummary: '{{ t_need_amount_summary|escapejs }}'
+  };
+  var SERVICE_TYPES = ['ticket', 'hotel', 'visa', 'transport', 'package', 'other'];
+  var SERVICE_CODES = { ticket: 'TK', hotel: 'HT', visa: 'VS', transport: 'TR', 'package': 'PK', other: 'OT' };
+  // Each "what happened" choice fixes the accounting fields, so the user
+  // never has to think in debit/credit. Balance = debit - credit (party owes you when positive).
+  // Summary sentences use {party} {amount} {method} {service} {pax} {category} placeholders.
+  var MODES = {
+    received: {
+      bucket: 'lein_dein', direction: 'credit', type: 'receipt', show: ['party', 'method'],
+      labels: { party: '{% trans "Received from" as l %}{{ l|escapejs }}', amount: '{% trans "Amount received" as l %}{{ l|escapejs }}', method: '{% trans "Received via" as l %}{{ l|escapejs }}' },
+      explain: '{% trans "Use this when a client, sub-agent or anyone pays you. Their balance goes down." as l %}{{ l|escapejs }}',
+      ph: '{% trans "e.g. Payment received via MBL bank transfer" as l %}{{ l|escapejs }}',
+      say: '{% trans "{party} paid you {amount} via {method}." as l %}{{ l|escapejs }}'
+    },
+    paid: {
+      bucket: 'lein_dein', direction: 'debit', type: 'payment', show: ['party', 'method'],
+      labels: { party: '{% trans "Paid to" as l %}{{ l|escapejs }}', amount: '{% trans "Amount paid" as l %}{{ l|escapejs }}', method: '{% trans "Paid via" as l %}{{ l|escapejs }}' },
+      explain: '{% trans "Use this when you send money to a supplier, hotel, airline or agent. What you owe them goes down." as l %}{{ l|escapejs }}',
+      ph: '{% trans "e.g. Payment transfer to Ahmad Fareed MBL account" as l %}{{ l|escapejs }}',
+      say: '{% trans "You paid {party} {amount} via {method}." as l %}{{ l|escapejs }}'
+    },
+    sale: {
+      bucket: 'lein_dein', direction: 'debit', type: 'service', show: ['party', 'service'],
+      labels: { party: '{% trans "Sold to" as l %}{{ l|escapejs }}', amount: '{% trans "Sale amount" as l %}{{ l|escapejs }}' },
+      explain: '{% trans "Use this when you sell a ticket, hotel, visa or package and the party will pay later. They now owe you more." as l %}{{ l|escapejs }}',
+      ph: '{% trans "e.g. Shireen Saba, Makkah hotel 5 nights" as l %}{{ l|escapejs }}',
+      say: '{% trans "You charged {party} {amount} for {service}{pax}." as l %}{{ l|escapejs }}'
+    },
+    bill: {
+      bucket: 'lein_dein', direction: 'credit', type: 'service', show: ['party', 'service'],
+      labels: { party: '{% trans "Supplier" as l %}{{ l|escapejs }}', amount: '{% trans "Bill amount" as l %}{{ l|escapejs }}' },
+      explain: '{% trans "Use this when a hotel, airline or visa supplier sends you their invoice. You now owe them more." as l %}{{ l|escapejs }}',
+      ph: '{% trans "e.g. Hotel invoice UB-101040, 3 rooms" as l %}{{ l|escapejs }}',
+      say: '{% trans "{party} billed you {amount} for {service}{pax}." as l %}{{ l|escapejs }}'
+    },
+    expense: {
+      bucket: 'company_expense', direction: 'debit', type: 'expense', show: ['category', 'method'],
+      labels: { amount: '{% trans "Expense amount" as l %}{{ l|escapejs }}', method: '{% trans "Paid via" as l %}{{ l|escapejs }}' },
+      explain: '{% trans "Use this for your own office costs that do not belong to any party (rent, salaries, fuel)." as l %}{{ l|escapejs }}',
+      ph: '{% trans "e.g. Office rent for October" as l %}{{ l|escapejs }}',
+      say: '{% trans "Company expense of {amount}{category}, paid via {method}." as l %}{{ l|escapejs }}'
+    },
+    adjust: {
+      bucket: 'lein_dein', direction: 'side', type: 'journal', show: ['party', 'side'],
+      labels: { party: '{% trans "Party" as l %}{{ l|escapejs }}', amount: '{% trans "Amount" as l %}{{ l|escapejs }}' },
+      explain: '{% trans "Use this to correct a balance, give a discount or add extra charges (journal voucher)." as l %}{{ l|escapejs }}',
+      ph: '{% trans "e.g. Flight change charges 400 SR" as l %}{{ l|escapejs }}',
+      say: '{% trans "Adjustment of {amount} on the account of {party}." as l %}{{ l|escapejs }}'
     }
-  }
-
-  window.openLedgerAddModal = function () {
-    if (!form) return;
-    form.reset();
-    var dateEl = document.getElementById('ledger-date');
-    if (dateEl) dateEl.value = todayISO();
-    if (bucketEl) bucketEl.value = 'lein_dein';
-    syncBucketDefaults();
-    openModal(MODAL_ID);
   };
 
-  if (bucketEl) bucketEl.addEventListener('change', syncBucketDefaults);
+  var form = document.getElementById('ledger-entry-form');
+  var filters = document.getElementById('ledger-filters');
+  var $ = function (id) { return document.getElementById(id); };
+  var BALANCES = {};
+  try {
+    var raw = JSON.parse($('ledger-party-balances').textContent);
+    Object.keys(raw).forEach(function (k) { BALANCES[k.trim().toLowerCase()] = parseFloat(raw[k]) || 0; });
+  } catch (_) {}
+  var editingId = null;
+  var originalType = null;
+  var originalMethod = '';
+  var original = null; // {party, effect} of the entry being edited, so its own effect isn't counted twice
+  var savedAny = false;
 
-  if (form) {
-    form.addEventListener('submit', async function (e) {
-      e.preventDefault();
-      if (submitBtn) submitBtn.disabled = true;
-      try {
-        syncBucketDefaults();
-        var fd = new FormData(form);
-        var r = await fetch('/api/v1/ledger/', {
-          method: 'POST',
-          body: fd,
-          credentials: 'same-origin',
-          headers: { 'X-CSRFToken': csrfToken() },
+  function csrfToken() {
+    var el = form.querySelector('input[name="csrfmiddlewaretoken"]');
+    return el ? el.value : '';
+  }
+  function todayISO() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function money(n) {
+    return 'Rs. ' + Math.abs(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
+  }
+  function balanceText(n) {
+    if (Math.abs(n) < 0.005) return '0 (' + T.settled + ')';
+    return money(n) + ' ' + (n > 0 ? 'Dr' : 'Cr') + ' (' + (n > 0 ? T.owesYou : T.youOwe) + ')';
+  }
+  function selectedText(sel) { return sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : ''; }
+  function currentMode() {
+    var r = form.querySelector('input[name="mode"]:checked');
+    return r ? r.value : null;
+  }
+  function sideValue() {
+    var r = form.querySelector('input[name="side"]:checked');
+    return r ? r.value : 'debit';
+  }
+  function setMode(mode) {
+    form.querySelectorAll('input[name="mode"]').forEach(function (r) { r.checked = r.value === mode; });
+    applyMode();
+  }
+  function applyMode() {
+    var cfg = MODES[currentMode()];
+    $('ledger-details').hidden = !cfg;
+    $('ledger-pick-prompt').hidden = !!cfg;
+    if (!cfg) { updateSummary(); return; }
+    form.querySelectorAll('[data-show]').forEach(function (el) {
+      el.hidden = cfg.show.indexOf(el.getAttribute('data-show')) === -1;
+    });
+    $('ledger-mode-explain').textContent = cfg.explain;
+    if (cfg.labels.party) $('ledger-party-label').textContent = cfg.labels.party;
+    $('ledger-amount-label').textContent = cfg.labels.amount;
+    if (cfg.labels.method) $('ledger-method-label').textContent = cfg.labels.method;
+    $('ledger-desc').placeholder = cfg.ph;
+    updatePartyBalance();
+    updateSummary();
+  }
+
+  // --- Live balance + summary --------------------------------------------
+  function partyKey() { return $('ledger-party').value.trim().toLowerCase(); }
+  function balanceBefore() {
+    var key = partyKey();
+    var b = BALANCES.hasOwnProperty(key) ? BALANCES[key] : 0;
+    if (original && original.party === key) b -= original.effect;
+    return b;
+  }
+  function updatePartyBalance() {
+    var out = $('ledger-party-balance');
+    var key = partyKey();
+    if (!key) { out.textContent = ''; return; }
+    out.innerHTML = '';
+    if (!BALANCES.hasOwnProperty(key)) { out.textContent = T.newParty; return; }
+    out.appendChild(document.createTextNode(T.current + ' '));
+    var s = document.createElement('strong');
+    var b = balanceBefore();
+    s.className = b > 0 ? 'ledger-dr' : (b < 0 ? 'ledger-cr' : '');
+    s.textContent = balanceText(b);
+    out.appendChild(s);
+  }
+  function currentDirection(cfg) { return cfg.direction === 'side' ? sideValue() : cfg.direction; }
+  function typeCode(mode, cfg) {
+    if (mode === 'received') return $('ledger-method').value === 'cash' ? 'CR' : 'BR';
+    if (mode === 'paid') return $('ledger-method').value === 'cash' ? 'CP' : 'BP';
+    if (cfg.type === 'service') return SERVICE_CODES[$('ledger-service').value] || 'OT';
+    return mode === 'expense' ? 'EX' : 'JV';
+  }
+  function updateSummary() {
+    var mode = currentMode();
+    var cfg = MODES[mode];
+    var text = $('ledger-summary-text'), bal = $('ledger-summary-balance'), tag = $('ledger-summary-tag');
+    bal.innerHTML = '';
+    if (!cfg) { text.textContent = ''; tag.textContent = ''; return; }
+    var amount = parseFloat($('ledger-amount').value);
+    if (!(amount > 0)) { text.textContent = T.needAmountSummary; tag.textContent = ''; return; }
+    var pax = parseInt($('ledger-pax').value, 10);
+    var category = $('ledger-category').value.trim();
+    text.textContent = cfg.say
+      .replace('{party}', $('ledger-party').value.trim() || T.theParty)
+      .replace('{amount}', money(amount))
+      .replace('{method}', selectedText($('ledger-method')).toLowerCase())
+      .replace('{service}', selectedText($('ledger-service')))
+      .replace('{pax}', pax > 0 ? ' × ' + pax : '')
+      .replace('{category}', category ? ' (' + category + ')' : '');
+    var dir = currentDirection(cfg);
+    tag.textContent = T.savedAs + ': ' + (dir === 'debit' ? T.debit + ' (Dr)' : T.credit + ' (Cr)') + ' · ' + typeCode(mode, cfg);
+    if (cfg.show.indexOf('party') !== -1 && partyKey()) {
+      var before = balanceBefore();
+      var after = before + (dir === 'debit' ? amount : -amount);
+      bal.appendChild(document.createTextNode(T.balance + ': '));
+      var b1 = document.createElement('strong'); b1.textContent = balanceText(before); bal.appendChild(b1);
+      var arrow = document.createElement('span'); arrow.className = 'ledger-summary__arrow'; arrow.textContent = '→'; bal.appendChild(arrow);
+      var b2 = document.createElement('strong'); b2.textContent = balanceText(after);
+      b2.className = after > 0 ? 'ledger-dr' : (after < 0 ? 'ledger-cr' : '');
+      bal.appendChild(b2);
+    }
+  }
+  form.addEventListener('input', function () { updatePartyBalance(); updateSummary(); });
+  form.addEventListener('change', function (e) {
+    if (e.target.name === 'mode') applyMode(); else { updatePartyBalance(); updateSummary(); }
+  });
+
+  // --- Foreign currency ---------------------------------------------------
+  function fxOpen() { return !$('ledger-fx-block').hidden; }
+  function setFx(open) {
+    $('ledger-fx-block').hidden = !open;
+    $('ledger-fx-toggle').textContent = open ? T.fxClose : T.fxOpen;
+    if (!open) { $('ledger-fx-amount').value = ''; $('ledger-amount').readOnly = false; }
+    recalcFx();
+  }
+  function recalcFx() {
+    var fx = parseFloat($('ledger-fx-amount').value);
+    var rate = parseFloat($('ledger-rate').value);
+    var out = $('ledger-fx-result');
+    if (fxOpen() && fx > 0 && rate > 0) {
+      var pkr = Math.round(fx * rate * 100) / 100;
+      $('ledger-amount').value = pkr.toFixed(2);
+      $('ledger-amount').readOnly = true;
+      out.textContent = fx.toLocaleString() + ' ' + $('ledger-fx-currency').value + ' × ' + rate + ' = ' + money(pkr);
+    } else {
+      $('ledger-amount').readOnly = false;
+      out.textContent = '';
+    }
+    updateSummary();
+  }
+  $('ledger-fx-toggle').addEventListener('click', function () { setFx(!fxOpen()); });
+  ['ledger-fx-amount', 'ledger-rate', 'ledger-fx-currency'].forEach(function (id) {
+    $(id).addEventListener('input', recalcFx);
+  });
+
+  // --- Open add / edit ----------------------------------------------------
+  function resetForm() {
+    form.reset();
+    editingId = null;
+    originalType = null;
+    originalMethod = '';
+    original = null;
+    $('ledger-date').value = todayISO();
+    $('ledger-more').open = false;
+    setFx(false);
+  }
+
+  window.openLedgerAddModal = function (mode, prefill) {
+    resetForm();
+    prefill = prefill || {};
+    $('modal-add-entry-title').textContent = T.addTitle;
+    $('ledger-save-another').hidden = false;
+    var party = prefill.party || $('ledger-party-filter').value.trim();
+    if (party) $('ledger-party').value = party;
+    if (prefill.amount) $('ledger-amount').value = prefill.amount;
+    if (prefill.desc) $('ledger-desc').value = prefill.desc;
+    setMode(mode || null);
+    openModal('modal-add-entry');
+  };
+
+  // ?add=received|paid|sale|bill|expense|adjust (dashboard quick actions) opens the form in that mode.
+  (function () {
+    var addMode = new URLSearchParams(location.search).get('add');
+    if (!addMode) return;
+    var modes = ['received', 'paid', 'sale', 'bill', 'expense', 'adjust'];
+    history.replaceState(null, '', location.pathname + location.hash);
+    setTimeout(function () { openLedgerAddModal(modes.indexOf(addMode) !== -1 ? addMode : null); }, 0);
+  })();
+
+  function modeFromRow(d) {
+    if (d.bucket === 'company_expense') return 'expense';
+    if (d.type === 'receipt') return 'received';
+    if (d.type === 'payment') return 'paid';
+    if (SERVICE_TYPES.indexOf(d.type) !== -1 && d.type !== 'other') return d.direction === 'credit' ? 'bill' : 'sale';
+    return 'adjust';
+  }
+
+  var viewRow = null;
+  function openView(tr) {
+    var d = tr.dataset, box = $('ev-list'), debit = d.direction === 'debit';
+    viewRow = tr;
+    var code = $('ev-code');
+    code.textContent = (tr.querySelector('.ledger-code') || {}).textContent || '';
+    code.style.color = debit ? 'var(--primary)' : 'var(--success)';
+    $('ev-amount').textContent = Number(d.amount).toLocaleString('en-US') + ' ' + (d.currency || 'PKR');
+    $('ev-side').textContent = d.typeLabel || '';
+    var badge = $('ev-badge');
+    badge.textContent = debit ? T.debit + ' (Dr) · ' + T.vOwes : T.credit + ' (Cr) · ' + T.vReduces;
+    badge.className = 'ev-badge ev-badge--' + (debit ? 'dr' : 'cr');
+    var date = new Date(d.date + 'T00:00:00');
+    var nice = isNaN(date) ? d.date : date.toLocaleDateString(document.documentElement.lang || 'en', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' });
+    var party = d.bucket === 'company_expense' ? T.vExpense : d.party;
+    var groups = [
+      [T.gEntry, [[T.vDate, nice], [T.vTrans, d.trans], [T.vType, d.typeLabel]]],
+      [T.gParty, [[T.vParty, party]]],
+      [T.gDetails, [[T.vDesc, d.desc], [T.vCategory, d.category], [T.vPax, d.pax]]],
+      [T.gPayment, [[T.vMethod, d.methodLabel], [T.vInv, d.inv], [T.vRef, d.ref]]],
+      [T.gFx, d.fxAmount ? [[T.vFx, d.fxAmount + ' ' + d.fxCurrency + ' @ ' + d.rate + ' = ' + Number(d.amount).toLocaleString('en-US') + ' PKR']] : []]
+    ];
+    box.innerHTML = '';
+    groups.forEach(function (g) {
+      var rows = g[1].filter(function (r) { return r[1]; });
+      if (!rows.length) return;
+      var card = document.createElement('section'), h = document.createElement('h4');
+      card.className = 'ev-card'; h.textContent = g[0]; card.appendChild(h);
+      rows.forEach(function (r) {
+        var line = document.createElement('div'), k = document.createElement('span'), v = document.createElement('b');
+        line.className = 'ev-line'; k.textContent = r[0]; v.textContent = r[1]; v.setAttribute('dir', 'auto');
+        line.appendChild(k); line.appendChild(v); card.appendChild(line);
+      });
+      if (g[0] === T.gParty && d.bucket !== 'company_expense' && d.party) {
+        var btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'btn btn-outline btn-sm'; btn.style.marginTop = '10px';
+        btn.textContent = T.vStatement;
+        btn.addEventListener('click', function () {
+          closeModal('modal-entry-view');
+          var link = document.querySelector('[data-party-filter="' + d.party.replace(/"/g, '\\"') + '"]');
+          if (link) link.click();
         });
-        if (r.ok) {
-          closeModal(MODAL_ID);
-          location.reload();
-          return;
-        }
-        var msg = 'Save failed';
+        card.appendChild(btn);
+      }
+      box.appendChild(card);
+    });
+    openModal('modal-entry-view');
+  }
+  $('ev-edit').addEventListener('click', function () { closeModal('modal-entry-view'); if (viewRow) openEdit(viewRow); });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-ledger-view]');
+    if (b) openView(b.closest('tr'));
+  });
+
+  function openEdit(tr) {
+    var d = tr.dataset;
+    resetForm();
+    editingId = d.id;
+    originalType = d.type;
+    originalMethod = d.method || '';
+    if (d.bucket === 'lein_dein' && d.party) {
+      original = { party: d.party.trim().toLowerCase(), effect: (d.direction === 'debit' ? 1 : -1) * parseFloat(d.amount) };
+    }
+    $('modal-add-entry-title').textContent = T.editTitle;
+    $('ledger-save-another').hidden = true;
+    $('ledger-date').value = d.date;
+    $('ledger-party').value = d.party || '';
+    $('ledger-amount').value = d.amount;
+    $('ledger-pax').value = d.pax || '';
+    if (d.method) $('ledger-method').value = d.method;
+    $('ledger-category').value = d.category || '';
+    $('ledger-desc').value = d.desc || '';
+    $('ledger-trans').value = d.trans || '';
+    $('ledger-inv').value = d.inv || '';
+    $('ledger-ref').value = d.ref || '';
+    form.querySelectorAll('input[name="side"]').forEach(function (r) { r.checked = r.value === d.direction; });
+    if (SERVICE_TYPES.indexOf(d.type) !== -1) $('ledger-service').value = d.type;
+    if (d.trans || d.inv || d.ref) $('ledger-more').open = true;
+    if (d.fxAmount || d.rate) {
+      setFx(true);
+      if (d.fxCurrency) $('ledger-fx-currency').value = d.fxCurrency;
+      $('ledger-fx-amount').value = d.fxAmount || '';
+      $('ledger-rate').value = d.rate || '';
+      recalcFx();
+    }
+    setMode(modeFromRow(d));
+    openModal('modal-add-entry');
+  }
+
+  // --- Save ----------------------------------------------------------------
+  function resolveType(mode, cfg) {
+    if (cfg.type === 'service') return $('ledger-service').value;
+    // Keep a legacy type (income, refund, commission...) when editing it as an adjustment/expense.
+    if (originalType && (mode === 'adjust' || mode === 'expense') &&
+        ['receipt', 'payment'].concat(SERVICE_TYPES).indexOf(originalType) === -1) {
+      return originalType;
+    }
+    return cfg.type;
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var another = e.submitter && e.submitter.dataset.another === '1';
+    var mode = currentMode();
+    var cfg = MODES[mode];
+    if (!cfg) { showToast(T.pickMode, 'error'); return; }
+    var fxAmt = parseFloat($('ledger-fx-amount').value);
+    var usingFx = fxOpen() && fxAmt > 0;
+    if (cfg.show.indexOf('party') !== -1 && !$('ledger-party').value.trim()) { showToast(T.needParty, 'error'); $('ledger-party').focus(); return; }
+    if (!usingFx && !(parseFloat($('ledger-amount').value) >= 0 && $('ledger-amount').value !== '')) { showToast(T.needAmount, 'error'); $('ledger-amount').focus(); return; }
+    if (!$('ledger-desc').value.trim()) { showToast(T.needDesc, 'error'); $('ledger-desc').focus(); return; }
+
+    $('ledger-bucket').value = cfg.bucket;
+    $('ledger-direction-hidden').value = currentDirection(cfg);
+    $('ledger-type-hidden').value = resolveType(mode, cfg);
+
+    var fd = new FormData(form);
+    fd.delete('mode');
+    fd.delete('side');
+    if (cfg.show.indexOf('party') === -1) { fd.set('counterparty_name', ''); }
+    fd.set('counterparty_type', '');
+    // Lines without a 'Paid via' field keep whatever method they already had (e.g. auto-posted payments).
+    if (cfg.show.indexOf('method') === -1) fd.set('payment_method', editingId ? originalMethod : '');
+    if (cfg.show.indexOf('service') === -1) fd.set('pax', '');
+    if (cfg.show.indexOf('category') === -1 && !editingId) fd.set('category', '');
+    if (usingFx) {
+      fd.delete('amount');
+    } else {
+      fd.set('fx_amount', '');
+      fd.set('fx_currency', '');
+      if (!fxOpen()) fd.set('rate', '');
+    }
+
+    var buttons = form.querySelectorAll('button[type="submit"]');
+    buttons.forEach(function (b) { b.disabled = true; });
+    try {
+      var r = await fetch('/api/v1/ledger/' + (editingId ? editingId + '/' : ''), {
+        method: editingId ? 'PUT' : 'POST',
+        body: fd,
+        credentials: 'same-origin',
+        headers: { 'X-CSRFToken': csrfToken() }
+      });
+      if (!r.ok) {
+        var msg = T.saveFailed;
         try {
           var data = await r.json();
-          if (typeof data === 'object' && data !== null) msg = JSON.stringify(data);
+          var first = Object.keys(data)[0];
+          if (first) msg = (Array.isArray(data[first]) ? data[first][0] : data[first]);
         } catch (_) {}
-        if (typeof showToast === 'function') showToast(msg, 'error');
-      } finally {
-        if (submitBtn) submitBtn.disabled = false;
+        showToast(msg, 'error');
+        return;
       }
-    });
+      savedAny = true;
+      if (another) {
+        // Keep date, party and type for fast batch entry; update the local
+        // balance so the next preview starts from the new figure.
+        var key = partyKey();
+        if (cfg.show.indexOf('party') !== -1 && key) {
+          var amt = parseFloat($('ledger-amount').value) || 0;
+          BALANCES[key] = (BALANCES[key] || 0) + (currentDirection(cfg) === 'debit' ? amt : -amt);
+        }
+        ['ledger-amount', 'ledger-fx-amount', 'ledger-pax', 'ledger-desc', 'ledger-trans', 'ledger-inv', 'ledger-ref'].forEach(function (id) { $(id).value = ''; });
+        recalcFx();
+        updatePartyBalance();
+        showToast(T.saved, 'success');
+        $('ledger-amount').focus();
+        return;
+      }
+      try { sessionStorage.setItem('ledgerToast', T.saved); } catch (_) {}
+      location.reload();
+    } finally {
+      buttons.forEach(function (b) { b.disabled = false; });
+    }
+  });
+
+  // Reload after "Save & add another" once the dialog closes, so cards refresh.
+  var overlay = $('modal-add-entry');
+  new MutationObserver(function () {
+    if (overlay.classList.contains('hidden') && savedAny) {
+      try { sessionStorage.setItem('ledgerToast', T.saved); } catch (_) {}
+      location.reload();
+    }
+  }).observe(overlay, { attributes: true, attributeFilter: ['class'] });
+
+  try {
+    var pending = sessionStorage.getItem('ledgerToast');
+    if (pending) { sessionStorage.removeItem('ledgerToast'); showToast(pending, 'success'); }
+  } catch (_) {}
+
+  // --- Delete --------------------------------------------------------------
+  var deleteId = null;
+  $('ledger-delete-confirm').addEventListener('click', async function () {
+    if (!deleteId) return;
+    this.disabled = true;
+    try {
+      var r = await fetch('/api/v1/ledger/' + deleteId + '/', {
+        method: 'DELETE', credentials: 'same-origin', headers: { 'X-CSRFToken': csrfToken() }
+      });
+      if (r.ok) {
+        try { sessionStorage.setItem('ledgerToast', T.deleted); } catch (_) {}
+        location.reload();
+      } else {
+        showToast(T.deleteFailed, 'error');
+      }
+    } finally { this.disabled = false; }
+  });
+
+  // --- Table interactions (delegated: rows are swapped in by htmx) ---------
+  function refresh(keepPage) {
+    if (!keepPage) $('ledger-page-input').value = '';
+    htmx.trigger(filters, 'ledgerRefresh');
   }
+  $('ledger-results').addEventListener('click', function (e) {
+    var edit = e.target.closest('[data-ledger-edit]');
+    if (edit) { openEdit(edit.closest('tr')); return; }
+    var del = e.target.closest('[data-ledger-delete]');
+    if (del) {
+      var d = del.closest('tr').dataset;
+      deleteId = d.id;
+      $('ledger-delete-summary').textContent = d.date + ' · ' + (d.trans || '') + ' · ' + (d.party || '') + ' · Rs. ' + Number(d.amount).toLocaleString() + ' — ' + (d.desc || '');
+      openModal('modal-delete-entry');
+      return;
+    }
+    var party = e.target.closest('[data-party-filter]');
+    if (party) {
+      $('ledger-party-filter').value = party.getAttribute('data-party-filter');
+      refresh();
+      return;
+    }
+    var pageBtn = e.target.closest('[data-ledger-page]');
+    if (pageBtn) {
+      $('ledger-page-input').value = pageBtn.getAttribute('data-ledger-page');
+      refresh(true);
+    }
+  });
+
+  // --- Filters -------------------------------------------------------------
+  function syncCustomRange() {
+    var custom = $('ledger-preset').value === 'custom';
+    $('ledger-custom-range').hidden = !custom;
+    $('ledger-from').disabled = !custom;
+    $('ledger-to').disabled = !custom;
+  }
+  // Capture phase: runs before htmx reads the form, so page resets and
+  // hidden date inputs are excluded from the request.
+  filters.addEventListener('change', function (e) {
+    if (e.target.id === 'ledger-preset') syncCustomRange();
+    $('ledger-page-input').value = '';
+  }, true);
+  filters.addEventListener('keyup', function () { $('ledger-page-input').value = ''; }, true);
+  syncCustomRange();
+
+  function filterParams() {
+    var p = new URLSearchParams(new FormData(filters));
+    p.delete('page');
+    if (p.get('preset') === 'custom') p.delete('preset');
+    Array.from(p.keys()).forEach(function (k) { if (!p.get(k)) p.delete(k); });
+    return p;
+  }
+  $('ledger-export-btn').addEventListener('click', function () {
+    window.location.href = '{% url "member-ledger-export" %}?' + filterParams().toString();
+  });
+  $('ledger-report-btn').addEventListener('click', function () {
+    var p = filterParams();
+    if (!p.get('preset') && !p.get('from') && !p.get('to')) p.set('preset', 'all');
+    p.delete('q'); p.delete('type'); p.delete('bucket');
+    window.open('{% url "member-ledger-report" %}?' + p.toString(), '_blank', 'noopener');
+  });
+  $('ledger-clear-btn').addEventListener('click', function () {
+    filters.reset();
+    ['ledger-q', 'ledger-party-filter', 'ledger-from', 'ledger-to'].forEach(function (id) { $(id).value = ''; });
+    filters.querySelectorAll('select').forEach(function (s) { s.value = ''; });
+    syncCustomRange();
+    refresh();
+  });
 })();
 </script>
 {% endblock %}

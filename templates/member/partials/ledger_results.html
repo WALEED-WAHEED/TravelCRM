@@ -1,0 +1,31 @@
+{% load i18n %}
+{% load currency_tags %}
+    {% if show_running %}
+    <div class="ledger-party-summary">
+        <div>
+            <p class="ledger-party-summary__label">{% trans "Statement of" %}</p>
+            <p class="ledger-party-summary__name">{{ f.party }}</p>
+        </div>
+        <div class="ledger-party-summary__figures">
+            <span>{% trans "Opening" %} <strong>{{ opening|drcr }}</strong></span>
+            <span>{% trans "Debit" %} <strong>{{ totals.debit|amt }}</strong></span>
+            <span>{% trans "Credit" %} <strong>{{ totals.credit|amt }}</strong></span>
+            <span>{% trans "Closing" %}
+                <strong class="{% if closing > 0 %}ledger-dr{% elif closing < 0 %}ledger-cr{% endif %}">{{ closing|drcr }}</strong>
+                <span class="ledger-hint">{% if closing > 0 %}{% trans "owes you" %}{% elif closing < 0 %}{% trans "you owe" %}{% else %}{% trans "settled" %}{% endif %}</span>
+            </span>
+        </div>
+    </div>
+    {% endif %}
+    {% include "member/partials/ledger_table.html" %}
+    {% if page and page.paginator.num_pages > 1 %}
+    <nav class="ledger-pager" aria-label="{% trans 'Pages' %}">
+        {% if page.has_previous %}
+        <button type="button" class="btn btn-outline btn-sm" data-ledger-page="{{ page.previous_page_number }}">{% trans "Previous" %}</button>
+        {% endif %}
+        <span class="text-sm text-muted">{% blocktrans with n=page.number total=page.paginator.num_pages %}Page {{ n }} of {{ total }}{% endblocktrans %}</span>
+        {% if page.has_next %}
+        <button type="button" class="btn btn-outline btn-sm" data-ledger-page="{{ page.next_page_number }}">{% trans "Next" %}</button>
+        {% endif %}
+    </nav>
+    {% endif %}

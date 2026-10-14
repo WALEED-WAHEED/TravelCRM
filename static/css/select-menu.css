@@ -1,0 +1,23 @@
+/* Themed dropdown (see static/js/select-menu.js) — uses the app's colour tokens, so it follows light / dark. */
+.vs { position: relative; display: block; min-width: 0; }
+.vs-btn { width: 100%; height: 38px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 10px 0 12px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); color: var(--foreground); font: inherit; font-size: 0.88rem; text-align: start; cursor: pointer; transition: border-color .15s, box-shadow .15s, background .15s; }
+.vs-btn:hover { border-color: color-mix(in srgb, var(--primary) 40%, var(--border)); }
+.vs-btn:focus-visible, .vs-btn[aria-expanded="true"] { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent); }
+.vs-val { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; overflow: hidden; white-space: nowrap; }
+.vs-val > span { overflow: hidden; text-overflow: ellipsis; }
+.vs-btn.is-placeholder .vs-val { color: var(--muted-foreground); }
+.vs-chev { flex: none; color: var(--muted-foreground); transition: transform .15s; }
+.vs-btn[aria-expanded="true"] .vs-chev { transform: rotate(180deg); }
+.vs-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; }
+.vs-pop { position: fixed; z-index: 100000; display: flex; flex-direction: column; padding: 5px; border: 1px solid var(--border); border-radius: 14px; background: var(--card); box-shadow: 0 18px 44px rgba(15, 23, 42, .2); animation: vsIn .12s ease-out; }
+@keyframes vsIn { from { opacity: 0; transform: translateY(-4px); } }
+.vs-search { flex: none; height: 36px; margin: 2px 2px 5px; padding: 0 11px; border: 1px solid var(--border); border-radius: 9px; background: var(--muted); color: var(--foreground); font: inherit; font-size: 0.85rem; outline: none; }
+.vs-search:focus { border-color: var(--primary); background: var(--card); }
+.vs-list { margin: 0; padding: 0; list-style: none; overflow-y: auto; outline: none; }
+.vs-opt { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 11px; border-radius: 9px; font-size: 0.88rem; cursor: pointer; }
+.vs-opt__t { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.vs-opt.is-active { background: color-mix(in srgb, var(--primary) 9%, transparent); }
+.vs-opt.is-selected { color: var(--primary); font-weight: 650; }
+.vs-opt.is-selected::after { content: "✓"; font-weight: 800; }
+.vs-opt.is-empty { color: var(--muted-foreground); }
+.vs-none { padding: 12px; font-size: 0.82rem; color: var(--muted-foreground); }

@@ -1,9 +1,18 @@
-from rest_framework.routers import DefaultRouter
 from django.urls import path
+from rest_framework.routers import DefaultRouter
+
 from .views import (
-    SystemConfigurationViewSet, AgencyBrandingViewSet, EmailTemplateViewSet,
-    NotificationSettingsViewSet, APIKeyViewSet, AuditLogViewSet,
-    SystemConfigDashboardViewSet, system_settings, saas_product_config, saas_product_config_public, upload_saas_logo
+    AgencyBrandingViewSet,
+    APIKeyViewSet,
+    AuditLogViewSet,
+    EmailTemplateViewSet,
+    NotificationSettingsViewSet,
+    SystemConfigDashboardViewSet,
+    SystemConfigurationViewSet,
+    saas_product_config,
+    saas_product_config_public,
+    system_settings,
+    upload_saas_logo,
 )
 
 router = DefaultRouter()

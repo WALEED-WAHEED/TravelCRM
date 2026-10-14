@@ -1,0 +1,35 @@
+{% extends "platform_admin/base.html" %}
+{% load i18n %}
+{% block title %}{% if config %}{% trans "Edit Setting" %}{% else %}{% trans "New Setting" %}{% endif %}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{% if config %}{% trans "Edit setting" %}{% else %}{% trans "New setting" %}{% endif %}</h1>
+</div>
+
+<div class="card" style="max-width:640px;">
+  <div class="card-content" style="padding-top:20px;">
+    <form method="post" style="display:flex; flex-direction:column; gap:16px;">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label" for="key">{% trans "Key" %}</label>
+        <input class="form-input" type="text" id="key" name="key" value="{% firstof config.key form_data.key '' %}" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="value">{% trans "Value" %}</label>
+        <textarea class="form-input" id="value" name="value" rows="4">{% firstof config.value form_data.value '' %}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="description">{% trans "Description" %}</label>
+        <input class="form-input" type="text" id="description" name="description" value="{{ config.description|default:'' }}">
+      </div>
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="is_active" {% if config.is_active or not config %}checked{% endif %}> {% trans "Active" %}
+      </label>
+      <div class="flex gap-3 mt-2">
+        <button class="btn btn-primary" type="submit">{% trans "Save" %}</button>
+        <a class="btn btn-outline" href="{% url 'platform_admin:system-config' %}">{% trans "Cancel" %}</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

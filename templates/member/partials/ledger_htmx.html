@@ -1,3 +1,2 @@
-{% include "member/partials/ledger_table.html" %}
-<span id="ledger-count-display" class="text-sm text-muted hotels-toolbar-count" hx-swap-oob="true">{{ entries|length }} entry{{ entries|length|pluralize }}</span>
-
+{% include "member/partials/ledger_results.html" %}
+{% include "member/partials/ledger_count.html" with oob=True %}
