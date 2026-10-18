@@ -52,3 +52,15 @@ docker-compose.yml
 *.pdf
 CGS VOUCHER.pdf
 
+
+# Local-only directories (the Windows .venv alone is ~270 MB and useless in Linux)
+.venv
+.git_broken_backup
+.claude
+.pytest_cache
+.ruff_cache
+__pycache__
+**/__pycache__
+graphify-out
+staticfiles
+tests

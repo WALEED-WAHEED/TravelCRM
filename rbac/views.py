@@ -50,6 +50,19 @@ def _can_manage(user):
     return has_capability(user, 'team', 'manage')
 
 
+def _role_summary(roles):
+    """{role_id: {name, caps: [{label, level}]}} so the invite form can preview a role."""
+    summary = {}
+    for role in roles.prefetch_related('permissions'):
+        granted = {(p.capability, p.action) for p in role.permissions.all()}
+        caps = []
+        for cap, label in CAPABILITIES:
+            level = 'manage' if (cap, 'manage') in granted else 'view' if (cap, 'view') in granted else 'none'
+            caps.append({'label': str(label), 'level': level})
+        summary[str(role.id)] = {'name': role.name, 'caps': caps}
+    return summary
+
+
 @permission_required('team', 'manage')
 def staff_invite(request):
     if (guard := _require_agency(request)) is not None:
@@ -82,7 +95,7 @@ def staff_invite(request):
         if errors:
             for e in errors:
                 messages.error(request, e)
-            return render(request, 'rbac/staff_invite.html', {'roles': roles, 'form_data': request.POST})
+            return render(request, 'rbac/staff_invite.html', {'roles': roles, 'form_data': request.POST, 'role_summary': _role_summary(roles)})
 
         legacy_role = 'member' if role.level >= 75 else 'agent'
         User.objects.create(
@@ -96,7 +109,7 @@ def staff_invite(request):
         messages.success(request, gettext("'%(username)s' added to your team as %(role)s.") % {'username': username, 'role': role.name})
         return redirect('member-team')
 
-    return render(request, 'rbac/staff_invite.html', {'roles': roles, 'form_data': {}})
+    return render(request, 'rbac/staff_invite.html', {'roles': roles, 'form_data': {}, 'role_summary': _role_summary(roles)})
 
 
 @permission_required('team', 'manage')

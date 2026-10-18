@@ -7,7 +7,6 @@
     <div class="hotels-hero__copy">
       <p class="hotels-eyebrow">{% trans "Team" %}</p>
       <h1 class="page-title hotels-hero__title">{% trans "Team & Roles" %}</h1>
-      <p class="page-subtitle hotels-hero__sub">{% blocktrans with agency_name=request.user.agency.name %}Everyone with access to {{ agency_name }}, and what they can do.{% endblocktrans %}</p>
     </div>
     {% if can_manage %}
     <div class="hotels-hero__actions hotels-reveal" style="--d:60ms">

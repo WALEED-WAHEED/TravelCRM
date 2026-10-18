@@ -12,7 +12,15 @@
     .att-panel__top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
     .att-panel__title { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--foreground); }
     .att-panel__hint { margin: 3px 0 0; font-size: 0.85rem; color: var(--muted-foreground); }
-    .att-table-box { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+    /* The records scroll inside the card (both ways) so a long month never stretches the page. */
+    .att-table-box { max-height: min(560px, 68vh); overflow: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card);
+                     scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted-foreground) 45%, transparent) transparent; }
+    .att-table-box::-webkit-scrollbar { width: 10px; height: 10px; }
+    .att-table-box::-webkit-scrollbar-track { background: transparent; }
+    .att-table-box::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--muted-foreground) 40%, transparent); border-radius: 10px; border: 2px solid var(--card); }
+    .att-table-box::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--muted-foreground) 65%, transparent); }
+    .att-table-box .hotels-data-table thead th { position: sticky; top: 0; z-index: 2; background: var(--muted); box-shadow: 0 1px 0 var(--border); }
+    .att-table-box .hotels-empty { padding: 44px 24px 48px; }
     .att-table-box .hotels-data-table { margin: 0; }
     .att-table-box .hotels-data-table td { vertical-align: middle; }
     .att-table-box .hotels-data-table tbody tr:hover td { background: color-mix(in srgb, var(--primary) 4%, transparent); }
@@ -385,6 +393,9 @@
                 {% else %}
                 <div class="hotels-empty">
                     <div class="hotels-empty__glow" aria-hidden="true"></div>
+                    <span class="hotels-empty__icon" aria-hidden="true">
+                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="m9 16 2 2 4-4"/></svg>
+                    </span>
                     {% if rec_filtered %}
                     <h3 class="hotels-empty__title">{% trans "No matching records" %}</h3>
                     <p class="hotels-empty__text">{% trans "Try another staff member, status or method." %}</p>

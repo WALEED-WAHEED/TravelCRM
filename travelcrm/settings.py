@@ -17,6 +17,10 @@ from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
+# Precedence (python-dotenv never overrides what is already set): real
+# environment variables (Docker/compose, CI) > .env.local (this machine's
+# overrides, e.g. the local Postgres password) > .env (shared defaults).
+load_dotenv(Path(__file__).resolve().parent.parent / ".env.local")
 load_dotenv()
 
 from .languages import ENABLED_LANGUAGES  # noqa: E402 — needs the .env values loaded above

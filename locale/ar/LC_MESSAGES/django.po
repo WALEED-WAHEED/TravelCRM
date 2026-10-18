@@ -1242,9 +1242,6 @@ msgstr "كل محاولة إشعار — أُرسلت أو فشلت أو تم ت
 msgid "Every travel agency running on this platform."
 msgstr "كل وكالة سفر تعمل على هذه المنصة."
 
-msgid "Everyone with access to %(agency_name)s, and what they can do."
-msgstr "كل من لديه وصول إلى %(agency_name)s، وما يمكنهم فعله."
-
 msgid "Expand"
 msgstr "توسيع"
 
@@ -1329,13 +1326,6 @@ msgstr "ستظهر السجلات المالية والمعاملات هنا."
 
 msgid "First row must be a header with these column names."
 msgstr "يجب أن يكون الصف الأول عنوانًا بأسماء الأعمدة هذه."
-
-msgid ""
-"Five built-in templates, ready to use — clone one to customize it for "
-"%(agency_name)s."
-msgstr ""
-"خمسة قوالب مدمجة، جاهزة للاستخدام — استنسخ واحدًا لتخصيصه لـ "
-"%(agency_name)s."
 
 msgid "Fleet directory"
 msgstr "دليل الأسطول"
@@ -2958,9 +2948,6 @@ msgstr "المستأجرون"
 
 msgid "The full amount is due as one payment until you add a schedule."
 msgstr "المبلغ الكامل مستحق كدفعة واحدة حتى تضيف جدولاً."
-
-msgid "They'll be added to %(agency_name)s with the role you choose below."
-msgstr "سيُضافون إلى %(agency_name)s بالدور الذي تختاره أدناه."
 
 msgid "This action has already been resolved."
 msgstr "تم حل هذا الإجراء بالفعل."
@@ -9228,3 +9215,24 @@ msgstr "تاريخ الإنشاء"
 
 msgid "Last updated"
 msgstr "آخر تحديث"
+
+msgid "Back to team"
+msgstr "العودة إلى الفريق"
+
+msgid "What this role can do"
+msgstr "ما يمكن لهذا الدور فعله"
+
+msgid "Generate"
+msgstr "إنشاء"
+
+msgid "View only"
+msgstr "عرض فقط"
+
+msgid "No access"
+msgstr "لا وصول"
+
+msgid "Share this temporary password with them directly."
+msgstr "شارك كلمة المرور المؤقتة هذه معهم مباشرة."
+
+msgid "e.g. ayesha.khan"
+msgstr "مثل ayesha.khan"

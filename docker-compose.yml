@@ -2,6 +2,10 @@ services:
   db:
     image: postgres:15-alpine
     container_name: travel_db
+    # Opt-in only: by default the app uses the Postgres installed on the host
+    # (DB_HOST below). Start this one with `docker compose --profile bundled-db up`
+    # and set DB_HOST=db for web/worker.
+    profiles: ["bundled-db"]
     environment:
       # NOTE: docker-compose's own POSTGRES_USER always becomes a Postgres
       # *superuser*, which bypasses Row-Level Security entirely. For a
@@ -12,7 +16,9 @@ services:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
     ports:
-      - "5432:5432"
+      # Host side is configurable so it can sit next to a locally installed
+      # Postgres that already owns 5432 (containers still talk on 5432).
+      - "${DOCKER_DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
@@ -25,6 +31,8 @@ services:
   redis:
     image: redis:7-alpine
     container_name: travel_redis
+    ports:
+      - "6379:6379"   # so a manual `runserver` / Celery worker can use it too
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -53,7 +61,7 @@ services:
       # build time.
       - static_volume:/app/staticfiles
     ports:
-      - "8000:8000"
+      - "${DOCKER_WEB_PORT:-8000}:8000"
     environment: &web_env
       - DJANGO_DEBUG=${DJANGO_DEBUG:-False}
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-django-insecure-local-dev-only-do-not-deploy}
@@ -61,7 +69,7 @@ services:
       - DB_NAME=${DB_NAME:-travelcrm}
       - DB_USER=${DB_USER:-postgres}
       - DB_PASSWORD=${DB_PASSWORD:-postgres}
-      - DB_HOST=db
+      - DB_HOST=${DOCKER_DB_HOST:-host.docker.internal}
       - DB_PORT=5432
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8000}
       - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-}
@@ -82,8 +90,6 @@ services:
       - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
       - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-noreply@example.com}
     depends_on:
-      db:
-        condition: service_healthy
       redis:
         condition: service_healthy
     restart: unless-stopped
@@ -98,8 +104,6 @@ services:
       - .:/app
     environment: *web_env
     depends_on:
-      db:
-        condition: service_healthy
       redis:
         condition: service_healthy
     restart: unless-stopped

@@ -2350,6 +2350,11 @@ body.lp-page {
 .hotels-hero__actions {
   flex-shrink: 0;
   max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-self: center;
+  gap: 10px;
 }
 @media (max-width: 1023px) {
   .hotels-hero { padding: 18px; }
@@ -3341,6 +3346,7 @@ body.lp-page {
 .hotels-hero__actions .btn-primary > svg:first-child { background: rgba(255, 255, 255, 0.2); color: #fff; }
 .hotels-hero__actions .btn-outline > svg:first-child { background: color-mix(in srgb, var(--primary) 11%, transparent); color: var(--primary); }
 .hotels-hero__actions .form-select { min-height: 46px; border-radius: 14px; }
+[dir="rtl"] .btn-back > svg:first-child { transform: scaleX(-1); }
 
 @media (prefers-reduced-motion: reduce) {
   .btn, .btn:hover, .btn:active { transform: none !important; transition: none; }

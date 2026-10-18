@@ -1,48 +1,163 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 {% block title %}{% trans "Add teammate" %}{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/select-menu.css' %}">
+<style>
+  .inv-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+  .inv-group { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 14px 16px 4px; margin-bottom: 14px; }
+  .inv-group__title { margin: 0 0 12px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted-foreground); }
+  .inv-group .form-group { margin-bottom: 16px; }
+  .inv-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
+  .inv-opt { font-weight: 400; color: var(--muted-foreground); }
+  .inv-pass { display: flex; gap: 8px; }
+  .inv-pass .form-input { flex: 1; min-width: 0; }
+  .inv-pass .btn { flex: none; }
+  .inv-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+  .inv-side__title { margin: 0 0 4px; font-size: 1rem; font-weight: 700; }
+  .inv-side__role { margin: 0 0 12px; font-size: 0.85rem; color: var(--muted-foreground); }
+  .inv-caps { list-style: none; margin: 0; padding: 0; }
+  .inv-cap { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-top: 1px solid var(--border); font-size: 0.88rem; }
+  .inv-cap:first-child { border-top: 0; }
+  .inv-pill { flex: none; padding: 2px 10px; border-radius: 999px; font-size: 0.74rem; font-weight: 700; }
+  .inv-pill--manage { background: color-mix(in srgb, var(--success) 14%, transparent); color: var(--success); }
+  .inv-pill--view { background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--primary); }
+  .inv-pill--none { background: var(--muted); color: var(--muted-foreground); font-weight: 600; }
+  @media (max-width: 900px) { .inv-layout { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 560px) {
+    .inv-grid { grid-template-columns: minmax(0, 1fr); }
+    .inv-pass { flex-wrap: wrap; }
+    .inv-pass .form-input { flex: 1 1 100%; }
+    .inv-pass .btn { flex: 1 1 0; }
+  }
+</style>
+{% endblock %}
 {% block content %}
 <div class="page-contacts">
   <header class="hotels-hero hotels-reveal" style="--d:0ms">
     <div class="hotels-hero__copy">
       <p class="hotels-eyebrow">{% trans "Team" %}</p>
       <h1 class="page-title hotels-hero__title">{% trans "Add a teammate" %}</h1>
-      <p class="page-subtitle hotels-hero__sub">{% blocktrans with agency_name=request.user.agency.name %}They'll be added to {{ agency_name }} with the role you choose below.{% endblocktrans %}</p>
+    </div>
+    <div class="hotels-hero__actions hotels-reveal" style="--d:60ms">
+      <a href="{% url 'member-team' %}" class="btn btn-outline hotels-cta-btn btn-back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+        {% trans "Back to team" %}
+      </a>
     </div>
   </header>
 
+  <div class="inv-layout">
+    <section class="card hotels-panel hotels-reveal" style="--d:80ms">
+      <div class="card-content hotels-panel__body">
+        <form method="post" id="invite-form" autocomplete="off">
+          {% csrf_token %}
+          <section class="inv-group">
+            <p class="inv-group__title">{% trans "Account" %}</p>
+            <div class="inv-grid">
+              <div class="form-group">
+                <label class="form-label" for="username">{% trans "Username" %} *</label>
+                <input class="form-input" type="text" id="username" name="username" value="{{ form_data.username|default:'' }}" placeholder="{% trans 'e.g. ayesha.khan' %}" autocapitalize="none" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="email">{% trans "Email" %} <span class="inv-opt">({% trans "optional" %})</span></label>
+                <input class="form-input" type="email" id="email" name="email" value="{{ form_data.email|default:'' }}" placeholder="name@example.com">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="password">{% trans "Temporary password" %} *</label>
+              <div class="inv-pass">
+                <input class="form-input" type="password" id="password" name="password" placeholder="{% trans 'At least 8 characters' %}" minlength="8" autocomplete="new-password" required>
+                <button type="button" class="btn btn-outline" id="pw-toggle" aria-pressed="false">{% trans "Show" %}</button>
+                <button type="button" class="btn btn-outline" id="pw-generate">{% trans "Generate" %}</button>
+              </div>
+              <p class="form-hint">{% trans "Share this temporary password with them directly." %}</p>
+            </div>
+          </section>
 
-  <section class="card hotels-panel hotels-reveal" style="--d:80ms; max-width:520px;">
-    <div class="card-content hotels-panel__body">
-      <form method="post" style="display:flex; flex-direction:column; gap:16px;">
-        {% csrf_token %}
-        <div class="form-group">
-          <label class="form-label" for="username">{% trans "Username" %}</label>
-          <input class="form-input" type="text" id="username" name="username" value="{{ form_data.username|default:'' }}" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="email">{% trans "Email" %}</label>
-          <input class="form-input" type="email" id="email" name="email" value="{{ form_data.email|default:'' }}">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="password">{% trans "Temporary password" %}</label>
-          <input class="form-input" type="text" id="password" name="password" placeholder="{% trans 'At least 8 characters' %}" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="role_id">{% trans "Role" %}</label>
-          <select class="form-select" id="role_id" name="role_id" required>
-            {% for r in roles %}
-            <option value="{{ r.id }}">{{ r.name }}{% if r.is_template %} — {% trans "template" %}{% endif %}</option>
-            {% endfor %}
-          </select>
-          <p class="form-hint">{% trans "Need something different?" %} <a href="{% url 'member-roles' %}" class="text-primary">{% trans "Create a custom role" %}</a> {% trans "first." %}</p>
-        </div>
-        <div class="flex gap-3 mt-2">
-          <button type="submit" class="btn btn-primary">{% trans "Add teammate" %}</button>
-          <a href="{% url 'member-team' %}" class="btn btn-outline">{% trans "Cancel" %}</a>
-        </div>
-      </form>
-    </div>
-  </section>
+          <section class="inv-group">
+            <p class="inv-group__title">{% trans "Role" %}</p>
+            <div class="form-group">
+              <select class="form-select" id="role_id" name="role_id" aria-label="{% trans 'Role' %}" required>
+                {% for r in roles %}
+                <option value="{{ r.id }}" {% if form_data.role_id == r.id|stringformat:"s" %}selected{% endif %}>{{ r.name }}{% if r.is_template %} — {% trans "template" %}{% endif %}</option>
+                {% endfor %}
+              </select>
+              <p class="form-hint">{% trans "Need something different?" %} <a href="{% url 'member-roles' %}" class="text-primary">{% trans "Create a custom role" %}</a> {% trans "first." %}</p>
+            </div>
+          </section>
+
+          <div class="inv-actions">
+            <button type="submit" class="btn btn-primary" id="invite-submit">{% trans "Add teammate" %}</button>
+            <a href="{% url 'member-team' %}" class="btn btn-outline">{% trans "Cancel" %}</a>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <aside class="card hotels-panel hotels-reveal" style="--d:140ms" aria-live="polite">
+      <div class="card-content hotels-panel__body">
+        <h2 class="inv-side__title">{% trans "What this role can do" %}</h2>
+        <p class="inv-side__role" id="inv-role-name"></p>
+        <ul class="inv-caps" id="inv-caps"></ul>
+      </div>
+    </aside>
+  </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+{{ role_summary|json_script:"role-summary" }}
+{% trans "Search…" as t_se %}{% trans "No match" as t_nm %}{% trans "Show" as t_show %}{% trans "Hide" as t_hide %}
+{% trans "Manage" as t_manage %}{% trans "View only" as t_view %}{% trans "No access" as t_none %}
+<script>window.SELECT_MENU_I18N = { search: '{{ t_se|escapejs }}', none: '{{ t_nm|escapejs }}' };</script>
+<script src="{% static 'js/select-menu.js' %}"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var T = { show: '{{ t_show|escapejs }}', hide: '{{ t_hide|escapejs }}', manage: '{{ t_manage|escapejs }}', view: '{{ t_view|escapejs }}', none: '{{ t_none|escapejs }}' };
+  var SUMMARY = {};
+  try { SUMMARY = JSON.parse($('role-summary').textContent); } catch (_) {}
+
+  SelectMenu.init(document);
+
+  // What the chosen role can do
+  function renderRole() {
+    var s = SUMMARY[$('role_id').value], list = $('inv-caps');
+    list.innerHTML = '';
+    $('inv-role-name').textContent = s ? s.name : '';
+    (s ? s.caps : []).forEach(function (c) {
+      var li = document.createElement('li'), name = document.createElement('span'), pill = document.createElement('span');
+      li.className = 'inv-cap'; name.textContent = c.label;
+      pill.className = 'inv-pill inv-pill--' + c.level; pill.textContent = T[c.level];
+      li.appendChild(name); li.appendChild(pill); list.appendChild(li);
+    });
+  }
+  $('role_id').addEventListener('change', renderRole);
+  renderRole();
+
+  // Password: hidden by default, can be shown or generated
+  $('pw-toggle').addEventListener('click', function () {
+    var pw = $('password'), show = pw.type === 'password';
+    pw.type = show ? 'text' : 'password';
+    this.textContent = show ? T.hide : T.show;
+    this.setAttribute('aria-pressed', String(show));
+  });
+  $('pw-generate').addEventListener('click', function () {
+    var chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', out = '', buf = new Uint32Array(12);
+    crypto.getRandomValues(buf);
+    buf.forEach(function (n) { out += chars[n % chars.length]; });
+    var pw = $('password');
+    pw.value = out;
+    pw.type = 'text';  // so it can be read and shared
+    $('pw-toggle').textContent = T.hide;
+    $('pw-toggle').setAttribute('aria-pressed', 'true');
+  });
+
+  // One click, one request: disable after the submit has started (setTimeout keeps the submit alive in Chrome).
+  $('invite-form').addEventListener('submit', function () {
+    var b = $('invite-submit');
+    setTimeout(function () { b.disabled = true; }, 0);
+  });
+})();
+</script>
 {% endblock %}

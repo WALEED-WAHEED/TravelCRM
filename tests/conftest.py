@@ -12,6 +12,22 @@ from django.test import Client
 from utils.tenancy import tenant_context
 
 
+@pytest.fixture(autouse=True)
+def _celery_runs_inline(settings):
+    """
+    Run Celery tasks in-process during tests. Without this, a reachable Redis
+    (e.g. the compose `redis` container) would swallow the notification tasks
+    into the real queue — the tests would see no emails, and a running worker
+    would try to process test bookings against the real database.
+    """
+    from travelcrm.celery import app
+
+    settings.CELERY_TASK_ALWAYS_EAGER = True
+    app.conf.task_always_eager = True
+    yield
+    app.conf.task_always_eager = False
+
+
 @pytest.fixture(scope="session")
 def django_db_setup(django_db_setup, django_db_blocker):
     """

@@ -115,3 +115,6 @@ $RECYCLE.BIN/
 
 # Graphify knowledge graph (regenerate with: graphify update .)
 graphify-out/
+
+# Gunicorn control socket (created in the bind-mounted dir by the docker web container)
+gunicorn.ctl

@@ -2300,11 +2300,6 @@ msgstr "آپ کے حسب ضرورت کردار (%(count)s/%(max)s)"
 msgid "You've reached the limit of %(max)s custom roles."
 msgstr "آپ %(max)s حسب ضرورت کرداروں کی حد تک پہنچ چکے ہیں۔"
 
-msgid "They'll be added to %(agency_name)s with the role you choose below."
-msgstr ""
-"وہ نیچے آپ کے منتخب کردہ کردار کے ساتھ %(agency_name)s میں شامل کیے جائیں "
-"گے۔"
-
 msgid "Everyone with access to %(agency_name)s, and what they can do."
 msgstr "%(agency_name)s تک رسائی رکھنے والا ہر شخص، اور وہ کیا کر سکتے ہیں۔"
 
@@ -9146,3 +9141,21 @@ msgstr "بنانے کی تاریخ"
 
 msgid "Last updated"
 msgstr "آخری تبدیلی"
+
+msgid "What this role can do"
+msgstr "یہ کردار کیا کر سکتا ہے"
+
+msgid "Generate"
+msgstr "بنائیں"
+
+msgid "View only"
+msgstr "صرف دیکھیں"
+
+msgid "No access"
+msgstr "رسائی نہیں"
+
+msgid "Share this temporary password with them directly."
+msgstr "یہ عارضی پاس ورڈ انہیں براہ راست دیں۔"
+
+msgid "e.g. ayesha.khan"
+msgstr "مثلاً ayesha.khan"
