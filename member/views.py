@@ -1944,6 +1944,8 @@ def profile_update_branding(request):
     phone = (request.POST.get("phone") or "").strip()
     email = (request.POST.get("email") or "").strip()
     website = (request.POST.get("website") or "").strip()
+    country = (request.POST.get("company_country") or "").strip()[:100]
+    whatsapp = (request.POST.get("company_whatsapp") or "").strip()[:50]
     shirka_name = (request.POST.get("shirka_company_name") or "").strip()
     shirka_country = (request.POST.get("shirka_company_country") or "").strip()
     shirka_whatsapp = (request.POST.get("shirka_company_whatsapp") or "").strip()
@@ -1969,6 +1971,8 @@ def profile_update_branding(request):
     branding.phone = phone
     branding.email = email
     branding.website = website
+    branding.company_country = country
+    branding.company_whatsapp = whatsapp
     branding.shirka_company_name = shirka_name
     branding.shirka_company_country = shirka_country
     branding.shirka_company_whatsapp = shirka_whatsapp

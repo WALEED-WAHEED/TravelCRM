@@ -126,8 +126,10 @@
             <td class="co">
                 {% trans "Agency" as agency_fallback %}
                 <div class="name">{% firstof branding.company_name agency.name agency_fallback %}</div>
+                {% if branding.company_country %}<div class="line"><b>{{ branding.company_country|upper }}</b></div>{% endif %}
                 {% if branding.address %}<div class="line">{{ branding.address|linebreaksbr }}</div>{% endif %}
                 {% if branding.phone %}<div class="line">{{ branding.phone }}</div>{% endif %}
+                {% if branding.company_whatsapp %}<div class="line"><b>{{ branding.company_whatsapp }}</b></div>{% endif %}
             </td>
             <td class="logo">
                 {% if logo_url %}<img src="{{ logo_url }}" alt="">{% endif %}

@@ -19,3 +19,12 @@ def test_shirka_contact_details_are_saved_and_shown_back(client_a, agency_a):
     page = client_a.get("/profile/").content.decode()
     for value in ("042-111-222", "info@noori.example", "https://noori.example", "12 Mall Road"):
         assert value in page
+
+
+def test_company_country_and_whatsapp_are_saved_like_the_partner_ones(client_a, agency_a):
+    client_a.post(reverse("profile-update-branding"), {"company_name": "Nahd Travels", "company_country": "Pakistan", "company_whatsapp": "03001112222"})
+    with tenant_context(agency_id=agency_a.id):
+        b = AgencyBranding.objects.get(agency=agency_a)
+    assert (b.company_country, b.company_whatsapp) == ("Pakistan", "03001112222")
+    page = client_a.get("/profile/").content.decode()
+    assert "Company country" in page and "Company WhatsApp" in page and "03001112222" in page

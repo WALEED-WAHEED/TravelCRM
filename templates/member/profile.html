@@ -118,6 +118,16 @@
                     </div>
                     <div class="cp-grid">
                         <div class="form-group">
+                            <label class="form-label" for="profile-country">{% trans "Company country" %}</label>
+                            <input id="profile-country" class="form-input" name="company_country" maxlength="100"
+                                value="{{ branding.company_country|default:'' }}" placeholder="{% trans 'e.g., PAKISTAN' %}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="profile-whatsapp">{% trans "Company WhatsApp" %}</label>
+                            <input id="profile-whatsapp" class="form-input tabular-nums" name="company_whatsapp" maxlength="50" dir="ltr"
+                                value="{{ branding.company_whatsapp|default:'' }}" placeholder="{% trans 'WhatsApp number' %}">
+                        </div>
+                        <div class="form-group">
                             <label class="form-label" for="profile-phone">{% trans "Phone" %}</label>
                             <input id="profile-phone" class="form-input tabular-nums" name="phone" maxlength="20" dir="ltr"
                                 value="{{ branding.phone|default:agency.phone|default:'' }}" placeholder="+92…">
@@ -197,8 +207,10 @@
                         <div class="cp-head3">
                             <div class="cp-h3__co">
                                 <div class="cp-h3__name" id="pv-name"></div>
+                                <div class="cp-h3__line"><b id="pv-country"></b></div>
                                 <div class="cp-h3__line" id="pv-address"></div>
                                 <div class="cp-h3__line" id="pv-phone" dir="ltr" style="text-align:start;"></div>
+                                <div class="cp-h3__line"><b id="pv-wa" dir="ltr"></b></div>
                             </div>
                             <div class="cp-h3__logo" id="pv-logo">{% if branding.logo %}<img src="{{ branding.logo.url }}" alt="">{% else %}<span>{{ agency.name|first|upper }}</span>{% endif %}</div>
                             <div class="cp-h3__sh">
@@ -251,7 +263,9 @@
             var name = val('profile-company-name') || '—';
             $('cp-head-name').textContent = name;
             $('pv-name').textContent = name;
+            $('pv-country').textContent = val('profile-country').toUpperCase();
             $('pv-address').textContent = val('profile-address');
+            $('pv-wa').textContent = val('profile-whatsapp');
             $('pv-phone').textContent = val('profile-phone');
             // like the printed voucher: "Shirka" stands in until a partner name is given
             $('pv-partner').textContent = val('profile-shirka-name') || '{{ js_partner_fallback|escapejs }}';

@@ -65,7 +65,7 @@ class AgencyBrandingSerializer(serializers.ModelSerializer):
         model = AgencyBranding
         fields = [
             'id', 'agency', 'logo', 'logo_url', 'favicon', 'primary_color', 'secondary_color',
-            'company_name', 'tagline', 'address', 'phone', 'email', 'website',
+            'company_name', 'tagline', 'address', 'phone', 'email', 'website', 'company_country', 'company_whatsapp',
             'shirka_company_name', 'shirka_company_country', 'shirka_company_whatsapp',
             'shirka_company_address', 'shirka_company_phone', 'shirka_company_email', 'shirka_company_website',
             'social_facebook', 'social_twitter', 'social_instagram', 'social_linkedin',
@@ -103,7 +103,7 @@ class AgencyBrandingCreateSerializer(serializers.ModelSerializer):
         model = AgencyBranding
         fields = [
             'agency', 'logo', 'favicon', 'primary_color', 'secondary_color',
-            'company_name', 'tagline', 'address', 'phone', 'email', 'website',
+            'company_name', 'tagline', 'address', 'phone', 'email', 'website', 'company_country', 'company_whatsapp',
             'shirka_company_name', 'shirka_company_country', 'shirka_company_whatsapp',
             'shirka_company_address', 'shirka_company_phone', 'shirka_company_email', 'shirka_company_website',
             'social_facebook', 'social_twitter', 'social_instagram', 'social_linkedin',

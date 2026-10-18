@@ -91,6 +91,8 @@ class AgencyBranding(models.Model):
     phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
     website = models.URLField(blank=True)
+    company_country = models.CharField(max_length=100, blank=True)
+    company_whatsapp = models.CharField(max_length=50, blank=True)
     # Right-side block on printed vouchers (Shirka / parent company line)
     shirka_company_name = models.CharField(max_length=200, blank=True)
     shirka_company_country = models.CharField(max_length=100, blank=True)

@@ -10539,3 +10539,9 @@ msgstr "شرکہ کمپنی ویب سائٹ"
 
 msgid "Shirka company address"
 msgstr "شرکہ کمپنی کا پتہ"
+
+msgid "Company country"
+msgstr "کمپنی کا ملک"
+
+msgid "Company WhatsApp"
+msgstr "کمپنی واٹس ایپ"

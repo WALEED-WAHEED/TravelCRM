@@ -10620,3 +10620,9 @@ msgstr "موقع شركة الشركاء"
 
 msgid "Shirka company address"
 msgstr "عنوان شركة الشركاء"
+
+msgid "Company country"
+msgstr "بلد الشركة"
+
+msgid "Company WhatsApp"
+msgstr "واتساب الشركة"
