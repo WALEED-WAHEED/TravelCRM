@@ -1,34 +1,82 @@
 {% extends "base.html" %}
-{% load i18n static %}
+{% load i18n static i18n_extra %}
 {% block title %}{% trans "Add teammate" %}{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/select-menu.css' %}">
 <style>
-  .inv-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 18px; align-items: start; }
-  .inv-group { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 14px 16px 4px; margin-bottom: 14px; }
-  .inv-group__title { margin: 0 0 12px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted-foreground); }
-  .inv-group .form-group { margin-bottom: 16px; }
+  .inv-layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 18px; align-items: stretch; }
+  .inv-layout > .card { margin: 0; }
+  .inv-step { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; font-size: 1.02rem; font-weight: 700; }
+  .inv-step__n { flex: none; width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; background: color-mix(in srgb, var(--primary) 14%, transparent); color: var(--primary); }
+  .inv-section + .inv-section { margin-top: 26px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .inv-section .form-group { margin-bottom: 16px; }
   .inv-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
   .inv-opt { font-weight: 400; color: var(--muted-foreground); }
   .inv-pass { display: flex; gap: 8px; }
   .inv-pass .form-input { flex: 1; min-width: 0; }
   .inv-pass .btn { flex: none; }
-  .inv-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
-  .inv-side__title { margin: 0 0 4px; font-size: 1rem; font-weight: 700; }
-  .inv-side__role { margin: 0 0 12px; font-size: 0.85rem; color: var(--muted-foreground); }
-  .inv-caps { list-style: none; margin: 0; padding: 0; }
-  .inv-cap { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-top: 1px solid var(--border); font-size: 0.88rem; }
-  .inv-cap:first-child { border-top: 0; }
-  .inv-pill { flex: none; padding: 2px 10px; border-radius: 999px; font-size: 0.74rem; font-weight: 700; }
-  .inv-pill--manage { background: color-mix(in srgb, var(--success) 14%, transparent); color: var(--success); }
-  .inv-pill--view { background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--primary); }
-  .inv-pill--none { background: var(--muted); color: var(--muted-foreground); font-weight: 600; }
+  .inv-rule { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 0.82rem; color: var(--muted-foreground); }
+  .inv-rule::before { content: ""; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--border); }
+  .inv-rule.is-ok { color: var(--success); }
+  .inv-rule.is-ok::before { background: var(--success); border-color: var(--success); box-shadow: inset 0 0 0 3px var(--card); }
+
+  .inv-roles { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .inv-role { position: relative; display: block; cursor: pointer; }
+  .inv-role input { position: absolute; opacity: 0; pointer-events: none; }
+  .inv-role__box { display: block; height: 100%; padding: 12px 14px 12px 42px; border: 1.5px solid var(--border); border-radius: var(--radius); background: var(--card); transition: var(--transition-fast); position: relative; }
+  .inv-role__box::before { content: ""; position: absolute; inset-inline-start: 14px; top: 15px; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid var(--border); }
+  .inv-role:hover .inv-role__box { border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); }
+  .inv-role input:checked + .inv-role__box { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 6%, var(--card)); }
+  .inv-role input:checked + .inv-role__box::before { background: var(--primary); border-color: var(--primary); box-shadow: inset 0 0 0 3px var(--card); }
+  .inv-role input:focus-visible + .inv-role__box { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .inv-role__name { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.95rem; }
+  .inv-role__tag { padding: 1px 8px; border-radius: 999px; background: var(--muted); color: var(--muted-foreground); font-size: 0.7rem; font-weight: 600; }
+  .inv-role__meta { display: block; margin-top: 3px; font-size: 0.82rem; color: var(--muted-foreground); }
+
+  .inv-layout > section .card-content { display: flex; flex-direction: column; height: 100%; }
+  .inv-layout > section form { margin-bottom: 26px; }
+  .inv-bar__body { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .inv-aside .card-content { display: flex; flex-direction: column; height: 100%; }
+  .inv-aside .inv-note { margin-top: auto; }
+  .inv-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .inv-actions .btn { min-width: 120px; justify-content: center; }
+  .inv-review { margin: 0; display: flex; flex-wrap: wrap; gap: 8px 36px; }
+  .inv-review > div { display: flex; flex-direction: column; gap: 2px; font-size: 0.9rem; min-width: 0; }
+  .inv-review dt { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-foreground); }
+  .inv-review dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+  .inv-review dd.is-todo { color: var(--muted-foreground); font-weight: 400; }
+
+  .inv-side__title { margin: 0 0 2px; font-size: 1rem; font-weight: 700; }
+  .inv-side__role { margin: 0 0 14px; font-size: 0.85rem; color: var(--muted-foreground); }
+  .inv-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+  .inv-stat { padding: 10px 6px; border-radius: var(--radius); text-align: center; background: var(--muted); }
+  .inv-stat b { display: block; font-size: 1.45rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .inv-stat span { display: block; margin-top: 3px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+  .inv-stat--manage { background: color-mix(in srgb, var(--success) 13%, transparent); color: var(--success); }
+  .inv-stat--view { background: color-mix(in srgb, var(--primary) 11%, transparent); color: var(--primary); }
+  .inv-stat--none { color: var(--muted-foreground); }
+  .inv-areas { list-style: none; margin: 0; padding: 0; }
+  .inv-area { display: flex; align-items: center; gap: 11px; padding: 8px 0; border-top: 1px solid var(--border); font-size: 0.9rem; }
+  .inv-area:first-child { border-top: 0; }
+  .inv-area__icon { flex: none; width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
+  .inv-area__name { flex: 1; min-width: 0; }
+  .inv-area__level { flex: none; font-size: 0.78rem; font-weight: 600; }
+  .inv-area--manage .inv-area__icon { background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }
+  .inv-area--manage .inv-area__level { color: var(--success); }
+  .inv-area--view .inv-area__icon { background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--primary); }
+  .inv-area--view .inv-area__level { color: var(--primary); }
+  .inv-area--none { color: var(--muted-foreground); }
+  .inv-area--none .inv-area__icon { background: var(--muted); color: var(--muted-foreground); }
+  .inv-area--none .inv-area__level { font-weight: 500; }
+  .inv-note { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--muted-foreground); }
+
   @media (max-width: 900px) { .inv-layout { grid-template-columns: minmax(0, 1fr); } }
   @media (max-width: 560px) {
     .inv-grid { grid-template-columns: minmax(0, 1fr); }
     .inv-pass { flex-wrap: wrap; }
     .inv-pass .form-input { flex: 1 1 100%; }
     .inv-pass .btn { flex: 1 1 0; }
+    .inv-actions { width: 100%; }
+    .inv-actions .btn { flex: 1 1 0; }
   }
 </style>
 {% endblock %}
@@ -52,16 +100,19 @@
       <div class="card-content hotels-panel__body">
         <form method="post" id="invite-form" autocomplete="off">
           {% csrf_token %}
-          <section class="inv-group">
-            <p class="inv-group__title">{% trans "Account" %}</p>
+
+          <div class="inv-section">
+            <h2 class="inv-step"><span class="inv-step__n">1</span>{% trans "Sign-in details" %}</h2>
             <div class="inv-grid">
               <div class="form-group">
                 <label class="form-label" for="username">{% trans "Username" %} *</label>
                 <input class="form-input" type="text" id="username" name="username" value="{{ form_data.username|default:'' }}" placeholder="{% trans 'e.g. ayesha.khan' %}" autocapitalize="none" required>
+                <p class="form-hint">{% trans "They will sign in with this." %}</p>
               </div>
               <div class="form-group">
                 <label class="form-label" for="email">{% trans "Email" %} <span class="inv-opt">({% trans "optional" %})</span></label>
                 <input class="form-input" type="email" id="email" name="email" value="{{ form_data.email|default:'' }}" placeholder="name@example.com">
+                <p class="form-hint">{% trans "For notifications and password resets." %}</p>
               </div>
             </div>
             <div class="form-group">
@@ -71,35 +122,48 @@
                 <button type="button" class="btn btn-outline" id="pw-toggle" aria-pressed="false">{% trans "Show" %}</button>
                 <button type="button" class="btn btn-outline" id="pw-generate">{% trans "Generate" %}</button>
               </div>
+              <span class="inv-rule" id="pw-rule">{% trans "At least 8 characters" %}</span>
               <p class="form-hint">{% trans "Share this temporary password with them directly." %}</p>
             </div>
-          </section>
-
-          <section class="inv-group">
-            <p class="inv-group__title">{% trans "Role" %}</p>
-            <div class="form-group">
-              <select class="form-select" id="role_id" name="role_id" aria-label="{% trans 'Role' %}" required>
-                {% for r in roles %}
-                <option value="{{ r.id }}" {% if form_data.role_id == r.id|stringformat:"s" %}selected{% endif %}>{{ r.name }}{% if r.is_template %} — {% trans "template" %}{% endif %}</option>
-                {% endfor %}
-              </select>
-              <p class="form-hint">{% trans "Need something different?" %} <a href="{% url 'member-roles' %}" class="text-primary">{% trans "Create a custom role" %}</a> {% trans "first." %}</p>
-            </div>
-          </section>
-
-          <div class="inv-actions">
-            <button type="submit" class="btn btn-primary" id="invite-submit">{% trans "Add teammate" %}</button>
-            <a href="{% url 'member-team' %}" class="btn btn-outline">{% trans "Cancel" %}</a>
           </div>
+
+          <div class="inv-section">
+            <h2 class="inv-step"><span class="inv-step__n">2</span>{% trans "Choose a role" %}</h2>
+            <div class="inv-roles" role="radiogroup" aria-label="{% trans 'Role' %}">
+              {% for r in roles %}
+              <label class="inv-role">
+                <input type="radio" name="role_id" value="{{ r.id }}" {% if form_data.role_id %}{% if form_data.role_id == r.id|stringformat:"s" %}checked{% endif %}{% elif forloop.last %}checked{% endif %} required>
+                <span class="inv-role__box">
+                  <span class="inv-role__name">{{ r.name|tr }}{% if r.is_template %}<span class="inv-role__tag">{% trans "template" %}</span>{% endif %}</span>
+                  <span class="inv-role__meta" data-role-meta="{{ r.id }}"></span>
+                </span>
+              </label>
+              {% endfor %}
+            </div>
+            <p class="form-hint" style="margin-top:12px;">{% trans "Need something different?" %} <a href="{% url 'member-roles' %}?new=1" class="text-primary">{% trans "Create a custom role" %}</a> {% trans "first." %}</p>
+          </div>
+
         </form>
+        <div class="inv-bar__body">
+          <dl class="inv-review">
+            <div><dt>{% trans "Username" %}</dt><dd id="rv-user">—</dd></div>
+            <div><dt>{% trans "Role" %}</dt><dd id="rv-role">—</dd></div>
+            <div><dt>{% trans "Password" %}</dt><dd id="rv-pass">—</dd></div>
+          </dl>
+          <div class="inv-actions">
+            <a href="{% url 'member-team' %}" class="btn btn-outline">{% trans "Cancel" %}</a>
+            <button type="submit" form="invite-form" class="btn btn-primary" id="invite-submit">{% trans "Add teammate" %}</button>
+          </div>
+        </div>
       </div>
     </section>
 
-    <aside class="card hotels-panel hotels-reveal" style="--d:140ms" aria-live="polite">
+    <aside class="card hotels-panel hotels-reveal inv-aside" style="--d:140ms" aria-live="polite">
       <div class="card-content hotels-panel__body">
         <h2 class="inv-side__title">{% trans "What this role can do" %}</h2>
         <p class="inv-side__role" id="inv-role-name"></p>
-        <ul class="inv-caps" id="inv-caps"></ul>
+        <div id="inv-caps"></div>
+        <p class="inv-note">{% trans "You can change their role later from the Team page." %}</p>
       </div>
     </aside>
   </div>
@@ -107,37 +171,84 @@
 {% endblock %}
 {% block extra_js %}
 {{ role_summary|json_script:"role-summary" }}
-{% trans "Search…" as t_se %}{% trans "No match" as t_nm %}{% trans "Show" as t_show %}{% trans "Hide" as t_hide %}
-{% trans "Manage" as t_manage %}{% trans "View only" as t_view %}{% trans "No access" as t_none %}
-<script>window.SELECT_MENU_I18N = { search: '{{ t_se|escapejs }}', none: '{{ t_nm|escapejs }}' };</script>
-<script src="{% static 'js/select-menu.js' %}"></script>
+{% trans "Manage" as t_manage %}{% trans "View only" as t_view %}{% trans "No access" as t_none %}{% trans "Show" as t_show %}{% trans "Hide" as t_hide %}{% trans "Set" as t_set %}
+{% trans "Full access" as t_full %}{% trans "Read only" as t_readonly %}
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
-  var T = { show: '{{ t_show|escapejs }}', hide: '{{ t_hide|escapejs }}', manage: '{{ t_manage|escapejs }}', view: '{{ t_view|escapejs }}', none: '{{ t_none|escapejs }}' };
+  var T = { show: '{{ t_show|escapejs }}', hide: '{{ t_hide|escapejs }}', set: '{{ t_set|escapejs }}', manage: '{{ t_manage|escapejs }}', view: '{{ t_view|escapejs }}', none: '{{ t_none|escapejs }}', full: '{{ t_full|escapejs }}', readonly: '{{ t_readonly|escapejs }}' };
   var SUMMARY = {};
   try { SUMMARY = JSON.parse($('role-summary').textContent); } catch (_) {}
+  var form = $('invite-form');
 
-  SelectMenu.init(document);
-
-  // What the chosen role can do
-  function renderRole() {
-    var s = SUMMARY[$('role_id').value], list = $('inv-caps');
-    list.innerHTML = '';
-    $('inv-role-name').textContent = s ? s.name : '';
-    (s ? s.caps : []).forEach(function (c) {
-      var li = document.createElement('li'), name = document.createElement('span'), pill = document.createElement('span');
-      li.className = 'inv-cap'; name.textContent = c.label;
-      pill.className = 'inv-pill inv-pill--' + c.level; pill.textContent = T[c.level];
-      li.appendChild(name); li.appendChild(pill); list.appendChild(li);
-    });
+  function groups(s) {
+    var g = { manage: [], view: [], none: [] };
+    (s ? s.caps : []).forEach(function (c) { g[c.level].push(c.label); });
+    return g;
   }
-  $('role_id').addEventListener('change', renderRole);
+
+  // One line under each role card: how much it can do
+  document.querySelectorAll('[data-role-meta]').forEach(function (el) {
+    var s = SUMMARY[el.getAttribute('data-role-meta')], g = groups(s), total = g.manage.length + g.view.length + g.none.length;
+    if (!s) return;
+    if (total && g.manage.length === total) el.textContent = T.full;
+    else if (total && g.view.length === total) el.textContent = T.readonly;
+    else {
+      var parts = [];
+      if (g.manage.length) parts.push(T.manage + ' ' + g.manage.length);
+      if (g.view.length) parts.push(T.view + ' ' + g.view.length);
+      if (g.none.length) parts.push(T.none + ' ' + g.none.length);
+      el.textContent = parts.join(' · ');
+    }
+  });
+
+  // Side panel: the chosen role, as counters plus one row per area
+  var ICON = {
+    manage: '<path d="M20 6 9 17l-5-5"/>',
+    view: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    none: '<line x1="5" y1="12" x2="19" y2="12"/>'
+  };
+  function selectedRole() { var r = form.querySelector('input[name="role_id"]:checked'); return r ? r.value : ''; }
+  function renderRole() {
+    var s = SUMMARY[selectedRole()], g = groups(s), box = $('inv-caps');
+    box.innerHTML = '';
+    $('inv-role-name').textContent = s ? s.name : '';
+    if (!s) return;
+    var stats = document.createElement('div'); stats.className = 'inv-stats';
+    [['manage', T.manage], ['view', T.view], ['none', T.none]].forEach(function (pair) {
+      var d = document.createElement('div'), n = document.createElement('b'), l = document.createElement('span');
+      d.className = 'inv-stat inv-stat--' + pair[0]; n.textContent = g[pair[0]].length; l.textContent = pair[1];
+      d.appendChild(n); d.appendChild(l); stats.appendChild(d);
+    });
+    var list = document.createElement('ul'); list.className = 'inv-areas';
+    s.caps.forEach(function (c) {
+      var li = document.createElement('li'), ic = document.createElement('span'), nm = document.createElement('span'), lv = document.createElement('span');
+      li.className = 'inv-area inv-area--' + c.level;
+      ic.className = 'inv-area__icon';
+      ic.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICON[c.level] + '</svg>';
+      nm.className = 'inv-area__name'; nm.textContent = c.label;
+      lv.className = 'inv-area__level'; lv.textContent = T[c.level];
+      li.appendChild(ic); li.appendChild(nm); li.appendChild(lv); list.appendChild(li);
+    });
+    box.appendChild(stats); box.appendChild(list);
+  }
+  function review() {
+    var u = $('username').value.trim(), s = SUMMARY[selectedRole()], pw = $('password').value;
+    function put(id, text, todo) { var el = $(id); el.textContent = text; el.classList.toggle('is-todo', !!todo); }
+    put('rv-user', u || '—', !u);
+    put('rv-role', s ? s.name : '—', !s);
+    put('rv-pass', pw.length >= 8 ? T.set : '—', pw.length < 8);
+  }
+  form.querySelectorAll('input[name="role_id"]').forEach(function (r) { r.addEventListener('change', function () { renderRole(); review(); }); });
+  $('username').addEventListener('input', review);
   renderRole();
 
-  // Password: hidden by default, can be shown or generated
+  // Password: hidden by default, can be shown or generated; the rule ticks once it is long enough
+  var pw = $('password');
+  function checkRule() { $('pw-rule').classList.toggle('is-ok', pw.value.length >= 8); review(); }
+  pw.addEventListener('input', checkRule);
   $('pw-toggle').addEventListener('click', function () {
-    var pw = $('password'), show = pw.type === 'password';
+    var show = pw.type === 'password';
     pw.type = show ? 'text' : 'password';
     this.textContent = show ? T.hide : T.show;
     this.setAttribute('aria-pressed', String(show));
@@ -146,15 +257,16 @@
     var chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789', out = '', buf = new Uint32Array(12);
     crypto.getRandomValues(buf);
     buf.forEach(function (n) { out += chars[n % chars.length]; });
-    var pw = $('password');
     pw.value = out;
     pw.type = 'text';  // so it can be read and shared
     $('pw-toggle').textContent = T.hide;
     $('pw-toggle').setAttribute('aria-pressed', 'true');
+    checkRule();
   });
+  review();
 
   // One click, one request: disable after the submit has started (setTimeout keeps the submit alive in Chrome).
-  $('invite-form').addEventListener('submit', function () {
+  form.addEventListener('submit', function () {
     var b = $('invite-submit');
     setTimeout(function () { b.disabled = true; }, 0);
   });

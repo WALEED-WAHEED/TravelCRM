@@ -135,6 +135,8 @@
             <td class="sh">
                 <div class="name">{% firstof branding.shirka_company_name "Shirka" %}</div>
                 {% if branding.shirka_company_country %}<div class="line"><b>{{ branding.shirka_company_country|upper }}</b></div>{% endif %}
+                {% if branding.shirka_company_address %}<div class="line">{{ branding.shirka_company_address|linebreaksbr }}</div>{% endif %}
+                {% if branding.shirka_company_phone %}<div class="line">{{ branding.shirka_company_phone }}</div>{% endif %}
                 {% if branding.shirka_company_whatsapp %}<div class="line"><b>{{ branding.shirka_company_whatsapp }}</b></div>{% endif %}
             </td>
         </tr>

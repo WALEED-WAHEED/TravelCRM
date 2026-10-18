@@ -9159,3 +9159,1383 @@ msgstr "یہ عارضی پاس ورڈ انہیں براہ راست دیں۔"
 
 msgid "e.g. ayesha.khan"
 msgstr "مثلاً ayesha.khan"
+
+msgid "Departure baggage"
+msgstr "روانگی کا سامان"
+
+msgid "Return baggage"
+msgstr "واپسی کا سامان"
+
+msgid "Add your own, e.g. Local ziyarat by bus"
+msgstr "اپنا اضافہ کریں، مثلاً بس سے مقامی زیارت"
+
+msgid "Add your own inclusion"
+msgstr "اپنی شامل چیز اضافہ کریں"
+
+msgid "Sign-in details"
+msgstr "سائن اِن کی تفصیلات"
+
+msgid "They will sign in with this."
+msgstr "وہ اسی سے سائن اِن کریں گے۔"
+
+msgid "For notifications and password resets."
+msgstr "اطلاعات اور پاس ورڈ ری سیٹ کے لیے۔"
+
+msgid "Choose a role"
+msgstr "کردار منتخب کریں"
+
+msgid "Full access"
+msgstr "مکمل رسائی"
+
+msgid "Read only"
+msgstr "صرف پڑھنا"
+
+msgid "You can change their role later from the Team page."
+msgstr "آپ ان کا کردار بعد میں ٹیم کے صفحے سے بدل سکتے ہیں۔"
+
+msgid "Teammate"
+msgstr "ساتھی"
+
+msgid "Last sign-in"
+msgstr "آخری سائن اِن"
+
+msgid "Never"
+msgstr "کبھی نہیں"
+
+msgid "Reactivate"
+msgstr "دوبارہ فعال کریں"
+
+msgid "Teammates"
+msgstr "ساتھی"
+
+msgid "Has bookings: deactivate instead"
+msgstr "بکنگز موجود ہیں: غیر فعال کریں"
+
+msgid "Still assigned to teammates"
+msgstr "ابھی ساتھیوں کو تفویض ہے"
+
+msgid "%(username)s is active again."
+msgstr "%(username)s دوبارہ فعال ہے۔"
+
+msgid "You can't delete your own account."
+msgstr "آپ اپنا اکاؤنٹ حذف نہیں کر سکتے۔"
+
+msgid "%(username)s has been deleted."
+msgstr "%(username)s حذف کر دیا گیا۔"
+
+msgid ""
+"%(username)s has bookings, payments or vouchers on record, so they can't be "
+"deleted. Deactivate them instead — they lose access and the history is kept."
+msgstr ""
+"%(username)s کی بکنگز، ادائیگیاں یا واؤچرز ریکارڈ میں ہیں، اس لیے حذف نہیں "
+"ہو سکتے۔ اس کے بجائے غیر فعال کریں — رسائی ختم ہو جاتی ہے اور ریکارڈ محفوظ "
+"رہتا ہے۔"
+
+msgid ""
+"“%(role)s” is still assigned to %(n)s teammate(s). Move them to another role"
+" first."
+msgstr ""
+"“%(role)s” ابھی %(n)s ساتھی(یوں) کو تفویض ہے۔ پہلے انہیں دوسرے کردار میں "
+"منتقل کریں۔"
+
+msgid "Role “%(role)s” has been deleted."
+msgstr "کردار “%(role)s” حذف کر دیا گیا۔"
+
+msgid "%(n)s active teammate"
+msgid_plural "%(n)s active teammates"
+msgstr[0] "%(n)s فعال ساتھی"
+msgstr[1] "%(n)s فعال ساتھی"
+
+msgid "Reset to default?"
+msgstr "ڈیفالٹ پر واپس لائیں؟"
+
+msgid "Delete this role?"
+msgstr "یہ کردار حذف کریں؟"
+
+msgid "Customized"
+msgstr "حسب ضرورت تبدیل شدہ"
+
+msgid "Custom"
+msgstr "اپنا بنایا ہوا"
+
+msgid "Reset to default"
+msgstr "ڈیفالٹ پر واپس لائیں"
+
+msgid "Customize this role"
+msgstr "اس کردار میں تبدیلی کریں"
+
+msgid "Default role — read-only until you customize it."
+msgstr "ڈیفالٹ کردار — تبدیلی سے پہلے صرف پڑھنے کے لیے۔"
+
+msgid ""
+"%(username)s has been removed from the team. Their bookings, payments and "
+"vouchers are kept."
+msgstr ""
+"%(username)s کو ٹیم سے ہٹا دیا گیا۔ ان کی بکنگز، ادائیگیاں اور واؤچرز محفوظ "
+"ہیں۔"
+
+msgid ""
+"The username '%(username)s' belonged to a teammate who was removed. Choose a"
+" different one."
+msgstr "یوزر نیم '%(username)s' ہٹائے گئے ساتھی کا تھا۔ کوئی اور منتخب کریں۔"
+
+msgid "Use Customize to edit this role."
+msgstr "اس کردار میں تبدیلی کے لیے 'تبدیل کریں' استعمال کریں۔"
+
+msgid "You can't remove your own access to Team & roles."
+msgstr "آپ ٹیم اور کردار تک اپنی رسائی ختم نہیں کر سکتے۔"
+
+msgid "“%(role)s” is back to its default permissions."
+msgstr "“%(role)s” ڈیفالٹ اجازتوں پر واپس آ گیا۔"
+
+msgid "Only the standard roles can be reset to their default."
+msgstr "صرف معیاری کرداروں کو ڈیفالٹ پر لایا جا سکتا ہے۔"
+
+msgid "Add role"
+msgstr "کردار شامل کریں"
+
+msgid "Role name"
+msgstr "کردار کا نام"
+
+msgid "Start from"
+msgstr "اس سے شروع کریں"
+
+msgid "Nothing selected"
+msgstr "کچھ منتخب نہیں"
+
+msgid "Area"
+msgstr "حصہ"
+
+msgid "View everything"
+msgstr "سب کچھ دیکھنے دیں"
+
+msgid "Clear all"
+msgstr "سب صاف کریں"
+
+msgid "Save role"
+msgstr "کردار محفوظ کریں"
+
+msgid "Choose what people with this role can see and do."
+msgstr "منتخب کریں کہ اس کردار والے لوگ کیا دیکھ اور کر سکتے ہیں۔"
+
+msgid "e.g. Accountant"
+msgstr "مثلاً اکاؤنٹنٹ"
+
+msgid "Access"
+msgstr "رسائی"
+
+msgid "No roles yet"
+msgstr "ابھی کوئی کردار نہیں"
+
+msgid "Give the role a name."
+msgstr "کردار کو نام دیں۔"
+
+msgid "You already have a role called “%(role)s”."
+msgstr "آپ کا “%(role)s” نام کا کردار پہلے سے موجود ہے۔"
+
+msgid "Saved the role “%(role)s”."
+msgstr "کردار “%(role)s” محفوظ ہو گیا۔"
+
+msgid "You can't delete the role you are using yourself."
+msgstr "آپ وہ کردار حذف نہیں کر سکتے جو آپ خود استعمال کر رہے ہیں۔"
+
+msgid "Keep at least one role."
+msgstr "کم از کم ایک کردار رکھیں۔"
+
+msgid "Ready to add"
+msgstr "شامل کرنے کے لیے تیار"
+
+msgid "Set"
+msgstr "مقرر"
+
+msgid "Free"
+msgstr "مفت"
+
+msgid "Trial ends"
+msgstr "آزمائش ختم"
+
+msgid "Renews on"
+msgstr "تجدید کی تاریخ"
+
+msgid "No end date"
+msgstr "کوئی اختتامی تاریخ نہیں"
+
+msgid "Bookings per month"
+msgstr "ماہانہ بکنگز"
+
+msgid "No seat limit on this plan"
+msgstr "اس پلان میں سیٹ کی کوئی حد نہیں"
+
+msgid "No booking limit on this plan"
+msgstr "اس پلان میں بکنگ کی کوئی حد نہیں"
+
+msgid "Choose a plan"
+msgstr "پلان منتخب کریں"
+
+msgid "Unlimited staff seats"
+msgstr "لامحدود اسٹاف سیٹس"
+
+msgid "Your current plan"
+msgstr "آپ کا موجودہ پلان"
+
+msgid "Upgrade to this plan"
+msgstr "اس پلان پر اپ گریڈ کریں"
+
+msgid "Choose this plan"
+msgstr "یہ پلان منتخب کریں"
+
+msgid "Features"
+msgstr "خصوصیات"
+
+msgid "Badge"
+msgstr "بیج"
+
+msgid ""
+"Shown as a checklist on the plan card, after the seat and booking limits."
+msgstr ""
+"پلان کارڈ پر سیٹ اور بکنگ کی حد کے بعد فہرست کے طور پر دکھایا جاتا ہے۔"
+
+msgid "Highlight on billing page"
+msgstr "بلنگ صفحے پر نمایاں کریں"
+
+msgid "Featured"
+msgstr "نمایاں"
+
+msgid "My profile"
+msgstr "میری پروفائل"
+
+msgid "Personal details"
+msgstr "ذاتی تفصیلات"
+
+msgid "Your name and contact details, as your team sees them."
+msgstr "آپ کا نام اور رابطے کی تفصیلات، جیسے آپ کی ٹیم دیکھتی ہے۔"
+
+msgid "First name"
+msgstr "پہلا نام"
+
+msgid "Last name"
+msgstr "آخری نام"
+
+msgid "Save details"
+msgstr "تفصیلات محفوظ کریں"
+
+msgid "Upload photo"
+msgstr "تصویر اپ لوڈ کریں"
+
+msgid "Change photo"
+msgstr "تصویر تبدیل کریں"
+
+msgid "Remove photo"
+msgstr "تصویر ہٹائیں"
+
+msgid "JPG, PNG or WebP, up to 5 MB. It is cropped to a square."
+msgstr "JPG، PNG یا WebP، زیادہ سے زیادہ 5 MB۔ یہ مربع میں کاٹی جاتی ہے۔"
+
+msgid "Member since"
+msgstr "رکنیت کی تاریخ"
+
+msgid ""
+"The whole application is shown in this language, on every device you sign in"
+" from. Arabic and Urdu switch the layout to right-to-left."
+msgstr ""
+"پوری ایپلیکیشن اسی زبان میں دکھائی جاتی ہے، ہر اس ڈیوائس پر جہاں آپ سائن اِن"
+" کرتے ہیں۔ عربی اور اردو لے آؤٹ کو دائیں سے بائیں کر دیتی ہیں۔"
+
+msgid "Confirm new password"
+msgstr "نیا پاس ورڈ دوبارہ لکھیں"
+
+msgid ""
+"Use at least 8 characters. You stay signed in on this device after changing "
+"it."
+msgstr ""
+"کم از کم 8 حروف رکھیں۔ تبدیلی کے بعد آپ اس ڈیوائس پر سائن اِن رہیں گے۔"
+
+msgid "Profile updated."
+msgstr "پروفائل اپ ڈیٹ ہو گئی۔"
+
+msgid "Profile picture updated."
+msgstr "پروفائل تصویر اپ ڈیٹ ہو گئی۔"
+
+msgid "Profile picture removed."
+msgstr "پروفائل تصویر ہٹا دی گئی۔"
+
+msgid "Choose a picture first."
+msgstr "پہلے تصویر منتخب کریں۔"
+
+msgid "That picture is too large (5 MB at most)."
+msgstr "یہ تصویر بہت بڑی ہے (زیادہ سے زیادہ 5 MB)۔"
+
+msgid "That file isn't a valid picture. Use a JPG, PNG or WebP image."
+msgstr "یہ فائل درست تصویر نہیں۔ JPG، PNG یا WebP استعمال کریں۔"
+
+msgid "Your current password is wrong."
+msgstr "آپ کا موجودہ پاس ورڈ غلط ہے۔"
+
+msgid "The new passwords don't match."
+msgstr "نئے پاس ورڈ مماثل نہیں۔"
+
+msgid "Password changed."
+msgstr "پاس ورڈ تبدیل ہو گیا۔"
+
+msgid "e.g. Ayesha"
+msgstr "مثلاً عائشہ"
+
+msgid "e.g. Khan"
+msgstr "مثلاً خان"
+
+msgid "You sign in with this."
+msgstr "آپ اسی سے سائن اِن کرتے ہیں۔"
+
+msgid ""
+"Shown on every device you sign in from. Arabic and Urdu switch the layout to"
+" right-to-left."
+msgstr ""
+"ہر اس ڈیوائس پر دکھائی جاتی ہے جہاں آپ سائن اِن کرتے ہیں۔ عربی اور اردو لے "
+"آؤٹ کو دائیں سے بائیں کر دیتی ہیں۔"
+
+msgid "You stay signed in on this device after changing it."
+msgstr "تبدیلی کے بعد آپ اس ڈیوائس پر سائن اِن رہیں گے۔"
+
+msgid "What your account is set up as."
+msgstr "آپ کا اکاؤنٹ کس طرح ترتیب دیا گیا ہے۔"
+
+msgid "Too short"
+msgstr "بہت چھوٹا"
+
+msgid "Weak"
+msgstr "کمزور"
+
+msgid "Good"
+msgstr "اچھا"
+
+msgid "Strong"
+msgstr "مضبوط"
+
+msgid "Passwords match"
+msgstr "پاس ورڈ مماثل ہیں"
+
+msgid "Passwords don't match yet"
+msgstr "پاس ورڈ ابھی مماثل نہیں"
+
+msgid "Owner"
+msgstr "مالک"
+
+msgid "Manager"
+msgstr "مینیجر"
+
+msgid "Read-only"
+msgstr "صرف پڑھنے والا"
+
+msgid "English"
+msgstr "انگریزی"
+
+msgid "Urdu"
+msgstr "اردو"
+
+msgid "Arabic"
+msgstr "عربی"
+
+msgid "Hindi"
+msgstr "ہندی"
+
+msgid "Spanish"
+msgstr "ہسپانوی"
+
+msgid "French"
+msgstr "فرانسیسی"
+
+msgid "German"
+msgstr "جرمن"
+
+msgid "Absent after"
+msgstr "اس کے بعد غیر حاضر"
+
+msgid "Admin cancellation"
+msgstr "ایڈمن منسوخی"
+
+msgid "Admin new booking"
+msgstr "ایڈمن نئی بکنگ"
+
+msgid "Admin payment received"
+msgstr "ایڈمن ادائیگی وصول"
+
+msgid "Agency branding"
+msgstr "ایجنسی برانڈنگ"
+
+msgid "Alternate phone"
+msgstr "متبادل فون"
+
+msgid "Amenities"
+msgstr "سہولیات"
+
+msgid "Announcement"
+msgstr "اعلان"
+
+msgid "Api key"
+msgstr "API کلید"
+
+msgid "Api secret"
+msgstr "API خفیہ کوڈ"
+
+msgid "Approved at"
+msgstr "منظوری کا وقت"
+
+msgid "Approved by"
+msgstr "منظور کنندہ"
+
+msgid "Arguments"
+msgstr "دلائل"
+
+msgid "Arrival airport"
+msgstr "آمد کا ہوائی اڈہ"
+
+msgid "Arrival at"
+msgstr "آمد کا وقت"
+
+msgid "Arrival city"
+msgstr "آمد کا شہر"
+
+msgid "Arrival country"
+msgstr "آمد کا ملک"
+
+msgid "Attendance Device"
+msgstr "حاضری ڈیوائس"
+
+msgid "Attendance admin password hash"
+msgstr "حاضری ایڈمن پاس ورڈ ہیش"
+
+msgid "Attendance admin user"
+msgstr "حاضری ایڈمن صارف"
+
+msgid "Attendance correction"
+msgstr "حاضری کی درستی"
+
+msgid "Attendance log"
+msgstr "حاضری لاگ"
+
+msgid "Author"
+msgstr "مصنف"
+
+msgid "Available rooms"
+msgstr "دستیاب کمرے"
+
+msgid "Available seats"
+msgstr "دستیاب نشستیں"
+
+msgid "Avatar"
+msgstr "پروفائل تصویر"
+
+msgid "Baggage allowance"
+msgstr "سامان کی حد"
+
+msgid "Body"
+msgstr "متن"
+
+msgid "Booking Cancelled"
+msgstr "بکنگ منسوخ"
+
+msgid "Booking Confirmation"
+msgstr "بکنگ کی تصدیق"
+
+msgid "Booking confirmation template"
+msgstr "بکنگ تصدیق ٹیمپلیٹ"
+
+msgid "Booking contact"
+msgstr "بکنگ رابطہ"
+
+msgid "Booking contact instruction"
+msgstr "بکنگ رابطہ ہدایت"
+
+msgid "Booking flight"
+msgstr "بکنگ پرواز"
+
+msgid "Booking hotel"
+msgstr "بکنگ ہوٹل"
+
+msgid "Booking mutamer"
+msgstr "بکنگ معتمر"
+
+msgid "Booking note"
+msgstr "بکنگ نوٹ"
+
+msgid "Booking payment"
+msgstr "بکنگ ادائیگی"
+
+msgid "Booking team contact"
+msgstr "بکنگ ٹیم رابطہ"
+
+msgid "Booking transport"
+msgstr "بکنگ ٹرانسپورٹ"
+
+msgid "Caption"
+msgstr "عنوان"
+
+msgid "Chat message"
+msgstr "چیٹ پیغام"
+
+msgid "Chat session"
+msgstr "چیٹ سیشن"
+
+msgid "Check in at"
+msgstr "چیک اِن کا وقت"
+
+msgid "Check in meta"
+msgstr "چیک اِن کی تفصیل"
+
+msgid "Check in time"
+msgstr "چیک اِن کا وقت"
+
+msgid "Check out at"
+msgstr "چیک آؤٹ کا وقت"
+
+msgid "Check out meta"
+msgstr "چیک آؤٹ کی تفصیل"
+
+msgid "Check out time"
+msgstr "چیک آؤٹ کا وقت"
+
+msgid "Client whatsapp"
+msgstr "کلائنٹ واٹس ایپ"
+
+msgid "Confirmation number"
+msgstr "تصدیقی نمبر"
+
+msgid "Confirmed at"
+msgstr "تصدیق کا وقت"
+
+msgid "Confirmed by"
+msgstr "تصدیق کنندہ"
+
+msgid "Contact instruction"
+msgstr "رابطہ ہدایت"
+
+msgid "Contact type"
+msgstr "رابطے کی قسم"
+
+msgid "Content"
+msgstr "مواد"
+
+msgid "Cost price"
+msgstr "لاگت کی قیمت"
+
+msgid "Counterparty name"
+msgstr "دوسرے فریق کا نام"
+
+msgid "Counterparty type"
+msgstr "دوسرے فریق کی قسم"
+
+msgid "Created at"
+msgstr "بنانے کا وقت"
+
+msgid "Current period end"
+msgstr "موجودہ مدت کا اختتام"
+
+msgid "Current sequence"
+msgstr "موجودہ ترتیب"
+
+msgid "Custom css"
+msgstr "اپنی CSS"
+
+msgid "Custom fields"
+msgstr "اپنے فیلڈز"
+
+msgid "Custom role"
+msgstr "اپنا کردار"
+
+msgid "Customer"
+msgstr "گاہک"
+
+msgid "Date joined"
+msgstr "شمولیت کی تاریخ"
+
+msgid "Decided at"
+msgstr "فیصلے کا وقت"
+
+msgid "Decided by"
+msgstr "فیصلہ کرنے والا"
+
+msgid "Default currency"
+msgstr "ڈیفالٹ کرنسی"
+
+msgid "Delayed"
+msgstr "تاخیر سے"
+
+msgid "Deleted at"
+msgstr "حذف کا وقت"
+
+msgid "Departure airport"
+msgstr "روانگی کا ہوائی اڈہ"
+
+msgid "Departure at"
+msgstr "روانگی کا وقت"
+
+msgid "Departure city"
+msgstr "روانگی کا شہر"
+
+msgid "Departure country"
+msgstr "روانگی کا ملک"
+
+msgid "Direction"
+msgstr "سمت"
+
+msgid "Email Provider"
+msgstr "ای میل فراہم کنندہ"
+
+msgid "Email booking cancelled"
+msgstr "ای میل: بکنگ منسوخ"
+
+msgid "Email booking confirmation"
+msgstr "ای میل: بکنگ کی تصدیق"
+
+msgid "Email daily summary"
+msgstr "ای میل: روزانہ خلاصہ"
+
+msgid "Email payment received"
+msgstr "ای میل: ادائیگی وصول"
+
+msgid "Email template"
+msgstr "ای میل ٹیمپلیٹ"
+
+msgid "Email voucher generated"
+msgstr "ای میل: واؤچر تیار"
+
+msgid "Email weekly report"
+msgstr "ای میل: ہفتہ وار رپورٹ"
+
+msgid "Ended at"
+msgstr "اختتام کا وقت"
+
+msgid "Endpoint url"
+msgstr "اینڈ پوائنٹ URL"
+
+msgid "Ends at"
+msgstr "ختم ہونے کا وقت"
+
+msgid "Event type"
+msgstr "واقعے کی قسم"
+
+msgid "Executed"
+msgstr "عمل ہو گیا"
+
+msgid "Exempt staff"
+msgstr "مستثنیٰ عملہ"
+
+msgid "Extra services"
+msgstr "اضافی خدمات"
+
+msgid "Favicon"
+msgstr "فیویکن"
+
+msgid "Flight class"
+msgstr "پرواز کی کلاس"
+
+msgid "Flight segment"
+msgstr "پرواز کا حصہ"
+
+msgid "Flight type"
+msgstr "پرواز کی قسم"
+
+msgid "Fx amount"
+msgstr "غیر ملکی رقم"
+
+msgid "Fx currency"
+msgstr "غیر ملکی کرنسی"
+
+msgid "Group number"
+msgstr "گروپ نمبر"
+
+msgid "Groups"
+msgstr "گروپس"
+
+msgid "Hotel image"
+msgstr "ہوٹل کی تصویر"
+
+msgid "Hotel room"
+msgstr "ہوٹل کا کمرہ"
+
+msgid "Html content"
+msgstr "HTML مواد"
+
+msgid "Idempotency key"
+msgstr "یکتا درخواست کلید"
+
+msgid "Image"
+msgstr "تصویر"
+
+msgid "Impersonation session"
+msgstr "نمائندگی سیشن"
+
+msgid "Inclusions"
+msgstr "شامل چیزیں"
+
+msgid "Inv ref"
+msgstr "انوائس حوالہ"
+
+msgid "Ip address"
+msgstr "IP ایڈریس"
+
+msgid "Is active"
+msgstr "فعال ہے"
+
+msgid "Is default"
+msgstr "ڈیفالٹ ہے"
+
+msgid "Is default trial"
+msgstr "ڈیفالٹ آزمائشی ہے"
+
+msgid "Is featured"
+msgstr "نمایاں ہے"
+
+msgid "Is primary"
+msgstr "بنیادی ہے"
+
+msgid "Is template"
+msgstr "ٹیمپلیٹ ہے"
+
+msgid "Key type"
+msgstr "کلید کی قسم"
+
+msgid "Kiosk token"
+msgstr "کیوسک ٹوکن"
+
+msgid "Last login"
+msgstr "آخری لاگ اِن"
+
+msgid "Late after minutes"
+msgstr "اتنے منٹ بعد لیٹ"
+
+msgid "Ledger entry"
+msgstr "لیجر اندراج"
+
+msgid "Madina distance"
+msgstr "مدینہ فاصلہ"
+
+msgid "Madina nights"
+msgstr "مدینہ راتیں"
+
+msgid "Madina shuttle"
+msgstr "مدینہ شٹل"
+
+msgid "Makkah Team"
+msgstr "مکہ ٹیم"
+
+msgid "Makkah distance"
+msgstr "مکہ فاصلہ"
+
+msgid "Makkah nights"
+msgstr "مکہ راتیں"
+
+msgid "Makkah shuttle"
+msgstr "مکہ شٹل"
+
+msgid "Manual number"
+msgstr "دستی نمبر"
+
+msgid "Map Service"
+msgstr "نقشہ سروس"
+
+msgid "Max accuracy m"
+msgstr "زیادہ سے زیادہ درستگی (م)"
+
+msgid "Max bookings per month"
+msgstr "ماہانہ زیادہ سے زیادہ بکنگز"
+
+msgid "Max seats"
+msgstr "زیادہ سے زیادہ سیٹس"
+
+msgid "Meal included"
+msgstr "کھانا شامل"
+
+msgid "Meal plan"
+msgstr "کھانے کا منصوبہ"
+
+msgid "Medina Team"
+msgstr "مدینہ ٹیم"
+
+msgid "Model name"
+msgstr "ماڈل کا نام"
+
+msgid "Mofa number"
+msgstr "مفا نمبر"
+
+msgid "Multi-City"
+msgstr "متعدد شہر"
+
+msgid "Mutamer email"
+msgstr "معتمر ای میل"
+
+msgid "Mutamer gender"
+msgstr "معتمر کی جنس"
+
+msgid "Mutamer nationality"
+msgstr "معتمر کی قومیت"
+
+msgid "Mutamer passport number"
+msgstr "معتمر پاسپورٹ نمبر"
+
+msgid "Mutamer phone"
+msgstr "معتمر فون"
+
+msgid "Mutamer visa number"
+msgstr "معتمر ویزا نمبر"
+
+msgid "Notification delivery log"
+msgstr "اطلاع ترسیل لاگ"
+
+msgid "Object id"
+msgstr "آبجیکٹ ID"
+
+msgid "Object repr"
+msgstr "آبجیکٹ کا نام"
+
+msgid "Office ips"
+msgstr "دفتر کے IP"
+
+msgid "Office lat"
+msgstr "دفتر عرض البلد"
+
+msgid "Office lng"
+msgstr "دفتر طول البلد"
+
+msgid "One Way"
+msgstr "ایک طرفہ"
+
+msgid "Paid amount"
+msgstr "ادا شدہ رقم"
+
+msgid "Paid at"
+msgstr "ادائیگی کا وقت"
+
+msgid "Paid by"
+msgstr "ادا کرنے والا"
+
+msgid "Partner"
+msgstr "شراکت دار"
+
+msgid "Password Reset"
+msgstr "پاس ورڈ ری سیٹ"
+
+msgid "Pax"
+msgstr "مسافر"
+
+msgid "Pax adults"
+msgstr "بالغ مسافر"
+
+msgid "Pax children"
+msgstr "بچے"
+
+msgid "Pax infants"
+msgstr "شیر خوار"
+
+msgid "Pax type"
+msgstr "مسافر کی قسم"
+
+msgid "Payment Gateway"
+msgstr "ادائیگی گیٹ وے"
+
+msgid "Payment Receipt"
+msgstr "ادائیگی کی رسید"
+
+msgid "Payment receipt template"
+msgstr "ادائیگی رسید ٹیمپلیٹ"
+
+msgid "Payment record"
+msgstr "ادائیگی ریکارڈ"
+
+msgid "Pending action"
+msgstr "زیر التوا عمل"
+
+msgid "Permission"
+msgstr "اجازت"
+
+msgid "Permissions"
+msgstr "اجازتیں"
+
+msgid "Person name"
+msgstr "شخص کا نام"
+
+msgid "Pnr"
+msgstr "PNR"
+
+msgid "Pnr number"
+msgstr "PNR نمبر"
+
+msgid "Preferred language"
+msgstr "پسندیدہ زبان"
+
+msgid "Price amount"
+msgstr "قیمت کی رقم"
+
+msgid "Price child"
+msgstr "بچے کی قیمت"
+
+msgid "Price double"
+msgstr "ڈبل کی قیمت"
+
+msgid "Price infant"
+msgstr "شیر خوار کی قیمت"
+
+msgid "Price per night"
+msgstr "قیمت فی رات"
+
+msgid "Price quad"
+msgstr "کواڈ کی قیمت"
+
+msgid "Price quint"
+msgstr "کوئنٹ کی قیمت"
+
+msgid "Price sharing"
+msgstr "شیئرنگ کی قیمت"
+
+msgid "Price triple"
+msgstr "ٹرپل کی قیمت"
+
+msgid "Product name"
+msgstr "پروڈکٹ کا نام"
+
+msgid "Public token"
+msgstr "عوامی ٹوکن"
+
+msgid "Purchase price"
+msgstr "خریداری کی قیمت"
+
+msgid "Quantity"
+msgstr "مقدار"
+
+msgid "Radius m"
+msgstr "دائرہ (م)"
+
+msgid "Reference number"
+msgstr "حوالہ نمبر"
+
+msgid "Rejection reason"
+msgstr "مسترد کرنے کی وجہ"
+
+msgid "Reminder sent at"
+msgstr "یاد دہانی بھیجنے کا وقت"
+
+msgid "Requested check in"
+msgstr "مطلوبہ چیک اِن"
+
+msgid "Requested check out"
+msgstr "مطلوبہ چیک آؤٹ"
+
+msgid "Requested status"
+msgstr "مطلوبہ حیثیت"
+
+msgid "Require location"
+msgstr "مقام لازمی"
+
+msgid "Require network"
+msgstr "نیٹ ورک لازمی"
+
+msgid "Require qr"
+msgstr "QR لازمی"
+
+msgid "Resolved at"
+msgstr "حل کا وقت"
+
+msgid "Result"
+msgstr "نتیجہ"
+
+msgid "Return date"
+msgstr "واپسی کی تاریخ"
+
+msgid "Review note"
+msgstr "جائزہ نوٹ"
+
+msgid "Reviewed at"
+msgstr "جائزے کا وقت"
+
+msgid "Reviewed by"
+msgstr "جائزہ لینے والا"
+
+msgid "Role label"
+msgstr "کردار کا لیبل"
+
+msgid "Roles seeded"
+msgstr "کردار تیار شدہ"
+
+msgid "Sale price"
+msgstr "فروخت کی قیمت"
+
+msgid "Segment number"
+msgstr "حصہ نمبر"
+
+msgid "Sequence"
+msgstr "ترتیب"
+
+msgid "Service name"
+msgstr "خدمت کا نام"
+
+msgid "Service type"
+msgstr "خدمت کی قسم"
+
+msgid "Session"
+msgstr "سیشن"
+
+msgid "Shirka company whatsapp"
+msgstr "شرکہ کمپنی واٹس ایپ"
+
+msgid "Slogan"
+msgstr "نعرہ"
+
+msgid "Sms booking confirmation"
+msgstr "SMS: بکنگ کی تصدیق"
+
+msgid "Sms payment received"
+msgstr "SMS: ادائیگی وصول"
+
+msgid "Sms voucher generated"
+msgstr "SMS: واؤچر تیار"
+
+msgid "SMS Provider"
+msgstr "SMS فراہم کنندہ"
+
+msgid "Social facebook"
+msgstr "فیس بک"
+
+msgid "Social instagram"
+msgstr "انسٹاگرام"
+
+msgid "Social linkedin"
+msgstr "لنکڈ اِن"
+
+msgid "Social media links"
+msgstr "سوشل میڈیا لنکس"
+
+msgid "Social twitter"
+msgstr "ٹویٹر"
+
+msgid "Source"
+msgstr "ماخذ"
+
+msgid "Staff status"
+msgstr "عملے کی حیثیت"
+
+msgid "Started at"
+msgstr "آغاز کا وقت"
+
+msgid "Starts at"
+msgstr "شروع ہونے کا وقت"
+
+msgid "Submitted at"
+msgstr "جمع کرانے کا وقت"
+
+msgid "Submitted by"
+msgstr "جمع کرنے والا"
+
+msgid "Suite"
+msgstr "سوئٹ"
+
+msgid "Super admin"
+msgstr "سپر ایڈمن"
+
+msgid "Superuser status"
+msgstr "سپر یوزر کی حیثیت"
+
+msgid "Supplier payment"
+msgstr "سپلائر ادائیگی"
+
+msgid "Suspended at"
+msgstr "معطل کرنے کا وقت"
+
+msgid "Suspended by"
+msgstr "معطل کرنے والا"
+
+msgid "Suspended reason"
+msgstr "معطلی کی وجہ"
+
+msgid "Target agencies"
+msgstr "ہدف ایجنسیاں"
+
+msgid "Target agency"
+msgstr "ہدف ایجنسی"
+
+msgid "Template type"
+msgstr "ٹیمپلیٹ کی قسم"
+
+msgid "Text"
+msgstr "متن"
+
+msgid "Text content"
+msgstr "متنی مواد"
+
+msgid "Time zone"
+msgstr "ٹائم زون"
+
+msgid "Timestamp"
+msgstr "وقت کی مہر"
+
+msgid "Tool name"
+msgstr "ٹول کا نام"
+
+msgid "Tool payload"
+msgstr "ٹول ڈیٹا"
+
+msgid "Tool result"
+msgstr "ٹول کا نتیجہ"
+
+msgid "Total price"
+msgstr "کل قیمت"
+
+msgid "Total seats"
+msgstr "کل نشستیں"
+
+msgid "Trans no"
+msgstr "ٹرانزیکشن نمبر"
+
+msgid "Transaction date"
+msgstr "ٹرانزیکشن کی تاریخ"
+
+msgid "Transaction id"
+msgstr "ٹرانزیکشن ID"
+
+msgid "Transaction type"
+msgstr "ٹرانزیکشن کی قسم"
+
+msgid "Transport type"
+msgstr "ٹرانسپورٹ کی قسم"
+
+msgid "Trial days"
+msgstr "آزمائشی دن"
+
+msgid "Trial ends at"
+msgstr "آزمائش ختم ہونے کا وقت"
+
+msgid "Trial warning sent at"
+msgstr "آزمائش کی وارننگ بھیجنے کا وقت"
+
+msgid "Updated at"
+msgstr "تازہ کاری کا وقت"
+
+msgid "User agent"
+msgstr "براؤزر کی معلومات"
+
+msgid "User permissions"
+msgstr "صارف کی اجازتیں"
+
+msgid "Variables"
+msgstr "متغیرات"
+
+msgid "Vendor"
+msgstr "وینڈر"
+
+msgid "Voucher Generated"
+msgstr "واؤچر تیار"
+
+msgid "Voucher instruction"
+msgstr "واؤچر ہدایت"
+
+msgid "Voucher number"
+msgstr "واؤچر نمبر"
+
+msgid "Voucher sequence"
+msgstr "واؤچر ترتیب"
+
+msgid "Voucher service"
+msgstr "واؤچر خدمت"
+
+msgid "Voucher template"
+msgstr "واؤچر ٹیمپلیٹ"
+
+msgid "Website"
+msgstr "ویب سائٹ"
+
+msgid "Welcome Email"
+msgstr "خوش آمدید ای میل"
+
+msgid "Work days"
+msgstr "کام کے دن"
+
+msgid "Work hours"
+msgstr "کام کے اوقات"
+
+msgid "Workday end"
+msgstr "کام کا اختتام"
+
+msgid "Workday start"
+msgstr "کام کا آغاز"
+
+msgid "Saas product configuration"
+msgstr "پروڈکٹ کی ترتیب"
+
+msgid "%(p)s%% of your seats are in use"
+msgstr "آپ کی %(p)s%% سیٹیں استعمال میں ہیں"
+
+msgid "%(p)s%% of this month's bookings used"
+msgstr "اس مہینے کی %(p)s%% بکنگز استعمال ہو چکیں"
+
+msgid "%(d)s-day trial"
+msgstr "%(d)s دن کی آزمائش"
+
+msgid "Up to %(n)s staff seats"
+msgstr "%(n)s اسٹاف سیٹس تک"
+
+msgid "%(n)s bookings per month"
+msgstr "ماہانہ %(n)s بکنگز"
+
+msgid "One per line, e.g. Priority support"
+msgstr "ہر سطر میں ایک، مثلاً ترجیحی سپورٹ"
+
+msgid "e.g. Most popular"
+msgstr "مثلاً سب سے مقبول"
+
+msgid "Back to team"
+msgstr "ٹیم پر واپس"
+
+msgid ""
+"“%(name)s” will be deleted. Anyone who has it keeps working with the "
+"standard access for their account. No bookings, payments or vouchers are "
+"affected."
+msgstr ""
+"“%(name)s” حذف ہو جائے گا۔ جن کے پاس یہ ہے وہ اپنے اکاؤنٹ کی معیاری رسائی کے"
+" ساتھ کام کرتے رہیں گے۔ کوئی بکنگ، ادائیگی یا واؤچر متاثر نہیں ہوتا۔"
+
+msgid ""
+"%(username)s will lose access straight away. Their bookings, payments and "
+"vouchers are kept, and you can reactivate them any time."
+msgstr ""
+"%(username)s کی رسائی فوراً ختم ہو جائے گی۔ ان کی بکنگز، ادائیگیاں اور "
+"واؤچرز محفوظ رہتے ہیں، اور آپ انہیں کسی بھی وقت دوبارہ فعال کر سکتے ہیں۔"
+
+msgid ""
+"%(username)s will be removed from your team and can no longer sign in. "
+"Everything they created (bookings, payments, vouchers) is kept."
+msgstr ""
+"%(username)s کو آپ کی ٹیم سے ہٹا دیا جائے گا اور وہ سائن اِن نہیں کر سکیں "
+"گے۔ ان کا بنایا ہوا سب کچھ (بکنگز، ادائیگیاں، واؤچرز) محفوظ رہتا ہے۔"
+
+msgid "Delete %(username)s?"
+msgstr "%(username)s کو حذف کریں؟"
+
+msgid "%(r)s%% of decided"
+msgstr "فیصلہ شدہ میں سے %(r)s%%"
+
+msgid "Location set · accuracy ±%s m. Remember to save."
+msgstr "مقام مقرر · درستگی ±%s م۔ محفوظ کرنا نہ بھولیں۔"
+
+msgid ""
+"Work %(start)s – %(end)s on %(days)s. Late after %(late)s, absent if not in "
+"by %(absent)s (%(tz)s)."
+msgstr ""
+"کام %(start)s – %(end)s، دن: %(days)s۔ %(late)s کے بعد لیٹ، %(absent)s تک نہ"
+" آئیں تو غیر حاضر (%(tz)s)۔"
+
+msgid "%(on)s of 3 checks on"
+msgstr "3 میں سے %(on)s جانچیں فعال"
+
+msgid "%(f)s field staff · %(x)s not tracked"
+msgstr "%(f)s فیلڈ اسٹاف · %(x)s ٹریک نہیں"
+
+msgid "%(n)s of %(total)s staff shown"
+msgstr "%(total)s میں سے %(n)s اسٹاف دکھائے گئے"
+
+msgid "Price per person"
+msgstr "فی کس قیمت"
+
+msgid ""
+"Preview · this voucher is %(s)s. Only your team can see this page until it "
+"is approved."
+msgstr ""
+"پیش نظارہ · یہ واؤچر %(s)s ہے۔ منظوری تک صرف آپ کی ٹیم یہ صفحہ دیکھ سکتی ہے۔"
+
+msgid "submitted date"
+msgstr "جمع کرانے کی تاریخ"
+
+msgid "Records"
+msgstr "ریکارڈز"
+
+msgid "%(n)s correction request is waiting"
+msgid_plural "%(n)s correction requests are waiting"
+msgstr[0] "%(n)s درستی کی درخواست انتظار میں ہے"
+msgstr[1] "%(n)s درستی کی درخواستیں انتظار میں ہیں"
+
+msgid "Location set — accuracy ±%s m. Remember to save."
+msgstr "مقام مقرر — درستگی ±%s م۔ محفوظ کرنا نہ بھولیں۔"
+
+msgid ""
+"Preview — this voucher is %(s)s. Only your team can see this page until it "
+"is approved."
+msgstr ""
+"پیش نظارہ — یہ واؤچر %(s)s ہے۔ منظوری تک صرف آپ کی ٹیم یہ صفحہ دیکھ سکتی ہے۔"
+
+msgid "%(counter)s day left"
+msgid_plural "%(counter)s days left"
+msgstr[0] "%(counter)s دن باقی"
+msgstr[1] "%(counter)s دن باقی"
+
+msgid "Approval rate (%%)"
+msgstr "منظوری کی شرح (%)"
+
+msgid "Saved rate (%%)"
+msgstr "محفوظ شرح (%)"
+
+msgid "Starter"
+msgstr "اسٹارٹر"
+
+msgid "Growth"
+msgstr "گروتھ"
+
+msgid "14-day free trial."
+msgstr "14 دن کی مفت آزمائش۔"
+
+msgid "For a small team getting started."
+msgstr "ابتدا کرنے والی چھوٹی ٹیم کے لیے۔"
+
+msgid "For a growing agency."
+msgstr "بڑھتی ہوئی ایجنسی کے لیے۔"
+
+msgid "No limits."
+msgstr "کوئی حد نہیں۔"
+
+msgid "Business details"
+msgstr "کاروباری تفصیلات"
+
+msgid "Shown on every printed voucher and document."
+msgstr "ہر پرنٹ شدہ واؤچر اور دستاویز پر دکھایا جاتا ہے۔"
+
+msgid "The partner company printed on the right of each voucher."
+msgstr "شریک کمپنی جو ہر واؤچر کے دائیں طرف چھپتی ہے۔"
+
+msgid "Changes apply to vouchers you print or share from now on."
+msgstr "تبدیلیاں اب سے پرنٹ یا شیئر کیے جانے والے واؤچرز پر لاگو ہوں گی۔"
+
+msgid "Change logo"
+msgstr "لوگو تبدیل کریں"
+
+msgid "Advanced"
+msgstr "اعلیٰ ترتیبات"
+
+msgid "Partner company"
+msgstr "شریک کمپنی"
+
+msgid "How the top of your vouchers will look."
+msgstr "آپ کے واؤچرز کا اوپری حصہ ایسا نظر آئے گا۔"
+
+msgid "A receipt for each payment recorded in the ledger."
+msgstr "لیجر میں درج ہر ادائیگی کی رسید۔"
+
+msgid "The voucher, once a booking is confirmed."
+msgstr "بکنگ کی تصدیق کے بعد واؤچر۔"
+
+msgid "No messages sent yet."
+msgstr "ابھی تک کوئی پیغام نہیں بھیجا گیا۔"
+
+msgid "View all messages"
+msgstr "تمام پیغامات دیکھیں"
+
+msgid "Loading…"
+msgstr "لوڈ ہو رہا ہے…"
+
+msgid "Shirka company phone"
+msgstr "شرکہ کمپنی فون"
+
+msgid "Shirka company email"
+msgstr "شرکہ کمپنی ای میل"
+
+msgid "Shirka company website"
+msgstr "شرکہ کمپنی ویب سائٹ"
+
+msgid "Shirka company address"
+msgstr "شرکہ کمپنی کا پتہ"

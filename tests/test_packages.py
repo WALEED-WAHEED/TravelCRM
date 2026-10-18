@@ -82,7 +82,7 @@ def test_package_has_the_details_of_a_real_offer(client_a, agency_a, user_a, hot
     r = client_a.post("/api/v1/packages/", _payload(
         name="21 Days Umrah Package — October 2026", group_leader="Qari Muhammad Saleem Asim",
         makkah_hotel=hotel_a.id, makkah_nights="12", makkah_distance="700", makkah_shuttle="true",
-        madina_nights="8", madina_distance="200", flight=out.id, return_flight=back.id, baggage="23 + 23 kg",
+        madina_nights="8", madina_distance="200", flight=out.id, return_flight=back.id, baggage="23 + 23 kg", return_baggage="30 kg",
         price_sharing="305000", price_quad="316199", price_triple="341900", price_double="393199",
         price_child="250000", price_infant="40000", inclusions=["taif", "ihram", "zamzam", "private_bus"],
         extra_services="Local ziyarat by bus\nScarf and shoe bag"))
@@ -92,7 +92,7 @@ def test_package_has_the_details_of_a_real_offer(client_a, agency_a, user_a, hot
     with tenant_context(agency_id=agency_a.id):
         p = Package.objects.get(pk=body["id"])
     assert p.total_nights == 20 and p.makkah_distance == 700 and p.makkah_shuttle and not p.madina_shuttle
-    assert p.return_flight_id == back.id and p.baggage == "23 + 23 kg"
+    assert p.return_flight_id == back.id and p.baggage == "23 + 23 kg" and p.return_baggage == "30 kg"
     assert p.starting_price == Decimal("305000") and [label for label, _p in p.sharing_prices][:2] == ["Sharing", "Double"]
     assert p.get_inclusions_display()[-2:] == ["Local ziyarat by bus", "Scarf and shoe bag"]
     assert "Umrah from Taif" in p.get_inclusions_display() and "Private luxury bus" in p.get_inclusions_display()
@@ -135,3 +135,14 @@ def test_package_details_are_private_to_the_agency(client_a, client_b):
     pid = client_a.post("/api/v1/packages/", _payload()).json()["id"]
     assert client_a.get(f"/member/packages/{pid}/").status_code == 200
     assert client_b.get(f"/member/packages/{pid}/").status_code == 404
+
+
+def test_custom_inclusions_are_saved_shown_and_offered_again(client_a):
+    r = client_a.post("/api/v1/packages/", _payload(extra_services="Local ziyarat by bus\nHot lunch box"))
+    assert r.status_code == 201, r.content
+    assert r.json()["extra_services"] == "Local ziyarat by bus\nHot lunch box"
+    page = client_a.get("/member/packages/").content.decode()
+    # items already used by this agency come back as chips that can be ticked on a new package
+    assert 'class="pkg-custom" value="Local ziyarat by bus"' in page
+    assert 'class="pkg-custom" value="Hot lunch box"' in page
+    assert "More options" not in page and "Other services" not in page

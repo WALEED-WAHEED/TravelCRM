@@ -9236,3 +9236,1387 @@ msgstr "شارك كلمة المرور المؤقتة هذه معهم مباشر
 
 msgid "e.g. ayesha.khan"
 msgstr "مثل ayesha.khan"
+
+msgid "Departure baggage"
+msgstr "أمتعة الذهاب"
+
+msgid "Return baggage"
+msgstr "أمتعة العودة"
+
+msgid "Add your own, e.g. Local ziyarat by bus"
+msgstr "أضف خدمتك، مثل: زيارة محلية بالحافلة"
+
+msgid "Add your own inclusion"
+msgstr "أضف بندًا خاصًا بك"
+
+msgid "Sign-in details"
+msgstr "بيانات تسجيل الدخول"
+
+msgid "They will sign in with this."
+msgstr "سيستخدمه لتسجيل الدخول."
+
+msgid "For notifications and password resets."
+msgstr "للإشعارات وإعادة تعيين كلمة المرور."
+
+msgid "Choose a role"
+msgstr "اختر دورًا"
+
+msgid "Full access"
+msgstr "وصول كامل"
+
+msgid "Read only"
+msgstr "للقراءة فقط"
+
+msgid "You can change their role later from the Team page."
+msgstr "يمكنك تغيير دورهم لاحقًا من صفحة الفريق."
+
+msgid "Teammate"
+msgstr "زميل"
+
+msgid "Last sign-in"
+msgstr "آخر تسجيل دخول"
+
+msgid "Never"
+msgstr "أبدًا"
+
+msgid "Reactivate"
+msgstr "إعادة تفعيل"
+
+msgid "Teammates"
+msgstr "الزملاء"
+
+msgid "Has bookings: deactivate instead"
+msgstr "لديه حجوزات: عطّله بدلًا من ذلك"
+
+msgid "Still assigned to teammates"
+msgstr "ما زال معينًا لزملاء"
+
+msgid "%(username)s is active again."
+msgstr "%(username)s نشط مرة أخرى."
+
+msgid "You can't delete your own account."
+msgstr "لا يمكنك حذف حسابك."
+
+msgid "%(username)s has been deleted."
+msgstr "تم حذف %(username)s."
+
+msgid ""
+"%(username)s has bookings, payments or vouchers on record, so they can't be "
+"deleted. Deactivate them instead — they lose access and the history is kept."
+msgstr ""
+"لدى %(username)s حجوزات أو مدفوعات أو قسائم مسجلة، لذا لا يمكن حذفه. عطّله "
+"بدلًا من ذلك — تُسحب صلاحيته ويبقى السجل."
+
+msgid ""
+"“%(role)s” is still assigned to %(n)s teammate(s). Move them to another role"
+" first."
+msgstr "“%(role)s” معيّن حاليًا لـ %(n)s زميل. انقلهم إلى دور آخر أولًا."
+
+msgid "Role “%(role)s” has been deleted."
+msgstr "تم حذف الدور “%(role)s”."
+
+msgid "%(n)s active teammate"
+msgid_plural "%(n)s active teammates"
+msgstr[0] "لا زملاء نشطين"
+msgstr[1] "زميل نشط واحد"
+msgstr[2] "زميلان نشطان"
+msgstr[3] "%(n)s زملاء نشطين"
+msgstr[4] "%(n)s زميلًا نشطًا"
+msgstr[5] "%(n)s زميل نشط"
+
+msgid "Reset to default?"
+msgstr "العودة إلى الافتراضي؟"
+
+msgid "Delete this role?"
+msgstr "حذف هذا الدور؟"
+
+msgid "Customized"
+msgstr "مخصص"
+
+msgid "Custom"
+msgstr "مخصص"
+
+msgid "Reset to default"
+msgstr "العودة إلى الافتراضي"
+
+msgid "Customize this role"
+msgstr "تخصيص هذا الدور"
+
+msgid "Default role — read-only until you customize it."
+msgstr "دور افتراضي — للقراءة فقط حتى تخصصه."
+
+msgid ""
+"%(username)s has been removed from the team. Their bookings, payments and "
+"vouchers are kept."
+msgstr "تمت إزالة %(username)s من الفريق. حجوزاته ومدفوعاته وقسائمه محفوظة."
+
+msgid ""
+"The username '%(username)s' belonged to a teammate who was removed. Choose a"
+" different one."
+msgstr "اسم المستخدم '%(username)s' كان لزميل أُزيل. اختر اسمًا آخر."
+
+msgid "Use Customize to edit this role."
+msgstr "استخدم التخصيص لتعديل هذا الدور."
+
+msgid "You can't remove your own access to Team & roles."
+msgstr "لا يمكنك إزالة وصولك إلى الفريق والأدوار."
+
+msgid "“%(role)s” is back to its default permissions."
+msgstr "عاد “%(role)s” إلى صلاحياته الافتراضية."
+
+msgid "Only the standard roles can be reset to their default."
+msgstr "يمكن إعادة الأدوار القياسية فقط إلى الافتراضي."
+
+msgid "Add role"
+msgstr "إضافة دور"
+
+msgid "Role name"
+msgstr "اسم الدور"
+
+msgid "Start from"
+msgstr "ابدأ من"
+
+msgid "Nothing selected"
+msgstr "لا شيء محدد"
+
+msgid "Area"
+msgstr "القسم"
+
+msgid "View everything"
+msgstr "عرض كل شيء"
+
+msgid "Clear all"
+msgstr "مسح الكل"
+
+msgid "Save role"
+msgstr "حفظ الدور"
+
+msgid "Choose what people with this role can see and do."
+msgstr "اختر ما يمكن لأصحاب هذا الدور رؤيته وفعله."
+
+msgid "e.g. Accountant"
+msgstr "مثل: محاسب"
+
+msgid "Access"
+msgstr "الصلاحيات"
+
+msgid "No roles yet"
+msgstr "لا توجد أدوار بعد"
+
+msgid "Give the role a name."
+msgstr "أعطِ الدور اسمًا."
+
+msgid "You already have a role called “%(role)s”."
+msgstr "لديك دور بالاسم “%(role)s” بالفعل."
+
+msgid "Saved the role “%(role)s”."
+msgstr "تم حفظ الدور “%(role)s”."
+
+msgid "You can't delete the role you are using yourself."
+msgstr "لا يمكنك حذف الدور الذي تستخدمه بنفسك."
+
+msgid "Keep at least one role."
+msgstr "احتفظ بدور واحد على الأقل."
+
+msgid "Ready to add"
+msgstr "جاهز للإضافة"
+
+msgid "Set"
+msgstr "تم التعيين"
+
+msgid "Free"
+msgstr "مجاني"
+
+msgid "Trial ends"
+msgstr "تنتهي التجربة"
+
+msgid "Renews on"
+msgstr "يتجدد في"
+
+msgid "No end date"
+msgstr "بدون تاريخ انتهاء"
+
+msgid "Bookings per month"
+msgstr "الحجوزات شهريًا"
+
+msgid "No seat limit on this plan"
+msgstr "لا حد للمقاعد في هذه الخطة"
+
+msgid "No booking limit on this plan"
+msgstr "لا حد للحجوزات في هذه الخطة"
+
+msgid "Choose a plan"
+msgstr "اختر خطة"
+
+msgid "Unlimited staff seats"
+msgstr "مقاعد موظفين غير محدودة"
+
+msgid "Your current plan"
+msgstr "خطتك الحالية"
+
+msgid "Upgrade to this plan"
+msgstr "الترقية إلى هذه الخطة"
+
+msgid "Choose this plan"
+msgstr "اختر هذه الخطة"
+
+msgid "Features"
+msgstr "الميزات"
+
+msgid "Badge"
+msgstr "شارة"
+
+msgid ""
+"Shown as a checklist on the plan card, after the seat and booking limits."
+msgstr "تظهر كقائمة على بطاقة الخطة بعد حدود المقاعد والحجوزات."
+
+msgid "Highlight on billing page"
+msgstr "إبراز في صفحة الفوترة"
+
+msgid "Featured"
+msgstr "مميزة"
+
+msgid "My profile"
+msgstr "ملفي الشخصي"
+
+msgid "Personal details"
+msgstr "البيانات الشخصية"
+
+msgid "Your name and contact details, as your team sees them."
+msgstr "اسمك وبيانات الاتصال كما يراها فريقك."
+
+msgid "First name"
+msgstr "الاسم الأول"
+
+msgid "Last name"
+msgstr "اسم العائلة"
+
+msgid "Save details"
+msgstr "حفظ البيانات"
+
+msgid "Upload photo"
+msgstr "رفع صورة"
+
+msgid "Change photo"
+msgstr "تغيير الصورة"
+
+msgid "Remove photo"
+msgstr "إزالة الصورة"
+
+msgid "JPG, PNG or WebP, up to 5 MB. It is cropped to a square."
+msgstr "JPG أو PNG أو WebP حتى 5 ميغابايت. تُقص إلى مربع."
+
+msgid "Member since"
+msgstr "عضو منذ"
+
+msgid ""
+"The whole application is shown in this language, on every device you sign in"
+" from. Arabic and Urdu switch the layout to right-to-left."
+msgstr ""
+"يظهر التطبيق كله بهذه اللغة على كل جهاز تسجّل منه الدخول. العربية والأردية "
+"تحولان التخطيط من اليمين إلى اليسار."
+
+msgid "Confirm new password"
+msgstr "تأكيد كلمة المرور الجديدة"
+
+msgid ""
+"Use at least 8 characters. You stay signed in on this device after changing "
+"it."
+msgstr "استخدم 8 أحرف على الأقل. ستبقى مسجّلًا على هذا الجهاز بعد التغيير."
+
+msgid "Profile updated."
+msgstr "تم تحديث الملف الشخصي."
+
+msgid "Profile picture updated."
+msgstr "تم تحديث صورة الملف الشخصي."
+
+msgid "Profile picture removed."
+msgstr "تمت إزالة صورة الملف الشخصي."
+
+msgid "Choose a picture first."
+msgstr "اختر صورة أولًا."
+
+msgid "That picture is too large (5 MB at most)."
+msgstr "الصورة كبيرة جدًا (5 ميغابايت كحد أقصى)."
+
+msgid "That file isn't a valid picture. Use a JPG, PNG or WebP image."
+msgstr "هذا الملف ليس صورة صالحة. استخدم JPG أو PNG أو WebP."
+
+msgid "Your current password is wrong."
+msgstr "كلمة مرورك الحالية خاطئة."
+
+msgid "The new passwords don't match."
+msgstr "كلمتا المرور الجديدتان غير متطابقتين."
+
+msgid "Password changed."
+msgstr "تم تغيير كلمة المرور."
+
+msgid "e.g. Ayesha"
+msgstr "مثل: عائشة"
+
+msgid "e.g. Khan"
+msgstr "مثل: خان"
+
+msgid "You sign in with this."
+msgstr "تسجّل الدخول بهذا."
+
+msgid ""
+"Shown on every device you sign in from. Arabic and Urdu switch the layout to"
+" right-to-left."
+msgstr ""
+"تظهر على كل جهاز تسجّل منه الدخول. العربية والأردية تحولان التخطيط من اليمين"
+" إلى اليسار."
+
+msgid "You stay signed in on this device after changing it."
+msgstr "ستبقى مسجّلًا على هذا الجهاز بعد التغيير."
+
+msgid "What your account is set up as."
+msgstr "كيف تم إعداد حسابك."
+
+msgid "Too short"
+msgstr "قصيرة جدًا"
+
+msgid "Weak"
+msgstr "ضعيفة"
+
+msgid "Good"
+msgstr "جيدة"
+
+msgid "Strong"
+msgstr "قوية"
+
+msgid "Passwords match"
+msgstr "كلمتا المرور متطابقتان"
+
+msgid "Passwords don't match yet"
+msgstr "كلمتا المرور غير متطابقتين بعد"
+
+msgid "Owner"
+msgstr "المالك"
+
+msgid "Manager"
+msgstr "مدير"
+
+msgid "Read-only"
+msgstr "قراءة فقط"
+
+msgid "English"
+msgstr "الإنجليزية"
+
+msgid "Urdu"
+msgstr "الأردية"
+
+msgid "Arabic"
+msgstr "العربية"
+
+msgid "Hindi"
+msgstr "الهندية"
+
+msgid "Spanish"
+msgstr "الإسبانية"
+
+msgid "French"
+msgstr "الفرنسية"
+
+msgid "German"
+msgstr "الألمانية"
+
+msgid "Absent after"
+msgstr "غائب بعد"
+
+msgid "Admin cancellation"
+msgstr "إلغاء المسؤول"
+
+msgid "Admin new booking"
+msgstr "حجز جديد للمسؤول"
+
+msgid "Admin payment received"
+msgstr "دفعة مستلمة للمسؤول"
+
+msgid "Agency branding"
+msgstr "هوية الوكالة"
+
+msgid "Alternate phone"
+msgstr "هاتف بديل"
+
+msgid "Amenities"
+msgstr "المرافق"
+
+msgid "Announcement"
+msgstr "إعلان"
+
+msgid "Api key"
+msgstr "مفتاح API"
+
+msgid "Api secret"
+msgstr "سر API"
+
+msgid "Approved at"
+msgstr "وقت الموافقة"
+
+msgid "Approved by"
+msgstr "تمت الموافقة بواسطة"
+
+msgid "Arguments"
+msgstr "المعاملات"
+
+msgid "Arrival airport"
+msgstr "مطار الوصول"
+
+msgid "Arrival at"
+msgstr "وقت الوصول"
+
+msgid "Arrival city"
+msgstr "مدينة الوصول"
+
+msgid "Arrival country"
+msgstr "بلد الوصول"
+
+msgid "Attendance Device"
+msgstr "جهاز الحضور"
+
+msgid "Attendance admin password hash"
+msgstr "تجزئة كلمة مرور مسؤول الحضور"
+
+msgid "Attendance admin user"
+msgstr "مستخدم مسؤول الحضور"
+
+msgid "Attendance correction"
+msgstr "تصحيح الحضور"
+
+msgid "Attendance log"
+msgstr "سجل الحضور"
+
+msgid "Author"
+msgstr "الكاتب"
+
+msgid "Available rooms"
+msgstr "الغرف المتاحة"
+
+msgid "Available seats"
+msgstr "المقاعد المتاحة"
+
+msgid "Avatar"
+msgstr "الصورة الشخصية"
+
+msgid "Baggage allowance"
+msgstr "الأمتعة المسموحة"
+
+msgid "Body"
+msgstr "النص"
+
+msgid "Booking Cancelled"
+msgstr "تم إلغاء الحجز"
+
+msgid "Booking Confirmation"
+msgstr "تأكيد الحجز"
+
+msgid "Booking confirmation template"
+msgstr "قالب تأكيد الحجز"
+
+msgid "Booking contact"
+msgstr "جهة اتصال الحجز"
+
+msgid "Booking contact instruction"
+msgstr "تعليمات جهة اتصال الحجز"
+
+msgid "Booking flight"
+msgstr "رحلة الحجز"
+
+msgid "Booking hotel"
+msgstr "فندق الحجز"
+
+msgid "Booking mutamer"
+msgstr "معتمر الحجز"
+
+msgid "Booking note"
+msgstr "ملاحظة الحجز"
+
+msgid "Booking payment"
+msgstr "دفعة الحجز"
+
+msgid "Booking team contact"
+msgstr "جهة اتصال فريق الحجز"
+
+msgid "Booking transport"
+msgstr "نقل الحجز"
+
+msgid "Caption"
+msgstr "التسمية"
+
+msgid "Chat message"
+msgstr "رسالة المحادثة"
+
+msgid "Chat session"
+msgstr "جلسة المحادثة"
+
+msgid "Check in at"
+msgstr "وقت تسجيل الدخول"
+
+msgid "Check in meta"
+msgstr "بيانات تسجيل الدخول"
+
+msgid "Check in time"
+msgstr "وقت الدخول"
+
+msgid "Check out at"
+msgstr "وقت المغادرة"
+
+msgid "Check out meta"
+msgstr "بيانات المغادرة"
+
+msgid "Check out time"
+msgstr "وقت الخروج"
+
+msgid "Client whatsapp"
+msgstr "واتساب العميل"
+
+msgid "Confirmation number"
+msgstr "رقم التأكيد"
+
+msgid "Confirmed at"
+msgstr "وقت التأكيد"
+
+msgid "Confirmed by"
+msgstr "تم التأكيد بواسطة"
+
+msgid "Contact instruction"
+msgstr "تعليمات جهة الاتصال"
+
+msgid "Contact type"
+msgstr "نوع جهة الاتصال"
+
+msgid "Content"
+msgstr "المحتوى"
+
+msgid "Cost price"
+msgstr "سعر التكلفة"
+
+msgid "Counterparty name"
+msgstr "اسم الطرف المقابل"
+
+msgid "Counterparty type"
+msgstr "نوع الطرف المقابل"
+
+msgid "Created at"
+msgstr "وقت الإنشاء"
+
+msgid "Current period end"
+msgstr "نهاية الفترة الحالية"
+
+msgid "Current sequence"
+msgstr "التسلسل الحالي"
+
+msgid "Custom css"
+msgstr "CSS مخصص"
+
+msgid "Custom fields"
+msgstr "حقول مخصصة"
+
+msgid "Custom role"
+msgstr "دور مخصص"
+
+msgid "Customer"
+msgstr "العميل"
+
+msgid "Date joined"
+msgstr "تاريخ الانضمام"
+
+msgid "Decided at"
+msgstr "وقت القرار"
+
+msgid "Decided by"
+msgstr "اتخذ القرار"
+
+msgid "Default currency"
+msgstr "العملة الافتراضية"
+
+msgid "Delayed"
+msgstr "متأخرة"
+
+msgid "Deleted at"
+msgstr "وقت الحذف"
+
+msgid "Departure airport"
+msgstr "مطار المغادرة"
+
+msgid "Departure at"
+msgstr "وقت المغادرة"
+
+msgid "Departure city"
+msgstr "مدينة المغادرة"
+
+msgid "Departure country"
+msgstr "بلد المغادرة"
+
+msgid "Direction"
+msgstr "الاتجاه"
+
+msgid "Email Provider"
+msgstr "مزود البريد الإلكتروني"
+
+msgid "Email booking cancelled"
+msgstr "بريد: إلغاء الحجز"
+
+msgid "Email booking confirmation"
+msgstr "بريد: تأكيد الحجز"
+
+msgid "Email daily summary"
+msgstr "بريد: الملخص اليومي"
+
+msgid "Email payment received"
+msgstr "بريد: استلام الدفعة"
+
+msgid "Email template"
+msgstr "قالب البريد الإلكتروني"
+
+msgid "Email voucher generated"
+msgstr "بريد: إنشاء القسيمة"
+
+msgid "Email weekly report"
+msgstr "بريد: التقرير الأسبوعي"
+
+msgid "Ended at"
+msgstr "وقت الانتهاء"
+
+msgid "Endpoint url"
+msgstr "عنوان نقطة النهاية"
+
+msgid "Ends at"
+msgstr "ينتهي في"
+
+msgid "Event type"
+msgstr "نوع الحدث"
+
+msgid "Executed"
+msgstr "تم التنفيذ"
+
+msgid "Exempt staff"
+msgstr "الموظفون المستثنون"
+
+msgid "Extra services"
+msgstr "خدمات إضافية"
+
+msgid "Favicon"
+msgstr "أيقونة الموقع"
+
+msgid "Flight class"
+msgstr "درجة الرحلة"
+
+msgid "Flight segment"
+msgstr "جزء الرحلة"
+
+msgid "Flight type"
+msgstr "نوع الرحلة"
+
+msgid "Fx amount"
+msgstr "المبلغ بالعملة الأجنبية"
+
+msgid "Fx currency"
+msgstr "العملة الأجنبية"
+
+msgid "Group number"
+msgstr "رقم المجموعة"
+
+msgid "Groups"
+msgstr "المجموعات"
+
+msgid "Hotel image"
+msgstr "صورة الفندق"
+
+msgid "Hotel room"
+msgstr "غرفة الفندق"
+
+msgid "Html content"
+msgstr "محتوى HTML"
+
+msgid "Idempotency key"
+msgstr "مفتاح منع التكرار"
+
+msgid "Image"
+msgstr "صورة"
+
+msgid "Impersonation session"
+msgstr "جلسة انتحال"
+
+msgid "Inclusions"
+msgstr "المشتملات"
+
+msgid "Inv ref"
+msgstr "مرجع الفاتورة"
+
+msgid "Ip address"
+msgstr "عنوان IP"
+
+msgid "Is active"
+msgstr "نشط"
+
+msgid "Is default"
+msgstr "افتراضي"
+
+msgid "Is default trial"
+msgstr "تجربة افتراضية"
+
+msgid "Is featured"
+msgstr "مميز"
+
+msgid "Is primary"
+msgstr "أساسي"
+
+msgid "Is template"
+msgstr "قالب"
+
+msgid "Key type"
+msgstr "نوع المفتاح"
+
+msgid "Kiosk token"
+msgstr "رمز الكشك"
+
+msgid "Last login"
+msgstr "آخر تسجيل دخول"
+
+msgid "Late after minutes"
+msgstr "متأخر بعد (دقائق)"
+
+msgid "Ledger entry"
+msgstr "قيد دفتر الأستاذ"
+
+msgid "Madina distance"
+msgstr "مسافة المدينة"
+
+msgid "Madina nights"
+msgstr "ليالي المدينة"
+
+msgid "Madina shuttle"
+msgstr "نقل المدينة"
+
+msgid "Makkah Team"
+msgstr "فريق مكة"
+
+msgid "Makkah distance"
+msgstr "مسافة مكة"
+
+msgid "Makkah nights"
+msgstr "ليالي مكة"
+
+msgid "Makkah shuttle"
+msgstr "نقل مكة"
+
+msgid "Manual number"
+msgstr "رقم يدوي"
+
+msgid "Map Service"
+msgstr "خدمة الخرائط"
+
+msgid "Max accuracy m"
+msgstr "أقصى دقة (م)"
+
+msgid "Max bookings per month"
+msgstr "أقصى حجوزات شهريًا"
+
+msgid "Max seats"
+msgstr "أقصى عدد المقاعد"
+
+msgid "Meal included"
+msgstr "الوجبات مشمولة"
+
+msgid "Meal plan"
+msgstr "خطة الوجبات"
+
+msgid "Medina Team"
+msgstr "فريق المدينة"
+
+msgid "Model name"
+msgstr "اسم النموذج"
+
+msgid "Mofa number"
+msgstr "رقم MOFA"
+
+msgid "Multi-City"
+msgstr "متعدد المدن"
+
+msgid "Mutamer email"
+msgstr "بريد المعتمر"
+
+msgid "Mutamer gender"
+msgstr "جنس المعتمر"
+
+msgid "Mutamer nationality"
+msgstr "جنسية المعتمر"
+
+msgid "Mutamer passport number"
+msgstr "رقم جواز المعتمر"
+
+msgid "Mutamer phone"
+msgstr "هاتف المعتمر"
+
+msgid "Mutamer visa number"
+msgstr "رقم تأشيرة المعتمر"
+
+msgid "Notification delivery log"
+msgstr "سجل إرسال الإشعارات"
+
+msgid "Object id"
+msgstr "معرّف الكائن"
+
+msgid "Object repr"
+msgstr "وصف الكائن"
+
+msgid "Office ips"
+msgstr "عناوين IP للمكتب"
+
+msgid "Office lat"
+msgstr "خط عرض المكتب"
+
+msgid "Office lng"
+msgstr "خط طول المكتب"
+
+msgid "One Way"
+msgstr "ذهاب فقط"
+
+msgid "Paid amount"
+msgstr "المبلغ المدفوع"
+
+msgid "Paid at"
+msgstr "وقت الدفع"
+
+msgid "Paid by"
+msgstr "دفع بواسطة"
+
+msgid "Partner"
+msgstr "شريك"
+
+msgid "Password Reset"
+msgstr "إعادة تعيين كلمة المرور"
+
+msgid "Pax"
+msgstr "المسافرون"
+
+msgid "Pax adults"
+msgstr "البالغون"
+
+msgid "Pax children"
+msgstr "الأطفال"
+
+msgid "Pax infants"
+msgstr "الرضع"
+
+msgid "Pax type"
+msgstr "نوع المسافر"
+
+msgid "Payment Gateway"
+msgstr "بوابة الدفع"
+
+msgid "Payment Receipt"
+msgstr "إيصال الدفع"
+
+msgid "Payment receipt template"
+msgstr "قالب إيصال الدفع"
+
+msgid "Payment record"
+msgstr "سجل الدفع"
+
+msgid "Pending action"
+msgstr "إجراء معلق"
+
+msgid "Permission"
+msgstr "صلاحية"
+
+msgid "Permissions"
+msgstr "الصلاحيات"
+
+msgid "Person name"
+msgstr "اسم الشخص"
+
+msgid "Pnr"
+msgstr "PNR"
+
+msgid "Pnr number"
+msgstr "رقم PNR"
+
+msgid "Preferred language"
+msgstr "اللغة المفضلة"
+
+msgid "Price amount"
+msgstr "قيمة السعر"
+
+msgid "Price child"
+msgstr "سعر الطفل"
+
+msgid "Price double"
+msgstr "سعر الثنائي"
+
+msgid "Price infant"
+msgstr "سعر الرضيع"
+
+msgid "Price per night"
+msgstr "السعر لليلة"
+
+msgid "Price quad"
+msgstr "سعر الرباعي"
+
+msgid "Price quint"
+msgstr "سعر الخماسي"
+
+msgid "Price sharing"
+msgstr "سعر المشاركة"
+
+msgid "Price triple"
+msgstr "سعر الثلاثي"
+
+msgid "Product name"
+msgstr "اسم المنتج"
+
+msgid "Public token"
+msgstr "الرمز العام"
+
+msgid "Purchase price"
+msgstr "سعر الشراء"
+
+msgid "Quantity"
+msgstr "الكمية"
+
+msgid "Radius m"
+msgstr "نصف القطر (م)"
+
+msgid "Reference number"
+msgstr "الرقم المرجعي"
+
+msgid "Rejection reason"
+msgstr "سبب الرفض"
+
+msgid "Reminder sent at"
+msgstr "وقت إرسال التذكير"
+
+msgid "Requested check in"
+msgstr "تسجيل الدخول المطلوب"
+
+msgid "Requested check out"
+msgstr "تسجيل الخروج المطلوب"
+
+msgid "Requested status"
+msgstr "الحالة المطلوبة"
+
+msgid "Require location"
+msgstr "الموقع مطلوب"
+
+msgid "Require network"
+msgstr "الشبكة مطلوبة"
+
+msgid "Require qr"
+msgstr "رمز QR مطلوب"
+
+msgid "Resolved at"
+msgstr "وقت الحل"
+
+msgid "Result"
+msgstr "النتيجة"
+
+msgid "Return date"
+msgstr "تاريخ العودة"
+
+msgid "Review note"
+msgstr "ملاحظة المراجعة"
+
+msgid "Reviewed at"
+msgstr "وقت المراجعة"
+
+msgid "Reviewed by"
+msgstr "راجعه"
+
+msgid "Role label"
+msgstr "تسمية الدور"
+
+msgid "Roles seeded"
+msgstr "الأدوار مهيأة"
+
+msgid "Sale price"
+msgstr "سعر البيع"
+
+msgid "Segment number"
+msgstr "رقم الجزء"
+
+msgid "Sequence"
+msgstr "التسلسل"
+
+msgid "Service name"
+msgstr "اسم الخدمة"
+
+msgid "Service type"
+msgstr "نوع الخدمة"
+
+msgid "Session"
+msgstr "الجلسة"
+
+msgid "Shirka company whatsapp"
+msgstr "واتساب شركة الشركاء"
+
+msgid "Slogan"
+msgstr "الشعار"
+
+msgid "Sms booking confirmation"
+msgstr "SMS: تأكيد الحجز"
+
+msgid "Sms payment received"
+msgstr "SMS: استلام الدفعة"
+
+msgid "Sms voucher generated"
+msgstr "SMS: إنشاء القسيمة"
+
+msgid "SMS Provider"
+msgstr "مزود SMS"
+
+msgid "Social facebook"
+msgstr "فيسبوك"
+
+msgid "Social instagram"
+msgstr "إنستغرام"
+
+msgid "Social linkedin"
+msgstr "لينكدإن"
+
+msgid "Social media links"
+msgstr "روابط التواصل الاجتماعي"
+
+msgid "Social twitter"
+msgstr "تويتر"
+
+msgid "Source"
+msgstr "المصدر"
+
+msgid "Staff status"
+msgstr "حالة الموظف"
+
+msgid "Started at"
+msgstr "وقت البدء"
+
+msgid "Starts at"
+msgstr "يبدأ في"
+
+msgid "Submitted at"
+msgstr "وقت التقديم"
+
+msgid "Submitted by"
+msgstr "قدّمه"
+
+msgid "Suite"
+msgstr "جناح"
+
+msgid "Super admin"
+msgstr "المسؤول الأعلى"
+
+msgid "Superuser status"
+msgstr "حالة المستخدم المتميز"
+
+msgid "Supplier payment"
+msgstr "دفعة المورّد"
+
+msgid "Suspended at"
+msgstr "وقت التعليق"
+
+msgid "Suspended by"
+msgstr "علّقه"
+
+msgid "Suspended reason"
+msgstr "سبب التعليق"
+
+msgid "Target agencies"
+msgstr "الوكالات المستهدفة"
+
+msgid "Target agency"
+msgstr "الوكالة المستهدفة"
+
+msgid "Template type"
+msgstr "نوع القالب"
+
+msgid "Text"
+msgstr "النص"
+
+msgid "Text content"
+msgstr "المحتوى النصي"
+
+msgid "Time zone"
+msgstr "المنطقة الزمنية"
+
+msgid "Timestamp"
+msgstr "الطابع الزمني"
+
+msgid "Tool name"
+msgstr "اسم الأداة"
+
+msgid "Tool payload"
+msgstr "بيانات الأداة"
+
+msgid "Tool result"
+msgstr "نتيجة الأداة"
+
+msgid "Total price"
+msgstr "السعر الإجمالي"
+
+msgid "Total seats"
+msgstr "إجمالي المقاعد"
+
+msgid "Trans no"
+msgstr "رقم المعاملة"
+
+msgid "Transaction date"
+msgstr "تاريخ المعاملة"
+
+msgid "Transaction id"
+msgstr "معرّف المعاملة"
+
+msgid "Transaction type"
+msgstr "نوع المعاملة"
+
+msgid "Transport type"
+msgstr "نوع النقل"
+
+msgid "Trial days"
+msgstr "أيام التجربة"
+
+msgid "Trial ends at"
+msgstr "تنتهي التجربة في"
+
+msgid "Trial warning sent at"
+msgstr "وقت إرسال تحذير التجربة"
+
+msgid "Updated at"
+msgstr "وقت التحديث"
+
+msgid "User agent"
+msgstr "وكيل المستخدم"
+
+msgid "User permissions"
+msgstr "صلاحيات المستخدم"
+
+msgid "Variables"
+msgstr "المتغيرات"
+
+msgid "Vendor"
+msgstr "مورّد"
+
+msgid "Voucher Generated"
+msgstr "تم إنشاء القسيمة"
+
+msgid "Voucher instruction"
+msgstr "تعليمات القسيمة"
+
+msgid "Voucher number"
+msgstr "رقم القسيمة"
+
+msgid "Voucher sequence"
+msgstr "تسلسل القسائم"
+
+msgid "Voucher service"
+msgstr "خدمة القسيمة"
+
+msgid "Voucher template"
+msgstr "قالب القسيمة"
+
+msgid "Website"
+msgstr "الموقع الإلكتروني"
+
+msgid "Welcome Email"
+msgstr "بريد الترحيب"
+
+msgid "Work days"
+msgstr "أيام العمل"
+
+msgid "Work hours"
+msgstr "ساعات العمل"
+
+msgid "Workday end"
+msgstr "نهاية الدوام"
+
+msgid "Workday start"
+msgstr "بداية الدوام"
+
+msgid "Saas product configuration"
+msgstr "إعدادات المنتج"
+
+msgid "%(p)s%% of your seats are in use"
+msgstr "%(p)s%% من مقاعدك مستخدمة"
+
+msgid "%(p)s%% of this month's bookings used"
+msgstr "تم استخدام %(p)s%% من حجوزات هذا الشهر"
+
+msgid "%(d)s-day trial"
+msgstr "تجربة %(d)s يومًا"
+
+msgid "Up to %(n)s staff seats"
+msgstr "حتى %(n)s مقعدًا للموظفين"
+
+msgid "%(n)s bookings per month"
+msgstr "%(n)s حجزًا شهريًا"
+
+msgid "One per line, e.g. Priority support"
+msgstr "واحدة في كل سطر، مثل: دعم ذو أولوية"
+
+msgid "e.g. Most popular"
+msgstr "مثل: الأكثر شيوعًا"
+
+msgid ""
+"“%(name)s” will be deleted. Anyone who has it keeps working with the "
+"standard access for their account. No bookings, payments or vouchers are "
+"affected."
+msgstr ""
+"سيُحذف “%(name)s”. من يملكه يواصل العمل بالصلاحيات القياسية لحسابه. لا تتأثر"
+" أي حجوزات أو مدفوعات أو قسائم."
+
+msgid ""
+"%(username)s will lose access straight away. Their bookings, payments and "
+"vouchers are kept, and you can reactivate them any time."
+msgstr ""
+"سيفقد %(username)s الوصول فورًا. تبقى حجوزاته ومدفوعاته وقسائمه، ويمكنك "
+"إعادة تفعيله في أي وقت."
+
+msgid ""
+"%(username)s will be removed from your team and can no longer sign in. "
+"Everything they created (bookings, payments, vouchers) is kept."
+msgstr ""
+"ستتم إزالة %(username)s من فريقك ولن يتمكن من تسجيل الدخول. كل ما أنشأه "
+"(حجوزات، مدفوعات، قسائم) يبقى محفوظًا."
+
+msgid "Delete %(username)s?"
+msgstr "حذف %(username)s؟"
+
+msgid "%(r)s%% of decided"
+msgstr "%(r)s%% من المقرر فيها"
+
+msgid "Location set · accuracy ±%s m. Remember to save."
+msgstr "تم تحديد الموقع · الدقة ±%s م. لا تنسَ الحفظ."
+
+msgid ""
+"Work %(start)s – %(end)s on %(days)s. Late after %(late)s, absent if not in "
+"by %(absent)s (%(tz)s)."
+msgstr ""
+"الدوام %(start)s – %(end)s في %(days)s. تأخير بعد %(late)s، غياب إن لم يحضر "
+"قبل %(absent)s (%(tz)s)."
+
+msgid "%(on)s of 3 checks on"
+msgstr "%(on)s من 3 فحوصات مفعّلة"
+
+msgid "%(f)s field staff · %(x)s not tracked"
+msgstr "%(f)s موظف ميداني · %(x)s غير متتبَّع"
+
+msgid "%(n)s of %(total)s staff shown"
+msgstr "عرض %(n)s من %(total)s موظفًا"
+
+msgid "Price per person"
+msgstr "السعر للفرد"
+
+msgid ""
+"Preview · this voucher is %(s)s. Only your team can see this page until it "
+"is approved."
+msgstr ""
+"معاينة · هذه القسيمة %(s)s. لا يرى هذه الصفحة سوى فريقك إلى أن تتم الموافقة "
+"عليها."
+
+msgid "submitted date"
+msgstr "تاريخ التقديم"
+
+msgid "Records"
+msgstr "السجلات"
+
+msgid "%(n)s correction request is waiting"
+msgid_plural "%(n)s correction requests are waiting"
+msgstr[0] "لا طلبات تصحيح بانتظارك"
+msgstr[1] "طلب تصحيح واحد بانتظارك"
+msgstr[2] "طلبا تصحيح بانتظارك"
+msgstr[3] "%(n)s طلبات تصحيح بانتظارك"
+msgstr[4] "%(n)s طلب تصحيح بانتظارك"
+msgstr[5] "%(n)s طلب تصحيح بانتظارك"
+
+msgid "Location set — accuracy ±%s m. Remember to save."
+msgstr "تم تحديد الموقع — الدقة ±%s م. لا تنسَ الحفظ."
+
+msgid ""
+"Preview — this voucher is %(s)s. Only your team can see this page until it "
+"is approved."
+msgstr ""
+"معاينة — هذه القسيمة %(s)s. لا يرى هذه الصفحة سوى فريقك إلى أن تتم الموافقة "
+"عليها."
+
+msgid "%(counter)s day left"
+msgid_plural "%(counter)s days left"
+msgstr[0] "لا أيام متبقية"
+msgstr[1] "متبقي يوم واحد"
+msgstr[2] "متبقي يومان"
+msgstr[3] "متبقي %(counter)s أيام"
+msgstr[4] "متبقي %(counter)s يومًا"
+msgstr[5] "متبقي %(counter)s يوم"
+
+msgid "Approval rate (%%)"
+msgstr "نسبة الموافقة (%)"
+
+msgid "Saved rate (%%)"
+msgstr "نسبة المحفوظ (%)"
+
+msgid "Starter"
+msgstr "المبتدئ"
+
+msgid "Growth"
+msgstr "النمو"
+
+msgid "14-day free trial."
+msgstr "تجربة مجانية لمدة 14 يومًا."
+
+msgid "For a small team getting started."
+msgstr "لفريق صغير في بداية الطريق."
+
+msgid "For a growing agency."
+msgstr "لوكالة في طور النمو."
+
+msgid "No limits."
+msgstr "بلا حدود."
+
+msgid "Business details"
+msgstr "تفاصيل النشاط"
+
+msgid "Shown on every printed voucher and document."
+msgstr "تظهر على كل قسيمة ومستند مطبوع."
+
+msgid "The partner company printed on the right of each voucher."
+msgstr "الشركة الشريكة المطبوعة على يمين كل قسيمة."
+
+msgid "Changes apply to vouchers you print or share from now on."
+msgstr "تنطبق التغييرات على القسائم التي تطبعها أو تشاركها من الآن."
+
+msgid "Change logo"
+msgstr "تغيير الشعار"
+
+msgid "Advanced"
+msgstr "متقدم"
+
+msgid "Partner company"
+msgstr "الشركة الشريكة"
+
+msgid "How the top of your vouchers will look."
+msgstr "هكذا ستظهر ترويسة قسائمك."
+
+msgid "A receipt for each payment recorded in the ledger."
+msgstr "إيصال لكل دفعة مسجلة في دفتر الأستاذ."
+
+msgid "The voucher, once a booking is confirmed."
+msgstr "القسيمة بعد تأكيد الحجز."
+
+msgid "No messages sent yet."
+msgstr "لم تُرسل أي رسائل بعد."
+
+msgid "View all messages"
+msgstr "عرض كل الرسائل"
+
+msgid "Loading…"
+msgstr "جارٍ التحميل…"
+
+msgid "Shirka company phone"
+msgstr "هاتف شركة الشركاء"
+
+msgid "Shirka company email"
+msgstr "بريد شركة الشركاء"
+
+msgid "Shirka company website"
+msgstr "موقع شركة الشركاء"
+
+msgid "Shirka company address"
+msgstr "عنوان شركة الشركاء"

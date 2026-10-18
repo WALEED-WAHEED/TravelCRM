@@ -4,6 +4,8 @@ from django.utils.translation import gettext_lazy as _
 
 from travelcrm.languages import SUPPORTED_LANGUAGES
 
+from .avatars import avatar_upload_to
+
 
 class User(AbstractUser):
     """
@@ -40,7 +42,9 @@ class User(AbstractUser):
         max_length=10, choices=SUPPORTED_LANGUAGES, blank=True, null=True,
         help_text="Account-wide UI language, set from Settings -> Language. Blank means auto-detect from the browser, falling back to English.",
     )
+    avatar = models.ImageField(upload_to=avatar_upload_to, blank=True, help_text="Profile picture, set by the user from Settings -> My profile.")
     is_active = models.BooleanField(default=True)
+    deleted_at = models.DateTimeField(null=True, blank=True, help_text="Set when removed from the team: the person is hidden and cannot sign in, but their bookings, payments and vouchers are kept.")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -7,7 +7,8 @@ import datetime
 from django.apps import apps
 from django.core.exceptions import FieldDoesNotExist
 from django.db.models import Count, Q
-from django.utils import timezone
+from django.utils import dateformat, timezone
+from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _l
 
 from system_config.models import AuditLog
@@ -30,8 +31,10 @@ _LABELS = {}
 def model_label(name):
     """'LedgerEntry' -> 'Ledger entry' (the model's own verbose name)."""
     if not _LABELS:
+        # English source text; translated per request below (the cache must never hold a translated string).
         _LABELS.update({n: str(m._meta.verbose_name).capitalize() for n, m in _models_by_name().items()})
-    return _LABELS.get(name, name)
+    label = _LABELS.get(name, name)
+    return gettext(label)
 
 
 def _field(model_name, field_name):
@@ -48,15 +51,15 @@ def _display(field, value, tz):
     if value in (None, "", [], {}):
         return "—"
     if field is not None and getattr(field, "choices", None):
-        return str(dict(field.flatchoices).get(value, value))
+        return gettext(str(dict(field.flatchoices).get(value, value)))
     if isinstance(value, bool):
-        return "Yes" if value else "No"
+        return gettext("Yes") if value else gettext("No")
     if isinstance(value, str) and len(value) >= 19 and value[4] == "-" and "T" in value:
         try:
             dt = datetime.datetime.fromisoformat(value)
             if timezone.is_aware(dt):
                 dt = dt.astimezone(tz)
-            return dt.strftime("%d %b %Y, %I:%M %p")
+            return dateformat.format(dt, "d M Y, h:i A")  # month names follow the active language
         except ValueError:
             pass
     if field is not None and field.is_relation and isinstance(value, int):
@@ -69,7 +72,7 @@ def readable_changes(entry, tz):
     rows = []
     for name, delta in (entry.changes or {}).items():
         f = _field(entry.model_name, name)
-        label = str(f.verbose_name).capitalize() if f is not None and hasattr(f, "verbose_name") else name.replace("_", " ").capitalize()
+        label = gettext(str(f.verbose_name).capitalize() if f is not None and hasattr(f, "verbose_name") else name.replace("_", " ").capitalize())
         rows.append({
             "label": label,
             "old": _display(f, (delta or {}).get("old"), tz),

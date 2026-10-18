@@ -58,11 +58,21 @@
         </div>
       </div>
       <div class="form-group">
+        <label class="form-label" for="features">{% trans "Features" %}</label>
+        <textarea class="form-textarea" id="features" name="features" rows="5" placeholder="{% trans 'One per line, e.g. Priority support' %}">{% firstof form_data.features plan.features '' %}</textarea>
+        <p class="form-hint">{% trans "Shown as a checklist on the plan card, after the seat and booking limits." %}</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="badge">{% trans "Badge" %}</label>
+        <input class="form-input" type="text" id="badge" name="badge" maxlength="40" value="{% firstof form_data.badge plan.badge '' %}" placeholder="{% trans 'e.g. Most popular' %}" style="max-width:260px;">
+      </div>
+      <div class="form-group">
         <label class="form-label" for="sort_order">{% trans "Sort order" %}</label>
         <input class="form-input" type="number" id="sort_order" name="sort_order" value="{{ plan.sort_order|default:'0' }}" style="max-width:120px;">
       </div>
       <div class="flex gap-4">
         <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_active" {% if plan.is_active or not plan %}checked{% endif %}> {% trans "Visible for signup/upgrade" %}</label>
+        <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_featured" {% if plan.is_featured %}checked{% endif %}> {% trans "Highlight on billing page" %}</label>
         <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="is_default_trial" {% if plan.is_default_trial %}checked{% endif %}> {% trans "Default trial plan" %}</label>
       </div>
       <div class="flex gap-3 mt-2">

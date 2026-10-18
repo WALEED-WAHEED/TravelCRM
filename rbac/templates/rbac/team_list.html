@@ -1,6 +1,22 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n i18n_extra %}
 {% block title %}{% trans "Team & Roles" %}{% endblock %}
+{% block extra_head %}
+<style>
+  .team-scroll { overflow-x: auto; }
+  .team-table .num { text-align: end; font-variant-numeric: tabular-nums; }
+  .team-table th.hotels-col-actions, .team-table td.hotels-col-actions { text-align: end; }
+  .team-table .is-off { opacity: 0.65; }
+  .team-who { display: flex; align-items: center; gap: 12px; }
+  .team-avatar { flex: none; width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; background: color-mix(in srgb, var(--primary) 14%, transparent); color: var(--primary); }
+  .team-who__text { display: flex; flex-direction: column; min-width: 0; line-height: 1.35; }
+  .team-who__text small { overflow-wrap: anywhere; }
+  .team-role-select { width: auto; min-width: 130px; padding: 6px 10px; }
+  .team-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+  .team-delete { color: var(--destructive, #dc2626); }
+  .team-delete:hover { background: color-mix(in srgb, var(--destructive, #dc2626) 10%, transparent); }
+</style>
+{% endblock %}
 {% block content %}
 <div class="page-contacts">
   <header class="hotels-hero hotels-reveal" style="--d:0ms">
@@ -21,51 +37,80 @@
 
 
   <section class="card hotels-panel hotels-reveal" style="--d:120ms">
+    <div class="hotels-panel__head">
+      <h2 class="hotels-panel__title">{% blocktrans count n=active_count %}{{ n }} active teammate{% plural %}{{ n }} active teammates{% endblocktrans %}</h2>
+    </div>
     <div class="card-content hotels-panel__body">
-      <table class="hotels-data-table">
+      <div class="team-scroll">
+      <table class="hotels-data-table team-table">
         <thead>
-          <tr><th>{% trans "User" %}</th><th>{% trans "Role" %}</th><th>{% trans "Email" %}</th><th>{% trans "Status" %}</th>{% if can_manage %}<th class="hotels-col-actions">{% trans "Actions" %}</th>{% endif %}</tr>
+          <tr><th>{% trans "Teammate" %}</th><th>{% trans "Role" %}</th><th class="num">{% trans "Bookings" %}</th><th>{% trans "Last sign-in" %}</th><th>{% trans "Status" %}</th>{% if can_manage %}<th class="hotels-col-actions">{% trans "Actions" %}</th>{% endif %}</tr>
         </thead>
         <tbody>
           {% for u in staff %}
-          <tr class="hotels-row">
-            <td class="font-medium">{{ u.username }}{% if u.pk == request.user.pk %} <span class="badge badge-outline">{% trans "You" %}</span>{% endif %}</td>
+          <tr class="hotels-row{% if not u.is_active %} is-off{% endif %}">
             <td>
-              {% if u.custom_role %}
-              <a href="{% url 'member-role-detail' u.custom_role.id %}" class="badge badge-primary">{{ u.custom_role.name }}</a>
+              <div class="team-who">
+                <span class="team-avatar" aria-hidden="true">{{ u.username|slice:":1"|upper }}</span>
+                <span class="team-who__text">
+                  <span class="font-medium">{{ u.username }}{% if u.pk == request.user.pk %} <span class="badge badge-outline">{% trans "You" %}</span>{% endif %}</span>
+                  <small class="text-muted">{{ u.email|default:"—" }}</small>
+                </span>
+              </div>
+            </td>
+            <td>
+              {% if can_manage %}
+              <form method="post" action="{% url 'member-team-update-role' u.id %}" onchange="this.submit()">
+                {% csrf_token %}
+                <select name="role_id" class="form-select team-role-select" aria-label="{% trans 'Role' %}">
+                  {% for r in roles %}
+                  <option value="{{ r.id }}" {% if u.custom_role_id == r.id %}selected{% endif %}>{{ r.name|tr }}</option>
+                  {% endfor %}
+                </select>
+              </form>
+              {% elif u.custom_role %}
+              <a href="{% url 'member-role-detail' u.custom_role.id %}" class="badge badge-primary">{{ u.custom_role.name|tr }}</a>
               {% else %}
               <span class="badge badge-default">{{ u.get_role_display }}</span>
               {% endif %}
             </td>
-            <td class="text-muted text-sm">{{ u.email|default:"—" }}</td>
+            <td class="num">{{ u.booking_count }}</td>
+            <td class="text-muted text-sm">{% if u.last_login %}{{ u.last_login|date:"d M Y" }}<br><small>{{ u.last_login|time:"H:i" }}</small>{% else %}{% trans "Never" %}{% endif %}</td>
             <td>{% if u.is_active %}<span class="badge badge-success">{% trans "Active" %}</span>{% else %}<span class="badge badge-outline">{% trans "Deactivated" %}</span>{% endif %}</td>
             {% if can_manage %}
             <td class="hotels-col-actions">
-              <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
-                <form method="post" action="{% url 'member-team-update-role' u.id %}" onchange="this.submit()">
-                  {% csrf_token %}
-                  <select name="role_id" class="form-select" style="width:auto; padding:6px 10px;">
-                    {% for r in roles %}
-                    <option value="{{ r.id }}" {% if u.custom_role_id == r.id %}selected{% endif %}>{{ r.name }}</option>
-                    {% endfor %}
-                  </select>
-                </form>
-                {% if u.is_active and u.pk != request.user.pk %}
-                {% blocktrans asvar deactivate_confirm_msg with username=u.username %}Deactivate {{ username }}?{% endblocktrans %}
-                <form method="post" action="{% url 'member-team-deactivate' u.id %}" onsubmit="return confirm('{{ deactivate_confirm_msg|escapejs }}');">
+              {% if u.pk != request.user.pk %}
+              <div class="team-actions">
+                {% if u.is_active %}
+                {% blocktrans asvar deactivate_confirm_msg with username=u.username %}{{ username }} will lose access straight away. Their bookings, payments and vouchers are kept, and you can reactivate them any time.{% endblocktrans %}
+                {% blocktrans asvar deactivate_title with username=u.username %}Deactivate {{ username }}?{% endblocktrans %}
+                <form method="post" action="{% url 'member-team-deactivate' u.id %}" data-confirm="{{ deactivate_confirm_msg }}" data-confirm-title="{{ deactivate_title }}" data-confirm-ok="{% trans 'Deactivate' %}">
                   {% csrf_token %}
                   <button type="submit" class="btn btn-outline btn-sm">{% trans "Deactivate" %}</button>
                 </form>
+                {% else %}
+                <form method="post" action="{% url 'member-team-reactivate' u.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline btn-sm">{% trans "Reactivate" %}</button>
+                </form>
                 {% endif %}
+                {% blocktrans asvar delete_confirm_msg with username=u.username %}{{ username }} will be removed from your team and can no longer sign in. Everything they created (bookings, payments, vouchers) is kept.{% endblocktrans %}
+                {% blocktrans asvar delete_title with username=u.username %}Delete {{ username }}?{% endblocktrans %}
+                <form method="post" action="{% url 'member-team-delete' u.id %}" data-confirm="{{ delete_confirm_msg }}" data-confirm-title="{{ delete_title }}" data-confirm-ok="{% trans 'Delete' %}" data-confirm-danger>
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline btn-sm team-delete">{% trans "Delete" %}</button>
+                </form>
               </div>
+              {% endif %}
             </td>
             {% endif %}
           </tr>
           {% empty %}
-          <tr class="hotels-row"><td colspan="5"><div class="empty-state" style="padding:22px 12px;"><h3>{% trans "No teammates yet" %}</h3><p>{% trans "Add your first team member to get started." %}</p></div></td></tr>
+          <tr class="hotels-row"><td colspan="6"><div class="empty-state" style="padding:22px 12px;"><h3>{% trans "No teammates yet" %}</h3><p>{% trans "Add your first team member to get started." %}</p></div></td></tr>
           {% endfor %}
         </tbody>
       </table>
+      </div>
     </div>
   </section>
 </div>

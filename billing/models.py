@@ -34,6 +34,9 @@ class Plan(models.Model):
         help_text="The plan new self-serve signups start on during their trial. Only one plan should have this set.",
     )
     trial_days = models.PositiveIntegerField(default=14)
+    features = models.TextField(blank=True, help_text="Extra bullet points shown on the plan card, one per line.")
+    badge = models.CharField(max_length=40, blank=True, help_text="Small label on the plan card, e.g. Most popular.")
+    is_featured = models.BooleanField(default=False, help_text="Highlight this plan on the billing page.")
     sort_order = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -43,6 +46,10 @@ class Plan(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def features_list(self):
+        return [line.strip() for line in (self.features or '').splitlines() if line.strip()]
 
 
 class Subscription(models.Model):

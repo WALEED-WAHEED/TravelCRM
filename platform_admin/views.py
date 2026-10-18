@@ -400,6 +400,9 @@ def plan_form(request, plan_id=None):
                 is_default_trial=is_default_trial,
                 trial_days=int(request.POST.get('trial_days') or 14),
                 sort_order=int(request.POST.get('sort_order') or 0),
+                features="\n".join(line.strip() for line in request.POST.get('features', '').splitlines() if line.strip()),
+                badge=request.POST.get('badge', '').strip()[:40],
+                is_featured=request.POST.get('is_featured') == 'on',
             )
             if plan:
                 for k, v in fields.items():

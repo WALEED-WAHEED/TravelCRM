@@ -149,8 +149,8 @@ def test_agent_can_check_in_page_but_not_settings(agent_client, settings_a):
 
 
 def test_settings_hub_routes_by_role(client_a, agent_client):
-    assert client_a.get("/member/settings/")["Location"] == "/member/settings/attendance/"
-    assert agent_client.get("/member/settings/")["Location"] == "/settings/language/"
+    assert client_a.get("/member/settings/")["Location"] == "/member/settings/me/"  # everyone starts on their profile
+    assert agent_client.get("/member/settings/")["Location"] == "/member/settings/me/"
     assert client_a.get("/member/attendance/settings/").status_code == 301  # old link still works
     page = client_a.get("/member/settings/attendance/").content.decode()
     assert "settings-tabs" in page and "Company profile" in page

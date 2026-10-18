@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from agencies.models import Agency
 
@@ -63,9 +64,9 @@ class Announcement(models.Model):
     client-side (localStorage), not here — no per-user read-state model.
     """
     SEVERITY_CHOICES = [
-        ('info', 'Info'),
-        ('warning', 'Warning'),
-        ('critical', 'Critical'),
+        ('info', _('Info')),
+        ('warning', _('Warning')),
+        ('critical', _('Critical')),
     ]
 
     title = models.CharField(max_length=200)

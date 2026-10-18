@@ -67,11 +67,11 @@ class Hotel(models.Model):
 
 class HotelRoom(models.Model):
     ROOM_TYPES = [
-        ('single', 'Single'),
-        ('double', 'Double'),
-        ('triple', 'Triple'),
-        ('quad', 'Quad'),
-        ('suite', 'Suite'),
+        ('single', _('Single')),
+        ('double', _('Double')),
+        ('triple', _('Triple')),
+        ('quad', _('Quad')),
+        ('suite', _('Suite')),
     ]
     hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, related_name='rooms')
     room_type = models.CharField(max_length=20, choices=ROOM_TYPES)
@@ -105,20 +105,20 @@ def _airport_code(code, city):
 
 class Flight(models.Model):
     FLIGHT_CLASS = [
-        ('economy', 'Economy'),
-        ('business', 'Business'),
-        ('first', 'First Class'),
+        ('economy', _('Economy')),
+        ('business', _('Business')),
+        ('first', _('First Class')),
     ]
     FLIGHT_TYPE_CHOICES = [
-        ('one_way', 'One Way'),
-        ('return', 'Return'),
-        ('multi_city', 'Multi-City'),
+        ('one_way', _('One Way')),
+        ('return', _('Return')),
+        ('multi_city', _('Multi-City')),
     ]
     STATUS_CHOICES = [
-        ('scheduled', 'Scheduled'),
-        ('delayed', 'Delayed'),
-        ('cancelled', 'Cancelled'),
-        ('completed', 'Completed'),
+        ('scheduled', _('Scheduled')),
+        ('delayed', _('Delayed')),
+        ('cancelled', _('Cancelled')),
+        ('completed', _('Completed')),
     ]
 
     flight_type = models.CharField(max_length=20, choices=FLIGHT_TYPE_CHOICES, default='one_way')
@@ -192,12 +192,12 @@ class FlightSegment(models.Model):
 
 class Transport(models.Model):
     TRANSPORT_TYPES = [
-        ('bus', 'Bus'),
-        ('car', 'Car'),
-        ('van', 'Van'),
-        ('coach', 'Coach'),
-        ('train', 'Train'),
-        ('other', 'Other'),
+        ('bus', _('Bus')),
+        ('car', _('Car')),
+        ('van', _('Van')),
+        ('coach', _('Coach')),
+        ('train', _('Train')),
+        ('other', _('Other')),
     ]
     name = models.CharField(max_length=200)
     transport_type = models.CharField(max_length=20, choices=TRANSPORT_TYPES)
@@ -283,7 +283,8 @@ class Package(models.Model):
     madina_shuttle = models.BooleanField(default=False)
     flight = models.ForeignKey(Flight, on_delete=models.SET_NULL, null=True, blank=True, related_name='packages')
     return_flight = models.ForeignKey(Flight, on_delete=models.SET_NULL, null=True, blank=True, related_name='packages_return')
-    baggage = models.CharField(max_length=60, blank=True, help_text="e.g. 23 kg, or 23 + 23 kg")
+    baggage = models.CharField(max_length=60, blank=True, help_text="Departure baggage, e.g. 23 kg, or 23 + 23 kg")
+    return_baggage = models.CharField(max_length=60, blank=True, help_text="Return baggage, e.g. 23 kg, or 23 + 23 kg")
     transport = models.ForeignKey(Transport, on_delete=models.SET_NULL, null=True, blank=True, related_name='packages')
     inclusions = models.JSONField(default=list, blank=True)
     extra_services = models.TextField(blank=True, help_text="Other services included, one per line.")
@@ -352,10 +353,10 @@ class Package(models.Model):
 
 class AttendanceLog(models.Model):
     STATUS_CHOICES = [
-        ('present', 'Present'),
-        ('absent', 'Absent'),
-        ('late', 'Late'),
-        ('leave', 'Leave'),
+        ('present', _('Present')),
+        ('absent', _('Absent')),
+        ('late', _('Late')),
+        ('leave', _('Leave')),
     ]
     # Attendance can be tracked for agency staff even if they don't have a user account.
     # If a user exists, link it; otherwise store a typed name in person_name.
@@ -488,11 +489,11 @@ class AttendanceCorrection(models.Model):
 
 class Contact(models.Model):
     CONTACT_TYPES = [
-        ('customer', 'Customer'),
-        ('supplier', 'Supplier'),
-        ('partner', 'Partner'),
-        ('vendor', 'Vendor'),
-        ('other', 'Other'),
+        ('customer', _('Customer')),
+        ('supplier', _('Supplier')),
+        ('partner', _('Partner')),
+        ('vendor', _('Vendor')),
+        ('other', _('Other')),
     ]
     name = models.CharField(max_length=200)
     contact_type = models.CharField(max_length=20, choices=CONTACT_TYPES)
@@ -716,7 +717,7 @@ class BookingFlight(models.Model):
     # renders those, not a live `flight.*` lookup, and a deleted catalog
     # Flight doesn't take an already-issued voucher's leg down with it.
     flight = models.ForeignKey(Flight, on_delete=models.SET_NULL, null=True, blank=True)
-    flight_type = models.CharField(max_length=20, choices=[('outbound', 'Outbound'), ('return', 'Return')])
+    flight_type = models.CharField(max_length=20, choices=[('outbound', _('Outbound')), ('return', _('Return'))])
     airline = models.CharField(max_length=100, blank=True, default='')
     flight_number = models.CharField(max_length=20, blank=True, default='')
     departure_city = models.CharField(max_length=100, blank=True, default='')
@@ -818,8 +819,8 @@ class BookingContactInstruction(models.Model):
 
 class BookingTeamContact(models.Model):
     TEAM_CHOICES = [
-        ('makkah', 'Makkah Team'),
-        ('medina', 'Medina Team'),
+        ('makkah', _('Makkah Team')),
+        ('medina', _('Medina Team')),
     ]
     booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='team_contacts')
     team = models.CharField(max_length=20, choices=TEAM_CHOICES)
@@ -878,11 +879,11 @@ class BookingPayment(models.Model):
 
 class Voucher(models.Model):
     STATUS_CHOICES = [
-        ('draft', 'Draft'),
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-        ('cancelled', 'Cancelled'),
+        ('draft', _('Draft')),
+        ('pending', _('Pending')),
+        ('approved', _('Approved')),
+        ('rejected', _('Rejected')),
+        ('cancelled', _('Cancelled')),
     ]
     voucher_number = models.CharField(max_length=50, blank=True)
     agent = models.ForeignKey(User, on_delete=models.CASCADE, related_name='vouchers_created')
@@ -991,9 +992,9 @@ class LedgerEntry(models.Model):
         'other': 'OT',
     }
     FX_CURRENCIES = [
-        ('SAR', 'SAR'),
-        ('USD', 'USD'),
-        ('AED', 'AED'),
+        ('SAR', _('SAR')),
+        ('USD', _('USD')),
+        ('AED', _('AED')),
     ]
     PAYMENT_METHODS = [
         ('cash', _('Cash')),

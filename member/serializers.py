@@ -258,7 +258,7 @@ class PackageSerializer(serializers.ModelSerializer):
         fields = [
             "id", "code", "name", "package_type", "group_leader", "makkah_nights", "madina_nights",
             "makkah_hotel", "madina_hotel", "makkah_distance", "makkah_shuttle", "madina_distance", "madina_shuttle",
-            "flight", "return_flight", "baggage", "transport", "inclusions", "extra_services",
+            "flight", "return_flight", "baggage", "return_baggage", "transport", "inclusions", "extra_services",
             "price_sharing", "price_double", "price_triple", "price_quad", "price_quint",
             "price_child", "price_infant", "cost_price",
             "departure_date", "return_date", "total_seats", "notes", "is_active",

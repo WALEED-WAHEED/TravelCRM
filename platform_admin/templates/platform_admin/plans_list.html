@@ -20,7 +20,7 @@
         <tbody>
           {% for plan in plans %}
           <tr>
-            <td class="font-medium">{{ plan.name }} {% if plan.is_default_trial %}<span class="badge badge-primary">{% trans "Default trial" %}</span>{% endif %}</td>
+            <td class="font-medium">{{ plan.name }} {% if plan.is_default_trial %}<span class="badge badge-primary">{% trans "Default trial" %}</span>{% endif %}{% if plan.is_featured %} <span class="badge badge-outline">{% if plan.badge %}{{ plan.badge }}{% else %}{% trans "Featured" %}{% endif %}</span>{% endif %}</td>
             <td class="tabular-nums">{{ plan.currency }} {{ plan.price_amount }}/{{ plan.get_billing_interval_display|lower }}</td>
             <td class="text-muted text-sm">{{ plan.max_seats|default:label_unlimited }}</td>
             <td class="text-muted text-sm">{{ plan.max_bookings_per_month|default:label_unlimited }}</td>

@@ -1,61 +1,140 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n i18n_extra %}
 {% block title %}{% trans "Billing" %}{% endblock %}
+{% block extra_head %}
+<style>
+  .bl-current { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 18px; margin-bottom: 18px; }
+  .bl-plan__top { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .bl-plan__name { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em; }
+  .bl-plan__price { margin: 6px 0 0; font-size: 1rem; color: var(--muted-foreground); }
+  .bl-plan__price b { color: var(--foreground); font-size: 1.15rem; }
+  .bl-facts { margin: 18px 0 0; display: grid; gap: 0; }
+  .bl-facts > div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); font-size: 0.9rem; }
+  .bl-facts dt { color: var(--muted-foreground); }
+  .bl-facts dd { margin: 0; font-weight: 600; text-align: end; }
+  .bl-alert { margin-top: 14px; padding: 10px 14px; border-radius: var(--radius); font-size: 0.88rem; background: color-mix(in srgb, var(--warning, #d97706) 12%, transparent); color: var(--warning, #b45309); }
+  .bl-meter + .bl-meter { margin-top: 20px; }
+  .bl-meter__head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 8px; font-size: 0.9rem; }
+  .bl-meter__head b { font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+  .bl-meter__head span { color: var(--muted-foreground); }
+  .bl-bar { height: 10px; border-radius: 999px; background: var(--muted); overflow: hidden; }
+  .bl-bar > i { display: block; height: 100%; border-radius: inherit; background: var(--primary); }
+  .bl-bar > i.is-warn { background: var(--warning, #d97706); }
+  .bl-bar > i.is-full { background: var(--destructive, #dc2626); }
+  .bl-bar--unlimited > i { width: 100%; background: linear-gradient(90deg, color-mix(in srgb, var(--primary) 30%, transparent), color-mix(in srgb, var(--primary) 8%, transparent)); }
+  .bl-meter__note { margin: 6px 0 0; font-size: 0.8rem; color: var(--muted-foreground); }
+
+  .bl-plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 16px; align-items: stretch; }
+  .bl-card { position: relative; display: flex; flex-direction: column; padding: 22px 20px 20px; border: 1.5px solid var(--border); border-radius: var(--radius-lg, 14px); background: var(--card); transition: var(--transition-fast); }
+  .bl-card:hover { border-color: color-mix(in srgb, var(--primary) 40%, var(--border)); box-shadow: var(--shadow-elevated, 0 8px 24px rgba(0,0,0,.08)); }
+  .bl-card.is-featured { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 12%, transparent); }
+  .bl-card.is-current { background: color-mix(in srgb, var(--primary) 5%, var(--card)); }
+  .bl-badge { position: absolute; top: -11px; inset-inline-start: 18px; padding: 3px 12px; border-radius: 999px; background: var(--primary); color: #fff; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+  .bl-card__name { margin: 0; font-size: 1.1rem; font-weight: 700; }
+  .bl-card__desc { margin: 4px 0 0; min-height: 2.6em; font-size: 0.85rem; color: var(--muted-foreground); }
+  .bl-card__price { margin: 14px 0 16px; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  .bl-card__price b { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .bl-card__price span { font-size: 0.85rem; color: var(--muted-foreground); }
+  .bl-feats { list-style: none; margin: 0 0 20px; padding: 0; display: grid; gap: 9px; flex: 1; }
+  .bl-feats li { display: flex; align-items: flex-start; gap: 9px; font-size: 0.9rem; }
+  .bl-feats svg { flex: none; margin-top: 3px; color: var(--success); }
+  .bl-card .btn { justify-content: center; width: 100%; }
+  .bl-current-tag { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 12px; border-radius: var(--radius); background: color-mix(in srgb, var(--primary) 10%, transparent); color: var(--primary); font-weight: 600; font-size: 0.88rem; }
+  .bl-status { display: inline-block; padding: 3px 11px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; }
+  .bl-status--ok { background: color-mix(in srgb, var(--success) 14%, transparent); color: var(--success); }
+  .bl-status--trial { background: color-mix(in srgb, var(--primary) 13%, transparent); color: var(--primary); }
+  .bl-status--bad { background: color-mix(in srgb, var(--destructive, #dc2626) 12%, transparent); color: var(--destructive, #dc2626); }
+  .bl-table-wrap { overflow-x: auto; }
+  @media (max-width: 860px) { .bl-current { grid-template-columns: minmax(0, 1fr); } }
+</style>
+{% endblock %}
 {% block content %}
 <div class="page-contacts">
   <header class="hotels-hero hotels-reveal" style="--d:0ms">
     <div class="hotels-hero__copy">
       <p class="hotels-eyebrow">{% trans "Billing" %}</p>
       <h1 class="page-title hotels-hero__title">{% trans "Plan & billing" %}</h1>
-      <p class="page-subtitle hotels-hero__sub">
-        {% if subscription.status == 'trialing' %}
-        {% blocktrans count counter=subscription.days_left_in_trial with plan_name=subscription.plan.name %}{{ counter }} day left in your trial of the {{ plan_name }} plan.{% plural %}{{ counter }} days left in your trial of the {{ plan_name }} plan.{% endblocktrans %}
-        {% elif subscription.status == 'active' %}
-        {% blocktrans with plan_name=subscription.plan.name renew_date=subscription.current_period_end|date:"M j, Y" %}You're on the {{ plan_name }} plan, renews {{ renew_date }}.{% endblocktrans %}
-        {% elif subscription.status == 'expired' or subscription.status == 'past_due' %}
-        {% trans "Your access has lapsed — choose a plan below to reactivate." %}
-        {% else %}
-        {% trans "No active plan yet." %}
-        {% endif %}
-      </p>
     </div>
   </header>
 
+  {% if subscription %}
+  <div class="bl-current hotels-reveal" style="--d:40ms">
+    <section class="card hotels-panel">
+      <div class="card-content hotels-panel__body">
+        <div class="bl-plan__top">
+          <h2 class="bl-plan__name">{{ subscription.plan.name|tr }}</h2>
+          {% if subscription.status == 'active' %}<span class="bl-status bl-status--ok">{% trans "Active" %}</span>
+          {% elif subscription.status == 'trialing' %}<span class="bl-status bl-status--trial">{% trans "Trial" %}</span>
+          {% else %}<span class="bl-status bl-status--bad">{{ subscription.get_status_display }}</span>{% endif %}
+        </div>
+        <p class="bl-plan__price">
+          {% if subscription.plan.price_amount %}<b>{{ subscription.plan.currency }} {{ subscription.plan.price_amount|floatformat:"-2" }}</b> / {{ subscription.plan.get_billing_interval_display|lower }}{% else %}<b>{% trans "Free" %}</b>{% endif %}
+        </p>
+        {% if subscription.plan.description %}<p class="text-muted text-sm" style="margin:8px 0 0;">{{ subscription.plan.description|tr }}</p>{% endif %}
 
-  <div class="grid grid-2 mb-6">
-    <div class="card kpi-card">
-      <div class="kpi-value">{{ seat_usage }}{% if subscription.plan.max_seats %} / {{ subscription.plan.max_seats }}{% endif %}</div>
-      <div class="kpi-label">{% trans "Active staff seats" %}</div>
-    </div>
-    <div class="card kpi-card">
-      <div class="kpi-value">{{ booking_usage }}{% if subscription.plan.max_bookings_per_month %} / {{ subscription.plan.max_bookings_per_month }}{% endif %}</div>
-      <div class="kpi-label">{% trans "Bookings this month" %}</div>
-    </div>
+        <dl class="bl-facts">
+          {% if subscription.status == 'trialing' %}
+          <div><dt>{% trans "Trial ends" %}</dt><dd>{{ subscription.trial_ends_at|date:"j M Y"|default:"—" }}{% if subscription.days_left_in_trial is not None %} · {% blocktrans count counter=subscription.days_left_in_trial %}{{ counter }} day left{% plural %}{{ counter }} days left{% endblocktrans %}{% endif %}</dd></div>
+          {% elif subscription.status == 'active' %}
+          <div><dt>{% trans "Renews on" %}</dt><dd>{% if subscription.current_period_end %}{{ subscription.current_period_end|date:"j M Y" }}{% else %}{% trans "No end date" %}{% endif %}</dd></div>
+          {% endif %}
+          <div><dt>{% trans "Staff seats" %}</dt><dd>{% if subscription.plan.max_seats %}{{ subscription.plan.max_seats }}{% else %}{% trans "Unlimited" %}{% endif %}</dd></div>
+          <div><dt>{% trans "Bookings per month" %}</dt><dd>{% if subscription.plan.max_bookings_per_month %}{{ subscription.plan.max_bookings_per_month }}{% else %}{% trans "Unlimited" %}{% endif %}</dd></div>
+        </dl>
+        {% if subscription.status == 'expired' or subscription.status == 'past_due' %}
+        <p class="bl-alert">{% trans "Your access has lapsed — choose a plan below to reactivate." %}</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="card hotels-panel">
+      <div class="card-content hotels-panel__body">
+        <div class="bl-meter">
+          <div class="bl-meter__head"><span>{% trans "Active staff seats" %}</span><b>{{ seat_usage }}{% if subscription.plan.max_seats %}<small style="font-weight:500;color:var(--muted-foreground);"> / {{ subscription.plan.max_seats }}</small>{% endif %}</b></div>
+          <div class="bl-bar {% if not subscription.plan.max_seats %}bl-bar--unlimited{% endif %}"><i {% if subscription.plan.max_seats %}class="{% if seat_pct >= 100 %}is-full{% elif seat_pct >= 80 %}is-warn{% endif %}" style="width:{{ seat_pct }}%"{% endif %}></i></div>
+          <p class="bl-meter__note">{% if subscription.plan.max_seats %}{% blocktrans with p=seat_pct %}{{ p }}% of your seats are in use{% endblocktrans %}{% else %}{% trans "No seat limit on this plan" %}{% endif %}</p>
+        </div>
+        <div class="bl-meter">
+          <div class="bl-meter__head"><span>{% trans "Bookings this month" %}</span><b>{{ booking_usage }}{% if subscription.plan.max_bookings_per_month %}<small style="font-weight:500;color:var(--muted-foreground);"> / {{ subscription.plan.max_bookings_per_month }}</small>{% endif %}</b></div>
+          <div class="bl-bar {% if not subscription.plan.max_bookings_per_month %}bl-bar--unlimited{% endif %}"><i {% if subscription.plan.max_bookings_per_month %}class="{% if booking_pct >= 100 %}is-full{% elif booking_pct >= 80 %}is-warn{% endif %}" style="width:{{ booking_pct }}%"{% endif %}></i></div>
+          <p class="bl-meter__note">{% if subscription.plan.max_bookings_per_month %}{% blocktrans with p=booking_pct %}{{ p }}% of this month's bookings used{% endblocktrans %}{% else %}{% trans "No booking limit on this plan" %}{% endif %}</p>
+        </div>
+      </div>
+    </section>
   </div>
+  {% else %}
+  <p class="bl-alert">{% trans "No active plan yet." %}</p>
+  {% endif %}
 
   {% if can_manage %}
   <section class="card hotels-panel hotels-reveal mb-6" style="--d:80ms">
     <div class="hotels-panel__head">
-      <h2 class="hotels-panel__title">{% trans "Plans" %}</h2>
+      <h2 class="hotels-panel__title">{% trans "Choose a plan" %}</h2>
       <p class="hotels-panel__hint text-muted text-sm">{% trans "Pick a plan and send payment — we'll confirm and activate it shortly." %}</p>
     </div>
-    <div class="card-content hotels-panel__body">
-      <div class="grid grid-3">
+    <div class="card-content hotels-panel__body" style="padding-top:18px;">
+      <div class="bl-plans">
         {% for plan in plans %}
-        <div class="hotels-stat-card {% if subscription.plan_id == plan.id %}hotels-stat-card--accent{% endif %}" style="flex-direction:column; align-items:stretch;">
-          <div class="flex justify-between items-center">
-            <span class="font-semibold">{{ plan.name }}</span>
-            {% if subscription.plan_id == plan.id %}<span class="badge badge-primary">{% trans "Current" %}</span>{% endif %}
+        <article class="bl-card {% if plan.is_featured %}is-featured{% endif %} {% if plan.cta == 'current' %}is-current{% endif %}">
+          {% if plan.badge %}<span class="bl-badge">{{ plan.badge }}</span>{% elif plan.is_featured %}<span class="bl-badge">{% trans "Recommended" %}</span>{% endif %}
+          <h3 class="bl-card__name">{{ plan.name|tr }}</h3>
+          <p class="bl-card__desc">{{ plan.description|tr }}</p>
+          <div class="bl-card__price">
+            {% if plan.price_amount %}<span>{{ plan.currency }}</span><b>{{ plan.price_amount|floatformat:"-2" }}</b><span>/ {{ plan.get_billing_interval_display|lower }}</span>{% else %}<b>{% trans "Free" %}</b>{% if plan.trial_days %}<span>{% blocktrans with d=plan.trial_days %}{{ d }}-day trial{% endblocktrans %}</span>{% endif %}{% endif %}
           </div>
-          <div class="text-sm text-muted mt-2">
-            {{ plan.currency }} {{ plan.price_amount }} / {{ plan.get_billing_interval_display|lower }}<br>
-            {% if plan.max_seats %}{% blocktrans with seats=plan.max_seats %}{{ seats }} seats{% endblocktrans %}{% else %}{% trans "Unlimited seats" %}{% endif %}<br>
-            {% if plan.max_bookings_per_month %}{% blocktrans with n=plan.max_bookings_per_month %}{{ n }} bookings/mo{% endblocktrans %}{% else %}{% trans "Unlimited bookings" %}{% endif %}
-          </div>
-          {% if subscription.plan_id != plan.id %}
-          <a href="{% url 'member-billing-subscribe' plan.id %}" class="btn btn-outline btn-sm mt-4" style="justify-content:center;">{% trans "Switch to this plan" %}</a>
+          <ul class="bl-feats">
+            <li>{% include "billing/_check.html" %}{% if plan.max_seats %}{% blocktrans with n=plan.max_seats %}Up to {{ n }} staff seats{% endblocktrans %}{% else %}{% trans "Unlimited staff seats" %}{% endif %}</li>
+            <li>{% include "billing/_check.html" %}{% if plan.max_bookings_per_month %}{% blocktrans with n=plan.max_bookings_per_month %}{{ n }} bookings per month{% endblocktrans %}{% else %}{% trans "Unlimited bookings" %}{% endif %}</li>
+            {% for f in plan.features_list %}<li>{% include "billing/_check.html" %}{{ f }}</li>{% endfor %}
+          </ul>
+          {% if plan.cta == 'current' %}
+          <span class="bl-current-tag">{% include "billing/_check.html" %}{% trans "Your current plan" %}</span>
+          {% else %}
+          <a href="{% url 'member-billing-subscribe' plan.id %}" class="btn {% if plan.is_featured or plan.cta == 'upgrade' %}btn-primary{% else %}btn-outline{% endif %}">
+            {% if plan.cta == 'upgrade' %}{% trans "Upgrade to this plan" %}{% elif plan.cta == 'downgrade' %}{% trans "Switch to this plan" %}{% else %}{% trans "Choose this plan" %}{% endif %}
+          </a>
           {% endif %}
-        </div>
+        </article>
         {% endfor %}
       </div>
     </div>
@@ -67,14 +146,15 @@
       <h2 class="hotels-panel__title">{% trans "Payment history" %}</h2>
     </div>
     <div class="card-content hotels-panel__body">
+      <div class="bl-table-wrap">
       <table class="hotels-data-table">
         <thead><tr><th>{% trans "Submitted" %}</th><th>{% trans "Plan" %}</th><th>{% trans "Amount" %}</th><th>{% trans "Method" %}</th><th>{% trans "Status" %}</th></tr></thead>
         <tbody>
           {% for p in payment_history %}
           <tr class="hotels-row">
-            <td class="text-muted text-sm tabular-nums">{{ p.submitted_at|date:"Y-m-d" }}</td>
-            <td>{{ p.plan.name }}</td>
-            <td class="tabular-nums">{{ p.currency }} {{ p.amount }}</td>
+            <td class="text-muted text-sm tabular-nums">{{ p.submitted_at|date:"j M Y" }}</td>
+            <td>{{ p.plan.name|tr }}</td>
+            <td class="tabular-nums">{{ p.currency }} {{ p.amount|floatformat:"-2" }}</td>
             <td class="text-muted text-sm">{{ p.get_method_display }}</td>
             <td><span class="badge badge-{% if p.status == 'confirmed' %}success{% elif p.status == 'rejected' %}danger{% else %}outline{% endif %}">{{ p.get_status_display }}</span></td>
           </tr>
@@ -83,6 +163,7 @@
           {% endfor %}
         </tbody>
       </table>
+      </div>
     </div>
   </section>
 </div>

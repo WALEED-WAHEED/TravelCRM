@@ -52,7 +52,6 @@
         <div class="hotels-hero__copy">
             <p class="hotels-eyebrow">{% trans "Account" %}</p>
             <h1 class="page-title hotels-hero__title">{% trans "Activity Log" %}</h1>
-            <p class="page-subtitle hotels-hero__sub">{% blocktrans with agency_name=request.user.agency.name %}Every create, edit and delete in {{ agency_name }} is recorded automatically — who did it, when, and exactly what changed.{% endblocktrans %}</p>
         </div>
         <div class="hotels-hero__actions hotels-reveal" style="--d:60ms">
             <a class="btn btn-outline" href="?{{ query }}{% if query %}&amp;{% endif %}export=csv">{% trans "Export to Excel" %}</a>

@@ -3474,3 +3474,69 @@ form.vx-form { display: inline; margin: 0; }
 .drawer-list dt { margin: 0 0 4px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted-foreground); }
 .drawer-list dd { margin: 0; font-size: 0.95rem; white-space: pre-line; overflow-wrap: anywhere; }
 .drawer-list a { color: var(--primary); font-weight: 600; text-decoration: none; }
+
+/* ── Urdu / Arabic typography ─────────────────────────────────────────
+   Inter has no Arabic-script glyphs, so such text used to fall back to
+   whatever the device had. Urdu is read in Nastaliq, which needs taller
+   lines than Latin text; Arabic reads best in Naskh. */
+:root {
+  --font-urdu: 'Inter', 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Segoe UI', Tahoma, sans-serif;
+  --font-arabic: 'Inter', 'Noto Naskh Arabic', 'Segoe UI', Tahoma, sans-serif;
+}
+html:lang(ur) body, html:lang(ur) button, html:lang(ur) input, html:lang(ur) select, html:lang(ur) textarea { font-family: var(--font-urdu); }
+html:lang(ur) { font-size: 110%; }  /* Nastaliq looks smaller than Latin at the same size */
+html:lang(ur) body { line-height: 1.9; }
+html:lang(ur) h1, html:lang(ur) h2, html:lang(ur) h3, html:lang(ur) h4, html:lang(ur) .page-title { line-height: 1.7; }
+html:lang(ur) .btn, html:lang(ur) .form-input, html:lang(ur) .form-select, html:lang(ur) .form-label, html:lang(ur) th, html:lang(ur) .nav-item { line-height: 1.7; }
+html:lang(ar) body, html:lang(ar) button, html:lang(ar) input, html:lang(ar) select, html:lang(ar) textarea { font-family: var(--font-arabic); }
+html:lang(ar) body { line-height: 1.7; }
+/* Urdu typed into free-text content (voucher instructions, notes) on any UI language */
+.free-text:dir(rtl), .vi-text:dir(rtl), .vw-instr:dir(rtl), .vw-instr li:dir(rtl), .rules:dir(rtl), .rules li:dir(rtl), [dir="rtl"].urdu-text {
+  font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Segoe UI', Tahoma, sans-serif;
+  line-height: 2.15;
+  font-size: 1.05rem;
+}
+
+/* Confirmation dialog (data-confirm forms) */
+.app-confirm { max-width: 420px; text-align: center; }
+.app-confirm__body { padding: 28px 26px 8px; }
+.app-confirm__icon { display: inline-flex; width: 48px; height: 48px; align-items: center; justify-content: center; border-radius: 50%; background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--primary); margin-bottom: 12px; }
+.is-danger .app-confirm__icon { background: color-mix(in srgb, var(--destructive, #dc2626) 12%, transparent); color: var(--destructive, #dc2626); }
+.app-confirm__title { margin: 0 0 8px; font-size: 1.15rem; font-weight: 700; }
+.app-confirm__text { margin: 0; font-size: 0.93rem; line-height: 1.55; color: var(--muted-foreground); }
+.app-confirm__actions { display: flex; gap: 10px; justify-content: center; padding: 20px 26px 24px; }
+.app-confirm__actions .btn { min-width: 110px; justify-content: center; }
+.btn-danger { background: var(--destructive, #dc2626); border-color: var(--destructive, #dc2626); color: #fff; }
+.btn-danger:hover { filter: brightness(0.93); }
+
+/* Profile pictures */
+.user-avatar { overflow: hidden; }
+.user-avatar img, .user-card__avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
+.user-card__avatar { overflow: hidden; }
+
+/* Bell menu: latest messages the system sent */
+.notif-menu { width: 380px; max-width: calc(100vw - 24px); padding: 0; overflow: hidden; }
+.notif-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.notif-gear { flex: none; width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; color: var(--muted-foreground); }
+.notif-gear:hover { background: var(--muted); color: var(--foreground); }
+.notif-list { max-height: 360px; overflow-y: auto; }
+.notif-item { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-top: 1px solid var(--border); color: inherit; text-decoration: none; }
+.notif-item:hover { background: var(--muted); }
+.notif-dot { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--success) 14%, transparent); color: var(--success); }
+.notif-dot--failed { background: color-mix(in srgb, var(--destructive, #dc2626) 13%, transparent); color: var(--destructive, #dc2626); }
+.notif-dot--skipped { background: var(--muted); color: var(--muted-foreground); }
+.notif-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.notif-title { font-size: 0.88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.notif-sub { font-size: 0.78rem; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.notif-meta { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.notif-status { font-size: 0.7rem; font-weight: 700; color: var(--success); }
+.notif-status--failed { color: var(--destructive, #dc2626); }
+.notif-status--skipped { color: var(--muted-foreground); }
+.notif-when { font-size: 0.72rem; color: var(--muted-foreground); white-space: nowrap; }
+.notif-empty { display: grid; justify-items: center; gap: 6px; padding: 28px 16px; color: var(--muted-foreground); text-align: center; font-size: 0.88rem; }
+.notif-empty p { margin: 0; }
+.notif-all { display: block; padding: 11px 16px; border-top: 1px solid var(--border); text-align: center; font-size: 0.85rem; font-weight: 600; color: var(--primary); text-decoration: none; }
+.notif-all:hover { background: var(--muted); }
+@media (max-width: 560px) {
+  .notif-menu { position: fixed; top: 64px; left: 12px; right: 12px; width: auto; max-width: none; }
+}

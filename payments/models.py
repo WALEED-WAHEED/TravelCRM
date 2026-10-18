@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from agencies.models import Agency
 from utils.tenancy import TenantManager, UnscopedManager
@@ -36,10 +37,10 @@ class PaymentPlan(models.Model):
 
 class Installment(models.Model):
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('paid', 'Paid'),
-        ('overdue', 'Overdue'),
-        ('waived', 'Waived'),
+        ('pending', _('Pending')),
+        ('paid', _('Paid')),
+        ('overdue', _('Overdue')),
+        ('waived', _('Waived')),
     ]
 
     payment_plan = models.ForeignKey(PaymentPlan, on_delete=models.CASCADE, related_name='installments')
@@ -73,10 +74,10 @@ class SupplierPayment(models.Model):
     provider) — the outbound side of the ledger, mirroring BookingPayment
     on the inbound side."""
     METHOD_CHOICES = [
-        ('cash', 'Cash'),
-        ('bank_transfer', 'Bank transfer'),
-        ('card', 'Card'),
-        ('other', 'Other'),
+        ('cash', _('Cash')),
+        ('bank_transfer', _('Bank transfer')),
+        ('card', _('Card')),
+        ('other', _('Other')),
     ]
 
     agency = models.ForeignKey(Agency, on_delete=models.CASCADE, related_name='supplier_payments')

@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from agencies.models import Agency
 from travelcrm.languages import SUPPORTED_LANGUAGES
@@ -37,9 +38,9 @@ class ChatSession(models.Model):
 
 class ChatMessage(models.Model):
     ROLE_CHOICES = [
-        ('user', 'User'),
-        ('assistant', 'Assistant'),
-        ('tool', 'Tool result'),
+        ('user', _('User')),
+        ('assistant', _('Assistant')),
+        ('tool', _('Tool result')),
     ]
     session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='messages')
     agency = models.ForeignKey(Agency, on_delete=models.CASCADE, related_name='chat_messages')
@@ -65,11 +66,11 @@ class PendingAction(models.Model):
     confirmation before anything is actually written — the model can
     propose, never execute, a write tool."""
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('confirmed', 'Confirmed'),
-        ('rejected', 'Rejected'),
-        ('executed', 'Executed'),
-        ('failed', 'Failed'),
+        ('pending', _('Pending')),
+        ('confirmed', _('Confirmed')),
+        ('rejected', _('Rejected')),
+        ('executed', _('Executed')),
+        ('failed', _('Failed')),
     ]
     session = models.ForeignKey(ChatSession, on_delete=models.CASCADE, related_name='pending_actions')
     agency = models.ForeignKey(Agency, on_delete=models.CASCADE, related_name='chat_pending_actions')

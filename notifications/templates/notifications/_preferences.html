@@ -1,0 +1,102 @@
+{% load i18n %}
+{# Notification settings, shown inside Settings → Company profile. Needs the context from notifications.views.preferences_context. #}
+<style>
+    .nt-section { margin-top: 28px; scroll-margin-top: 80px; }
+    .nt-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .nt-head__title { margin: 0; font-size: 1.25rem; font-weight: 800; }
+    .nt-head__sub { margin: 3px 0 0; font-size: 0.88rem; color: var(--muted-foreground); }
+    .nt-card { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); box-shadow: var(--shadow-card); overflow: hidden; }
+    .nt-cols { display: grid; grid-template-columns: minmax(0, 1fr) 90px 90px; align-items: center; gap: 12px; padding: 12px 22px; background: var(--muted); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted-foreground); }
+    .nt-cols span:not(:first-child) { text-align: center; }
+    .nt-row { display: grid; grid-template-columns: minmax(0, 1fr) 90px 90px; align-items: center; gap: 12px; padding: 16px 22px; border-top: 1px solid var(--border); }
+    .nt-row:first-of-type { border-top: 0; }
+    .nt-what { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .nt-icon { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--primary) 11%, transparent); color: var(--primary); }
+    .nt-what strong { display: block; font-size: 0.97rem; }
+    .nt-what small { display: block; margin-top: 2px; font-size: 0.82rem; color: var(--muted-foreground); }
+    .nt-c { display: flex; justify-content: center; }
+    .nt-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .nt-switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; z-index: 1; }
+    .nt-switch input:disabled { cursor: not-allowed; }
+    .nt-switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--border); transition: background .15s; }
+    .nt-switch span::after { content: ""; position: absolute; top: 3px; inset-inline-start: 3px; width: 18px; height: 18px; border-radius: 999px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: transform .15s; }
+    .nt-switch input:checked + span { background: var(--primary); }
+    .nt-switch input:checked + span::after { transform: translateX(20px); }
+    [dir="rtl"] .nt-switch input:checked + span::after { transform: translateX(-20px); }
+    .nt-switch input:disabled + span { opacity: 0.5; }
+    .nt-switch input:focus-visible + span { outline: 2px solid var(--ring); outline-offset: 2px; }
+    .nt-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 22px; border-top: 1px solid var(--border); }
+    .nt-foot p { margin: 0; font-size: 0.8rem; color: var(--muted-foreground); max-width: 60ch; }
+    .nt-band { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; padding: 16px 22px; border-top: 1px solid var(--border); background: color-mix(in srgb, var(--muted) 45%, var(--card)); }
+    .nt-counts { display: flex; gap: 8px; }
+    .nt-count { min-width: 82px; padding: 8px 12px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--border); text-align: center; text-decoration: none; color: var(--foreground); }
+    .nt-count strong { display: block; font-size: 1.15rem; line-height: 1.2; }
+    .nt-count span { font-size: 0.74rem; color: var(--muted-foreground); }
+    .nt-count:hover { border-color: var(--primary); }
+    .nt-count--bad strong { color: var(--destructive, #dc2626); }
+    .nt-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; font-size: 0.85rem; color: var(--muted-foreground); }
+    .nt-mode { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; border: 1px solid var(--border); background: var(--card); }
+    .nt-mode--smtp { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, var(--border)); }
+    .nt-mode--console { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 45%, var(--border)); }
+    .nt-devnote { margin: 0; padding: 0 22px 16px; font-size: 0.8rem; color: var(--muted-foreground); background: color-mix(in srgb, var(--muted) 45%, var(--card)); }
+    @media (max-width: 640px) {
+        .nt-cols { display: none; }
+        .nt-row { grid-template-columns: minmax(0, 1fr) auto auto; padding: 14px 16px; }
+        .nt-c::before { content: attr(data-label); margin-inline-end: 8px; font-size: 0.72rem; font-weight: 700; color: var(--muted-foreground); }
+        .nt-foot, .nt-band { padding-inline: 16px; }
+        .nt-foot .btn { width: 100%; justify-content: center; }
+        .nt-counts { width: 100%; }
+        .nt-count { flex: 1; }
+    }
+</style>
+<section id="notifications" class="nt-section">
+    <div class="nt-head hotels-reveal" style="--d:140ms">
+        <div>
+            <h2 class="nt-head__title">{% trans "Notifications" %}</h2>
+            <p class="nt-head__sub">{% trans "Choose which events automatically message your customers, and on which channel." %}</p>
+        </div>
+        <a href="{% url 'notifications-delivery-log' %}" class="btn btn-outline btn-sm">{% trans "Sent messages log" %}</a>
+    </div>
+
+    <div class="nt-card hotels-reveal" style="--d:170ms">
+        <form method="post" action="{% url 'notifications-preferences' %}">
+            {% csrf_token %}
+            <div class="nt-cols"><span>{% trans "When this happens" %}</span><span>{% trans "Email" %}</span><span>{% trans "SMS" %}</span></div>
+            {% for row in rows %}
+            <div class="nt-row">
+                <div class="nt-what">
+                    <span class="nt-icon" aria-hidden="true">
+                        {% if row.icon == 'payment' %}<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                        {% else %}<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>{% endif %}
+                    </span>
+                    <span><strong>{{ row.label }}</strong><small>{{ row.hint }}</small></span>
+                </div>
+                <div class="nt-c" data-label="{% trans 'Email' %}"><label class="nt-switch"><input type="checkbox" name="{{ row.email_field }}" {% if row.email_on %}checked{% endif %} {% if not can_manage %}disabled{% endif %} aria-label="{% blocktrans with e=row.label %}Email: {{ e }}{% endblocktrans %}"><span></span></label></div>
+                <div class="nt-c" data-label="{% trans 'SMS' %}"><label class="nt-switch"><input type="checkbox" name="{{ row.sms_field }}" {% if row.sms_on %}checked{% endif %} {% if not can_manage %}disabled{% endif %} aria-label="{% blocktrans with e=row.label %}SMS: {{ e }}{% endblocktrans %}"><span></span></label></div>
+            </div>
+            {% endfor %}
+            <div class="nt-foot">
+                <p>{% if can_manage %}{% trans "SMS switches are saved for when an SMS provider is connected — no SMS is sent yet." %}{% else %}{% trans "Only an Owner or Manager can change these settings." %}{% endif %}</p>
+                {% if can_manage %}<button type="submit" class="btn btn-primary">{% trans "Save preferences" %}</button>{% endif %}
+            </div>
+        </form>
+
+        <div class="nt-band">
+            <div class="nt-counts" aria-label="{% trans 'Email delivery' %}: {% trans 'Last 30 days' %}">
+                <a class="nt-count" href="{% url 'notifications-delivery-log' %}?status=sent"><strong>{{ recent.sent }}</strong><span>{% trans "Sent" %}</span></a>
+                <a class="nt-count {% if recent.failed %}nt-count--bad{% endif %}" href="{% url 'notifications-delivery-log' %}?status=failed"><strong>{{ recent.failed }}</strong><span>{% trans "Failed" %}</span></a>
+                <a class="nt-count" href="{% url 'notifications-delivery-log' %}?status=skipped"><strong>{{ recent.skipped }}</strong><span>{% trans "Skipped" %}</span></a>
+            </div>
+            <div class="nt-meta">
+                {% if email_mode == 'smtp' %}<span class="nt-mode nt-mode--smtp">&#10003; {% trans "Live (SMTP)" %}</span>
+                {% else %}<span class="nt-mode nt-mode--console">&#9888; {% trans "Development — not delivered" %}</span>{% endif %}
+                <span>{% trans "Sent from" %} <strong>{{ from_email }}</strong></span>
+                {% if can_manage %}
+                <button type="submit" form="nt-test-form" class="btn btn-outline btn-sm">{% blocktrans with to=request.user.email|default:_("your email") %}Send a test email to {{ to }}{% endblocktrans %}</button>
+                {% endif %}
+            </div>
+        </div>
+        {% if email_mode == 'console' %}<p class="nt-devnote">{% trans "Emails are printed in the server console. Set EMAIL_BACKEND, EMAIL_HOST and the login in .env to deliver them for real." %}</p>{% endif %}
+        {% if can_manage %}<form method="post" action="{% url 'notifications-test-email' %}" id="nt-test-form" hidden>{% csrf_token %}</form>{% endif %}
+    </div>
+</section>

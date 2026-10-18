@@ -367,3 +367,54 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelectorAll('.modal-overlay').forEach(function (el) { if (el.parentNode !== document.body) document.body.appendChild(el); });
 });
+
+// ── Confirm dialog ────────────────────────────────────────
+// Any form can ask for confirmation before it is sent:
+//   <form data-confirm="Message" data-confirm-title="Title" data-confirm-ok="Delete" data-confirm-danger>
+(function () {
+  var pending = null;
+  function box() { return document.getElementById('app-confirm'); }
+  function close() { closeModal('app-confirm'); pending = null; }
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!form || !form.hasAttribute || !form.hasAttribute('data-confirm') || form.__confirmed || !box()) return;
+    e.preventDefault();
+    pending = form;
+    document.getElementById('app-confirm-title').textContent = form.getAttribute('data-confirm-title') || '';
+    document.getElementById('app-confirm-text').textContent = form.getAttribute('data-confirm') || '';
+    var ok = document.getElementById('app-confirm-ok'), danger = form.hasAttribute('data-confirm-danger');
+    ok.textContent = form.getAttribute('data-confirm-ok') || 'OK';
+    ok.classList.toggle('btn-danger', danger);
+    ok.classList.toggle('btn-primary', !danger);
+    box().classList.toggle('is-danger', danger);
+    openModal('app-confirm');
+    ok.focus();
+  }, true);
+  document.addEventListener('click', function (e) {
+    if (e.target.closest && e.target.closest('#app-confirm-cancel')) close();
+    else if (e.target.closest && e.target.closest('#app-confirm-ok') && pending) {
+      var form = pending;
+      form.__confirmed = true;
+      close();
+      form.submit();
+    }
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && pending) close(); });
+})();
+
+// ── Notification bell: load the latest messages when the menu is opened ──
+(function () {
+  var menu = document.querySelector('.notif-menu');
+  if (!menu) return;
+  var trigger = menu.parentElement.querySelector('[data-dropdown-trigger]'), list = document.getElementById('notif-list'), loading = false;
+  function load() {
+    if (loading) return;
+    loading = true;
+    fetch(menu.getAttribute('data-notif-url'), { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function (r) { return r.ok ? r.text() : Promise.reject(); })
+      .then(function (html) { list.innerHTML = html; })
+      .catch(function () {})
+      .then(function () { loading = false; });
+  }
+  trigger.addEventListener('click', load);
+})();

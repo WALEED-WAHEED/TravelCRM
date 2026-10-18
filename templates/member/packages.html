@@ -89,10 +89,8 @@
     .pkg-switch input:checked + span::after { transform: translateX(16px); }
     [dir="rtl"] .pkg-switch input:checked + span::after { transform: translateX(-16px); }
     .pkg-switch input:focus-visible + span { outline: 2px solid var(--ring); outline-offset: 2px; }
-    .pkg-more { margin: 16px 0 12px; border: 1px solid var(--border); border-radius: 12px; padding: 0 14px; }
-    .pkg-more summary { padding: 11px 0; font-size: 0.86rem; font-weight: 600; cursor: pointer; }
-    .pkg-more[open] summary { border-bottom: 1px solid var(--border); margin-bottom: 12px; }
-    .pkg-more .form-group { margin-bottom: 12px; }
+    .pkg-after { margin-top: 18px; }
+    #modal-package .pkg-pane[data-step="3"] > .form-group { margin-bottom: 14px; }
     .pkg-foot { display: flex; align-items: center; gap: 8px; }
     .pkg-foot__spacer { flex: 1; }
     @media (max-width: 700px) { .pkg-prog span { display: none; } .pkg-stay { grid-template-columns: 1fr 1fr; } .pkg-stay__hd { display: none; } .pkg-stay__city { grid-column: 1 / -1; margin-top: 6px; } .pkg-stay select { grid-column: 1 / -1; } }
@@ -107,6 +105,9 @@
     .pkg-includes span::before { content: ""; width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--border); }
     .pkg-includes input:checked + span { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, var(--card)); }
     .pkg-includes input:checked + span::before { background: var(--primary); border-color: var(--primary); box-shadow: inset 0 0 0 2px var(--card); }
+    .pkg-add { display: flex; gap: 8px; margin-top: 10px; }
+    .pkg-add .form-input { flex: 1; min-width: 0; }
+    .pkg-add .btn { flex: none; }
     .pkg-includes input:focus-visible + span { outline: 2px solid var(--ring); outline-offset: 2px; }
     .pkg-prices { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
     .pkg-city { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: start; }
@@ -267,8 +268,12 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="pkg-baggage">{% trans "Baggage" %}</label>
+                            <label class="form-label" for="pkg-baggage">{% trans "Departure baggage" %}</label>
                             <input id="pkg-baggage" class="form-input" name="baggage" maxlength="60" placeholder="{% trans 'e.g. 23 kg, or 23 + 23 kg' %}" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="pkg-return-baggage">{% trans "Return baggage" %}</label>
+                            <input id="pkg-return-baggage" class="form-input" name="return_baggage" maxlength="60" placeholder="{% trans 'e.g. 23 kg, or 23 + 23 kg' %}" autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="pkg-transport">{% trans "Transport" %}</label>
@@ -305,23 +310,24 @@
                         {% for value, label in inclusion_choices %}
                         <label><input type="checkbox" name="inclusions" value="{{ value }}"><span>{{ label }}</span></label>
                         {% endfor %}
+                        {% for item in custom_inclusions %}
+                        <label><input type="checkbox" class="pkg-custom" value="{{ item }}"><span>{{ item }}</span></label>
+                        {% endfor %}
                     </div>
+                    <div class="pkg-add">
+                        <input id="pkg-custom-new" class="form-input" type="text" maxlength="60" placeholder="{% trans 'Add your own, e.g. Local ziyarat by bus' %}" aria-label="{% trans 'Add your own inclusion' %}" autocomplete="off">
+                        <button type="button" class="btn btn-outline" id="pkg-custom-add">{% trans "Add" %}</button>
+                    </div>
+                    <input type="hidden" id="pkg-extra" name="extra_services" value="">
 
-                    <details class="pkg-more">
-                        <summary>{% trans "More options" %}</summary>
-                        <div class="form-group">
-                            <label class="form-label" for="pkg-extra">{% trans "Other services" %}</label>
-                            <textarea id="pkg-extra" class="form-textarea" name="extra_services" rows="2" placeholder="{% trans 'One per line, e.g. Local ziyarat by bus' %}"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="pkg-cost">{% trans "Your cost per person (optional)" %}</label>
-                            <input id="pkg-cost" class="form-input" name="cost_price" type="number" step="0.01" min="0" inputmode="decimal" placeholder="{% trans 'Used to show your margin' %}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="pkg-notes">{% trans "Notes" %}</label>
-                            <textarea id="pkg-notes" class="form-textarea" name="notes" rows="2" placeholder="{% trans 'e.g. Meal plan, Ziyarat schedule' %}"></textarea>
-                        </div>
-                    </details>
+                    <div class="form-group pkg-after">
+                        <label class="form-label" for="pkg-cost">{% trans "Your cost per person (optional)" %}</label>
+                        <input id="pkg-cost" class="form-input" name="cost_price" type="number" step="0.01" min="0" inputmode="decimal" placeholder="{% trans 'Used to show your margin' %}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="pkg-notes">{% trans "Notes" %}</label>
+                        <textarea id="pkg-notes" class="form-textarea" name="notes" rows="2" placeholder="{% trans 'e.g. Meal plan, Ziyarat schedule' %}"></textarea>
+                    </div>
                 </section>
             </div>
             <div class="modal-footer pkg-foot">
@@ -437,8 +443,39 @@
     $('pkg-submit').textContent = editing ? '{{ t_update|escapejs }}' : '{{ t_save|escapejs }}';
   }
 
+  // Custom "What's included" items: chips next to the catalogue, saved as extra_services (one per line).
+  function addCustom(text, checked) {
+    text = (text || '').replace(/\s+/g, ' ').trim();
+    if (!text) return;
+    var box = form.querySelector('.pkg-includes'), found = null;
+    box.querySelectorAll('.pkg-custom').forEach(function (cb) { if (cb.value.toLowerCase() === text.toLowerCase()) found = cb; });
+    if (!found) {
+      var label = document.createElement('label'), cb = document.createElement('input'), span = document.createElement('span');
+      cb.type = 'checkbox'; cb.className = 'pkg-custom'; cb.value = text; cb.dataset.added = '1';
+      span.textContent = text;
+      label.appendChild(cb); label.appendChild(span); box.appendChild(label);
+      found = cb;
+    }
+    found.checked = !!checked;
+  }
+  function syncExtra() {
+    var items = [];
+    form.querySelectorAll('.pkg-custom:checked').forEach(function (cb) { items.push(cb.value); });
+    $('pkg-extra').value = items.join('\n');
+  }
+  $('pkg-custom-add').addEventListener('click', function () {
+    var input = $('pkg-custom-new');
+    addCustom(input.value, true);
+    input.value = '';
+    input.focus();
+  });
+  $('pkg-custom-new').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); $('pkg-custom-add').click(); }
+  });
+
   window.openPackageAddModal = function () {
     form.reset();
+    form.querySelectorAll('.pkg-custom[data-added]').forEach(function (cb) { cb.closest('label').remove(); });
     editingId = null;
     currentActive = true;
     setTitle(false);
@@ -453,8 +490,9 @@
       if (!r.ok) throw new Error('load');
       var p = await r.json();
       form.reset();
+      form.querySelectorAll('.pkg-custom[data-added]').forEach(function (cb) { cb.closest('label').remove(); });
       editingId = id;
-      ['name', 'package_type', 'group_leader', 'makkah_nights', 'madina_nights', 'makkah_distance', 'madina_distance', 'departure_date', 'return_date', 'total_seats', 'baggage', 'extra_services', 'notes'].forEach(function (k) {
+      ['name', 'package_type', 'group_leader', 'makkah_nights', 'madina_nights', 'makkah_distance', 'madina_distance', 'departure_date', 'return_date', 'total_seats', 'baggage', 'return_baggage', 'notes'].forEach(function (k) {
         form.elements.namedItem(k).value = p[k] != null ? p[k] : '';
       });
       ['makkah_hotel', 'madina_hotel', 'flight', 'return_flight', 'transport'].forEach(function (k) {
@@ -462,6 +500,8 @@
       });
       PRICE_FIELDS.forEach(function (k) { form.elements.namedItem(k).value = p[k] != null ? p[k] : ''; });
       form.querySelectorAll('input[name="inclusions"]').forEach(function (cb) { cb.checked = (p.inclusions || []).indexOf(cb.value) !== -1; });
+      form.querySelectorAll('.pkg-custom').forEach(function (cb) { cb.checked = false; });
+      String(p.extra_services || '').split('\n').forEach(function (line) { addCustom(line, true); });
       $('pkg-mk-shuttle').checked = !!p.makkah_shuttle;
       $('pkg-md-shuttle').checked = !!p.madina_shuttle;
       currentActive = !!p.is_active;
@@ -478,6 +518,9 @@
     e.preventDefault();
     if (e.submitter !== $('pkg-submit')) { if (step < LAST) showStep(step + 1); return; }
     if (!$('pkg-name').value.trim()) { showStep(1); $('pkg-name').focus(); showToast('{{ t_need_name|escapejs }}', 'error'); return; }
+    var typed = $('pkg-custom-new').value.trim();
+    if (typed) { addCustom(typed, true); $('pkg-custom-new').value = ''; }  // an item typed but not yet added still counts
+    syncExtra();
     var fd = new FormData(form);
     fd.set('is_active', currentActive ? 'true' : 'false');
     if (!$('pkg-mk-shuttle').checked) fd.set('makkah_shuttle', 'false');

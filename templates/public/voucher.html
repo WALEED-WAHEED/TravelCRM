@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% blocktrans with vn=voucher.voucher_number %}Voucher {{ vn }} — Nahd Travels{% endblocktrans %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% versioned_static 'css/app.css' %}">
     <style>
         body {
@@ -238,9 +238,11 @@
             <div class="voucher-col-right">
                 <p class="shirka-heading">{% trans "Shirka company" %}</p>
                 {% if branding %}
-                    {% if branding.shirka_company_name or branding.shirka_company_country or branding.shirka_company_whatsapp %}
+                    {% if branding.shirka_company_name or branding.shirka_company_country or branding.shirka_company_whatsapp or branding.shirka_company_phone or branding.shirka_company_address %}
                         {% if branding.shirka_company_name %}<div>{{ branding.shirka_company_name }}</div>{% endif %}
                         {% if branding.shirka_company_country %}<div>{{ branding.shirka_company_country }}</div>{% endif %}
+                        {% if branding.shirka_company_address %}<div>{{ branding.shirka_company_address|linebreaksbr }}</div>{% endif %}
+                        {% if branding.shirka_company_phone %}<div dir="ltr">{{ branding.shirka_company_phone }}</div>{% endif %}
                         {% if branding.shirka_company_whatsapp %}<div>{% blocktrans with wa=branding.shirka_company_whatsapp %}WhatsApp: {{ wa }}{% endblocktrans %}</div>{% endif %}
                     {% else %}
                         <span class="text-muted text-sm">—</span>
@@ -310,7 +312,7 @@
         <div style="margin-top:32px;">
             <h2 style="font-size:1rem;margin:0 0 10px;">{% trans "Important instructions" %}</h2>
             <ol style="margin:0;padding-inline-start:22px;display:grid;gap:8px;line-height:1.7;">
-                {% for it in voucher_instructions %}<li dir="auto">{{ it.text|linebreaksbr }}</li>{% endfor %}
+                {% for it in voucher_instructions %}<li dir="auto" class="free-text">{{ it.text|linebreaksbr }}</li>{% endfor %}
             </ol>
         </div>
         {% endif %}

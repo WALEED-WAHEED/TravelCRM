@@ -130,6 +130,8 @@
       <div class="vw-head__sh">
         {% if branding.shirka_company_name %}<strong>{{ branding.shirka_company_name }}</strong>{% else %}<strong>{% trans "Shirka" %}</strong>{% endif %}
         {% if branding.shirka_company_country %}<div>{{ branding.shirka_company_country }}</div>{% endif %}
+        {% if branding.shirka_company_address %}<div>{{ branding.shirka_company_address|linebreaksbr }}</div>{% endif %}
+        {% if branding.shirka_company_phone %}<div>{{ branding.shirka_company_phone }}</div>{% endif %}
         {% if branding.shirka_company_whatsapp %}<div>{{ branding.shirka_company_whatsapp }}</div>{% endif %}
         {% if not branding.shirka_company_name %}<div><a href="{% url 'profile' %}">{% trans "Add Shirka details" %}</a></div>{% endif %}
       </div>

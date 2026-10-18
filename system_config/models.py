@@ -95,6 +95,10 @@ class AgencyBranding(models.Model):
     shirka_company_name = models.CharField(max_length=200, blank=True)
     shirka_company_country = models.CharField(max_length=100, blank=True)
     shirka_company_whatsapp = models.CharField(max_length=50, blank=True)
+    shirka_company_address = models.TextField(blank=True)
+    shirka_company_phone = models.CharField(max_length=50, blank=True)
+    shirka_company_email = models.EmailField(blank=True)
+    shirka_company_website = models.URLField(blank=True)
     social_facebook = models.URLField(blank=True)
     social_twitter = models.URLField(blank=True)
     social_instagram = models.URLField(blank=True)
@@ -141,13 +145,13 @@ class AgencyBranding(models.Model):
 class EmailTemplate(models.Model):
     """Email templates for different purposes"""
     TEMPLATE_TYPES = [
-        ('booking_confirmation', 'Booking Confirmation'),
-        ('payment_receipt', 'Payment Receipt'),
-        ('voucher_generated', 'Voucher Generated'),
-        ('booking_cancelled', 'Booking Cancelled'),
-        ('welcome_email', 'Welcome Email'),
-        ('password_reset', 'Password Reset'),
-        ('custom', 'Custom'),
+        ('booking_confirmation', _('Booking Confirmation')),
+        ('payment_receipt', _('Payment Receipt')),
+        ('voucher_generated', _('Voucher Generated')),
+        ('booking_cancelled', _('Booking Cancelled')),
+        ('welcome_email', _('Welcome Email')),
+        ('password_reset', _('Password Reset')),
+        ('custom', _('Custom')),
     ]
 
     name = models.CharField(max_length=100)
@@ -216,12 +220,12 @@ class NotificationSettings(models.Model):
 class APIKey(models.Model):
     """API keys for external integrations"""
     KEY_TYPES = [
-        ('attendance_device', 'Attendance Device'),
-        ('payment_gateway', 'Payment Gateway'),
-        ('sms_provider', 'SMS Provider'),
-        ('email_provider', 'Email Provider'),
-        ('map_service', 'Map Service'),
-        ('other', 'Other'),
+        ('attendance_device', _('Attendance Device')),
+        ('payment_gateway', _('Payment Gateway')),
+        ('sms_provider', _('SMS Provider')),
+        ('email_provider', _('Email Provider')),
+        ('map_service', _('Map Service')),
+        ('other', _('Other')),
     ]
 
     name = models.CharField(max_length=100)

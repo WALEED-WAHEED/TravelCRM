@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n i18n_extra %}
 {% block title %}{% trans "Sent messages" %}{% endblock %}
 {% block extra_head %}
 <style>
@@ -31,7 +31,7 @@
             <p class="page-subtitle hotels-hero__sub">{% trans "Every automatic email and SMS — sent, failed, or skipped and why." %}</p>
         </div>
         <div class="hotels-hero__actions">
-            <a href="{% url 'notifications-preferences' %}" class="btn btn-outline">{% trans "Notification settings" %}</a>
+            <a href="{% url 'profile' %}#notifications" class="btn btn-outline">{% trans "Notification settings" %}</a>
         </div>
     </header>
 
@@ -80,7 +80,7 @@
                         <td>{% if r.e.booking %}<a href="{% url 'member-booking-detail' r.e.booking_id %}">{{ r.e.booking.voucher_number }}</a><span class="dl-sub">{{ r.e.booking.client_company|default:"" }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
                         <td class="text-sm">{{ r.e.recipient|default:"—" }}</td>
                         <td><span class="badge {% if r.e.status == 'sent' %}badge-success{% elif r.e.status == 'failed' %}badge-danger{% else %}badge-outline{% endif %}">{{ r.e.get_status_display }}</span></td>
-                        <td class="dl-detail">{{ r.e.detail|default:"—"|truncatechars:160 }}</td>
+                        <td class="dl-detail">{{ r.e.detail|tr|default:"—"|truncatechars:160 }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

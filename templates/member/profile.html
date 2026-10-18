@@ -1,83 +1,158 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}{% trans "Profile" %}{% endblock %}
+{% block title %}{% trans "Company profile" %}{% endblock %}
+{% block extra_head %}
+<style>
+  .cp-head { padding: 0; overflow: hidden; }
+  .cp-banner { height: 104px; background:
+      radial-gradient(circle at 10% 130%, color-mix(in srgb, var(--primary) 36%, transparent), transparent 55%),
+      radial-gradient(circle at 90% -30%, color-mix(in srgb, var(--primary) 28%, transparent), transparent 50%),
+      linear-gradient(120deg, color-mix(in srgb, var(--primary) 18%, var(--card)), color-mix(in srgb, var(--primary) 5%, var(--card))); }
+  .cp-head__body { display: flex; align-items: flex-start; gap: 22px; padding: 0 28px 24px; flex-wrap: wrap; }
+  .cp-logo-wrap { position: relative; flex: none; margin-top: -56px; }
+  .cp-logo { width: 120px; height: 120px; border-radius: 22px; background: #fff; border: 4px solid var(--card); box-shadow: var(--shadow-elevated, 0 6px 18px rgba(0,0,0,.12)); display: grid; place-items: center; overflow: hidden; color: var(--primary); font-size: 2.4rem; font-weight: 800; }
+  .cp-logo img { width: 100%; height: 100%; object-fit: contain; padding: 8px; display: block; }
+  .cp-camera { position: absolute; inset-inline-end: -6px; bottom: -6px; width: 36px; height: 36px; border-radius: 50%; border: 3px solid var(--card); background: var(--primary); color: var(--primary-foreground); display: grid; place-items: center; cursor: pointer; padding: 0; transition: var(--transition-fast); }
+  .cp-camera:hover { filter: brightness(1.1); transform: scale(1.06); }
+  .cp-camera:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .cp-who { flex: 1; min-width: 220px; padding-top: 16px; }
+  .cp-name { margin: 0; font-size: 1.55rem; font-weight: 800; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+  .cp-sub { margin: 3px 0 10px; color: var(--muted-foreground); font-size: 0.92rem; }
+  .cp-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cp-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; background: var(--muted); }
+  .cp-badge--accent { background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--primary); }
+  .cp-logo-note { padding-top: 16px; max-width: 250px; text-align: end; font-size: 0.78rem; color: var(--muted-foreground); }
+
+  .cp-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: stretch; margin-top: 18px; }
+  .cp-card .card-content { display: flex; flex-direction: column; height: 100%; }
+  .cp-card--wide { grid-column: 1 / -1; }
+  .cp-card--wide .cp-paper { max-width: 760px; width: 100%; margin: 0 auto; }
+  .cp-card__head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .cp-card__icon { flex: none; width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: color-mix(in srgb, var(--primary) 11%, transparent); color: var(--primary); }
+  .cp-card__title { margin: 0; font-size: 1.05rem; font-weight: 700; }
+  .cp-card__hint { margin: 2px 0 0; font-size: 0.82rem; color: var(--muted-foreground); }
+  .cp-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
+  .cp-card .form-group { margin-bottom: 16px; }
+  .cp-card textarea { resize: vertical; }
+
+  /* Live preview of the voucher header — mirrors the printed one: company | logo | partner */
+  .cp-paper { background: #fff; color: #1a1a1a; border: 1px solid #e3e7ee; border-radius: 12px; box-shadow: 0 6px 18px rgba(20, 30, 60, .08), 0 1px 3px rgba(20, 30, 60, .06); padding: 22px 26px 24px; }
+  .cp-head3 { display: grid; grid-template-columns: minmax(0, 1fr) 34% minmax(0, 1fr); align-items: center; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid #d9d9d9; }
+  .cp-h3__co, .cp-h3__sh { min-width: 0; overflow-wrap: anywhere; }
+  .cp-h3__sh { text-align: end; }
+  .cp-h3__name { font-size: 1.15rem; font-weight: 700; line-height: 1.25; color: #2f66d0; }
+  .cp-h3__line { font-size: 0.8rem; color: #444; line-height: 1.3; white-space: pre-line; }
+  .cp-h3__line b { color: #222; }
+  .cp-h3__logo { text-align: center; }
+  .cp-h3__logo img { max-height: 66px; max-width: 100%; object-fit: contain; }
+  .cp-h3__logo span { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+  .cp-paper__body { padding-top: 16px; display: grid; gap: 8px; }
+  .cp-paper__body i { display: block; height: 8px; border-radius: 4px; background: #eef1f6; }
+  .cp-paper__body i:nth-child(1) { width: 38%; background: #e3e8f0; }
+  .cp-paper__body i:nth-child(2) { width: 92%; }
+  .cp-paper__body i:nth-child(3) { width: 78%; }
+  .cp-paper__body i:nth-child(4) { width: 60%; }
+
+  .cp-savebar { position: sticky; bottom: 12px; z-index: 5; display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 18px; padding: 12px 16px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter: blur(6px); box-shadow: var(--shadow-elevated, 0 8px 24px rgba(0,0,0,.08)); }
+  .cp-savebar p { margin: 0; font-size: 0.85rem; color: var(--muted-foreground); }
+  @media (max-width: 900px) { .cp-layout { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 560px) {
+    .cp-head__body { flex-direction: column; align-items: center; text-align: center; padding: 0 18px 22px; }
+    .cp-who, .cp-logo-note { padding-top: 0; max-width: none; text-align: center; }
+    .cp-badges { justify-content: center; }
+    .cp-grid { grid-template-columns: minmax(0, 1fr); }
+    .cp-paper { padding: 16px 14px 18px; }
+    .cp-head3 { grid-template-columns: minmax(0, 1fr) 28% minmax(0, 1fr); gap: 8px; }
+    .cp-h3__name { font-size: 0.9rem; }
+    .cp-h3__line { font-size: 0.7rem; }
+    .cp-savebar .btn { width: 100%; justify-content: center; }
+  }
+</style>
+{% endblock %}
 {% block content %}
 <div class="page-profile page-hotels">
     <header class="hotels-hero hotels-reveal" style="--d:0ms">
         <div class="hotels-hero__copy">
-            <p class="hotels-eyebrow">{% trans "Agency" %}</p>
+            <p class="hotels-eyebrow">{% trans "Settings" %}</p>
             <h1 class="page-title hotels-hero__title">{% trans "Company profile" %}</h1>
-            <p class="page-subtitle hotels-hero__sub">{% trans "Logo and contact details shown on vouchers and documents." %}</p>
         </div>
     </header>
     {% include "member/partials/settings_nav.html" %}
 
-    <section class="card hotels-panel hotels-reveal" style="--d:120ms">
-        <div class="hotels-panel__head">
-            <div>
-                <h2 class="hotels-panel__title">{% trans "Company details" %}</h2>
-                <p class="hotels-panel__hint text-muted text-sm">{% trans "Update what appears for your agency on printed vouchers." %}</p>
+    <form id="profile-company-form" method="post" action="#" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <section class="card hotels-panel hotels-reveal cp-head" style="--d:80ms">
+            <div class="cp-banner" aria-hidden="true"></div>
+            <div class="cp-head__body">
+                <div class="cp-logo-wrap">
+                    <div class="cp-logo" id="cp-logo-box" aria-hidden="true">{% if branding.logo %}<img src="{{ branding.logo.url }}" alt="">{% else %}{{ agency.name|first|upper }}{% endif %}</div>
+                    <button type="button" class="cp-camera" id="cp-logo-pick" title="{% trans 'Change logo' %}" aria-label="{% trans 'Change logo' %}">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </button>
+                    <input id="profile-logo" type="file" name="logo" accept="image/jpeg,image/png,image/gif,image/svg+xml" hidden>
+                </div>
+                <div class="cp-who">
+                    <h2 class="cp-name" id="cp-head-name">{{ branding.company_name|default:agency.name }}</h2>
+                    <p class="cp-sub">{% trans "Shown on every printed voucher and document." %}</p>
+                    <div class="cp-badges">
+                        {% if agency.code %}<span class="cp-badge cp-badge--accent">{{ agency.code }}</span>{% endif %}
+                        {% if branding.website %}<span class="cp-badge" dir="ltr">{{ branding.website }}</span>{% endif %}
+                    </div>
+                </div>
+                <div class="cp-logo-note">{% trans "JPEG, PNG, GIF, or SVG — max 5MB. Leave empty to keep current logo." %}</div>
             </div>
-        </div>
-        <div class="card-content hotels-panel__body">
-            <form id="profile-company-form" class="hotels-modal-form" method="post" action="#" enctype="multipart/form-data">
-                {% csrf_token %}
+        </section>
 
-                <div class="form-group">
-                    <label class="form-label" for="profile-logo">{% trans "Company logo" %}</label>
-                    <div class="logo-uploader">
-                        {% if branding.logo %}
-                        <div class="logo-uploader__preview">
-                            {% trans "Logo" as logo_alt %}
-                            <img src="{{ branding.logo.url }}" alt="{{ logo_alt }}">
-                        </div>
-                        {% endif %}
-                        <div class="logo-uploader__fields">
-                            <input id="profile-logo" class="form-input" type="file" name="logo" accept="image/jpeg,image/png,image/gif,image/svg+xml">
-                            <p class="form-hint">{% trans "JPEG, PNG, GIF, or SVG — max 5MB. Leave empty to keep current logo." %}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="profile-company-name">{% trans "Company name *" %}</label>
-                    <input id="profile-company-name" class="form-input" name="company_name" required maxlength="200"
-                        value="{{ branding.company_name|default:agency.name|default:'' }}" placeholder="{% trans 'e.g. NAHD TRAVELS' %}">
-                </div>
-
-                <div class="grid grid-2">
-                    <div class="form-group">
-                        <label class="form-label" for="profile-phone">{% trans "Phone" %}</label>
-                        <input id="profile-phone" class="form-input tabular-nums" name="phone" maxlength="20"
-                            value="{{ branding.phone|default:agency.phone|default:'' }}" placeholder="+92…">
+        <div class="cp-layout">
+            <section class="card hotels-panel hotels-reveal cp-card" style="--d:120ms">
+                <div class="card-content hotels-panel__body">
+                    <div class="cp-card__head">
+                        <span class="cp-card__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1M14 9h1M9 13h1M14 13h1M9 17h1M14 17h1"/></svg></span>
+                        <div><h2 class="cp-card__title">{% trans "Business details" %}</h2><p class="cp-card__hint">{% trans "Update what appears for your agency on printed vouchers." %}</p></div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="profile-email">{% trans "Email" %}</label>
-                        <input id="profile-email" class="form-input" type="email" name="email" maxlength="254"
-                            value="{{ branding.email|default:agency.email|default:'' }}" placeholder="name@example.com">
+                        <label class="form-label" for="profile-company-name">{% trans "Company name *" %}</label>
+                        <input id="profile-company-name" class="form-input" name="company_name" required maxlength="200"
+                            value="{{ branding.company_name|default:agency.name|default:'' }}" placeholder="{% trans 'e.g. NAHD TRAVELS' %}">
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="profile-website">{% trans "Website URL" %}</label>
-                    <input id="profile-website" class="form-input" name="website" maxlength="200"
-                        value="{{ branding.website|default:'' }}" placeholder="https://">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="profile-address">{% trans "Address" %}</label>
-                    <textarea id="profile-address" class="form-textarea" name="address" rows="3"
-                        placeholder="{% trans 'Full business address' %}">{{ branding.address|default:agency.address|default:'' }}</textarea>
-                </div>
-
-                <div class="form-section-divider">
-                    <h3 class="form-section-divider__title">{% trans "Shirka company (right-side on voucher)" %}</h3>
-                    <div class="grid grid-3">
+                    <div class="cp-grid">
                         <div class="form-group">
-                            <label class="form-label" for="profile-shirka-name">{% trans "Shirka company name" %}</label>
-                            <input id="profile-shirka-name" class="form-input" name="shirka_company_name" maxlength="200"
-                                value="{{ branding.shirka_company_name|default:'' }}" placeholder="{% trans 'e.g., NOORI KAKI CO.' %}">
+                            <label class="form-label" for="profile-phone">{% trans "Phone" %}</label>
+                            <input id="profile-phone" class="form-input tabular-nums" name="phone" maxlength="20" dir="ltr"
+                                value="{{ branding.phone|default:agency.phone|default:'' }}" placeholder="+92…">
                         </div>
+                        <div class="form-group">
+                            <label class="form-label" for="profile-email">{% trans "Email" %}</label>
+                            <input id="profile-email" class="form-input" type="email" name="email" maxlength="254"
+                                value="{{ branding.email|default:agency.email|default:'' }}" placeholder="name@example.com">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="profile-website">{% trans "Website URL" %}</label>
+                        <input id="profile-website" class="form-input" name="website" maxlength="200" dir="ltr"
+                            value="{{ branding.website|default:'' }}" placeholder="https://">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label" for="profile-address">{% trans "Address" %}</label>
+                        <textarea id="profile-address" class="form-textarea" name="address" rows="3"
+                            placeholder="{% trans 'Full business address' %}">{{ branding.address|default:agency.address|default:'' }}</textarea>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card hotels-panel hotels-reveal cp-card" style="--d:160ms">
+                <div class="card-content hotels-panel__body">
+                    <div class="cp-card__head">
+                        <span class="cp-card__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                        <div><h2 class="cp-card__title">{% trans "Shirka company (right-side on voucher)" %}</h2><p class="cp-card__hint">{% trans "The partner company printed on the right of each voucher." %}</p></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="profile-shirka-name">{% trans "Shirka company name" %}</label>
+                        <input id="profile-shirka-name" class="form-input" name="shirka_company_name" maxlength="200"
+                            value="{{ branding.shirka_company_name|default:'' }}" placeholder="{% trans 'e.g., NOORI KAKI CO.' %}">
+                    </div>
+                    <div class="cp-grid">
                         <div class="form-group">
                             <label class="form-label" for="profile-shirka-country">{% trans "Shirka company country" %}</label>
                             <input id="profile-shirka-country" class="form-input" name="shirka_company_country" maxlength="100"
@@ -85,29 +160,109 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="profile-shirka-whatsapp">{% trans "Shirka company WhatsApp" %}</label>
-                            <input id="profile-shirka-whatsapp" class="form-input tabular-nums" name="shirka_company_whatsapp" maxlength="50"
+                            <input id="profile-shirka-whatsapp" class="form-input tabular-nums" name="shirka_company_whatsapp" maxlength="50" dir="ltr"
                                 value="{{ branding.shirka_company_whatsapp|default:'' }}" placeholder="{% trans 'WhatsApp number' %}">
                         </div>
+                        <div class="form-group">
+                            <label class="form-label" for="profile-shirka-phone">{% trans "Shirka company phone" %}</label>
+                            <input id="profile-shirka-phone" class="form-input tabular-nums" name="shirka_company_phone" maxlength="50" dir="ltr"
+                                value="{{ branding.shirka_company_phone|default:'' }}" placeholder="+92…">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="profile-shirka-email">{% trans "Shirka company email" %}</label>
+                            <input id="profile-shirka-email" class="form-input" type="email" name="shirka_company_email" maxlength="254"
+                                value="{{ branding.shirka_company_email|default:'' }}" placeholder="name@example.com">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="profile-shirka-website">{% trans "Shirka company website" %}</label>
+                        <input id="profile-shirka-website" class="form-input" name="shirka_company_website" maxlength="200" dir="ltr"
+                            value="{{ branding.shirka_company_website|default:'' }}" placeholder="https://">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label class="form-label" for="profile-shirka-address">{% trans "Shirka company address" %}</label>
+                        <textarea id="profile-shirka-address" class="form-textarea" name="shirka_company_address" rows="3"
+                            placeholder="{% trans 'Full business address' %}">{{ branding.shirka_company_address|default:'' }}</textarea>
                     </div>
                 </div>
+            </section>
 
-                <div class="form-actions-end">
-                    <button type="submit" class="btn btn-primary hotels-cta-btn" id="profile-save-btn">{% trans "Save" %}</button>
+            <section class="card hotels-panel hotels-reveal cp-card cp-card--wide" style="--d:180ms">
+                <div class="card-content hotels-panel__body">
+                    <div class="cp-card__head">
+                        <span class="cp-card__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+                        <div><h2 class="cp-card__title">{% trans "Voucher header preview" %}</h2><p class="cp-card__hint">{% trans "How the top of your vouchers will look." %}</p></div>
+                    </div>
+                    <div class="cp-paper" aria-live="polite">
+                        <div class="cp-head3">
+                            <div class="cp-h3__co">
+                                <div class="cp-h3__name" id="pv-name"></div>
+                                <div class="cp-h3__line" id="pv-address"></div>
+                                <div class="cp-h3__line" id="pv-phone" dir="ltr" style="text-align:start;"></div>
+                            </div>
+                            <div class="cp-h3__logo" id="pv-logo">{% if branding.logo %}<img src="{{ branding.logo.url }}" alt="">{% else %}<span>{{ agency.name|first|upper }}</span>{% endif %}</div>
+                            <div class="cp-h3__sh">
+                                <div class="cp-h3__name" id="pv-partner"></div>
+                                <div class="cp-h3__line"><b id="pv-partner-country"></b></div>
+                                <div class="cp-h3__line" id="pv-partner-address"></div>
+                                <div class="cp-h3__line" id="pv-partner-phone" dir="ltr"></div>
+                                <div class="cp-h3__line"><b id="pv-partner-wa" dir="ltr"></b></div>
+                            </div>
+                        </div>
+                        <div class="cp-paper__body" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+                    </div>
                 </div>
-            </form>
+            </section>
         </div>
-    </section>
+
+        <div class="cp-savebar hotels-reveal" style="--d:200ms">
+            <p>{% trans "Changes apply to vouchers you print or share from now on." %}</p>
+            <button type="submit" class="btn btn-primary hotels-cta-btn" id="profile-save-btn">{% trans "Save" %}</button>
+        </div>
+    </form>
+
+    {% if rows %}{% include "notifications/_preferences.html" %}{% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
 {% trans "Unable to save" as js_unable_to_save %}
 {% trans "Saved" as js_saved %}
+{% trans "Shirka" as js_partner_fallback %}
 <script>
     (function () {
-        var form = document.getElementById('profile-company-form');
-        var btn = document.getElementById('profile-save-btn');
+        var $ = function (id) { return document.getElementById(id); };
+        var form = $('profile-company-form');
+        var btn = $('profile-save-btn');
         if (!form) return;
+
+        // Logo: pick, preview straight away (nothing is saved until Save)
+        $('cp-logo-pick').addEventListener('click', function () { $('profile-logo').click(); });
+        $('profile-logo').addEventListener('change', function () {
+            var f = this.files && this.files[0];
+            if (!f) return;
+            var url = URL.createObjectURL(f);
+            ['cp-logo-box', 'pv-logo'].forEach(function (id) { $(id).innerHTML = '<img src="' + url + '" alt="">'; });
+        });
+
+        // Live voucher header preview
+        function val(id) { return ($(id).value || '').trim(); }
+        function preview() {
+            var name = val('profile-company-name') || '—';
+            $('cp-head-name').textContent = name;
+            $('pv-name').textContent = name;
+            $('pv-address').textContent = val('profile-address');
+            $('pv-phone').textContent = val('profile-phone');
+            // like the printed voucher: "Shirka" stands in until a partner name is given
+            $('pv-partner').textContent = val('profile-shirka-name') || '{{ js_partner_fallback|escapejs }}';
+            $('pv-partner-country').textContent = val('profile-shirka-country').toUpperCase();
+            $('pv-partner-address').textContent = val('profile-shirka-address');
+            $('pv-partner-phone').textContent = val('profile-shirka-phone');
+            $('pv-partner-wa').textContent = val('profile-shirka-whatsapp');
+        }
+        form.addEventListener('input', preview);
+        preview();
+
         form.addEventListener('submit', async function (e) {
             e.preventDefault();
             try {

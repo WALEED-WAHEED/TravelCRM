@@ -32,8 +32,9 @@
       {% if p.flight or p.return_flight %}
       {% if p.flight %}<p><b>{% trans "Departure" %}</b> {{ p.flight.airline }} {{ p.flight.flight_number }} · {{ p.flight.sector }}</p>{% endif %}
       {% if p.return_flight %}<p><b>{% trans "Return" %}</b> {{ p.return_flight.airline }} {{ p.return_flight.flight_number }} · {{ p.return_flight.sector }}</p>{% endif %}
-      {% if p.baggage %}<p><b>{% trans "Baggage" %}</b> {{ p.baggage }}</p>{% endif %}
       {% else %}<p>—</p>{% endif %}
+      {% if p.baggage %}<p><b>{% trans "Departure baggage" %}</b> {{ p.baggage }}</p>{% endif %}
+      {% if p.return_baggage %}<p><b>{% trans "Return baggage" %}</b> {{ p.return_baggage }}</p>{% endif %}
     </section>
     <section class="pkd-box">
       <h4>{% trans "Transport" %}</h4>

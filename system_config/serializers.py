@@ -67,6 +67,7 @@ class AgencyBrandingSerializer(serializers.ModelSerializer):
             'id', 'agency', 'logo', 'logo_url', 'favicon', 'primary_color', 'secondary_color',
             'company_name', 'tagline', 'address', 'phone', 'email', 'website',
             'shirka_company_name', 'shirka_company_country', 'shirka_company_whatsapp',
+            'shirka_company_address', 'shirka_company_phone', 'shirka_company_email', 'shirka_company_website',
             'social_facebook', 'social_twitter', 'social_instagram', 'social_linkedin',
             'booking_confirmation_template', 'payment_receipt_template', 'voucher_template',
             'custom_fields', 'is_active', 'created_at', 'updated_at'
@@ -104,6 +105,7 @@ class AgencyBrandingCreateSerializer(serializers.ModelSerializer):
             'agency', 'logo', 'favicon', 'primary_color', 'secondary_color',
             'company_name', 'tagline', 'address', 'phone', 'email', 'website',
             'shirka_company_name', 'shirka_company_country', 'shirka_company_whatsapp',
+            'shirka_company_address', 'shirka_company_phone', 'shirka_company_email', 'shirka_company_website',
             'social_facebook', 'social_twitter', 'social_instagram', 'social_linkedin',
             'booking_confirmation_template', 'payment_receipt_template', 'voucher_template',
             'custom_fields', 'is_active'

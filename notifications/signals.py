@@ -21,10 +21,7 @@ def _on_booking_saved(sender, instance, created, **kwargs):
     if created or old_status == instance.status:
         return
     if instance.status == 'confirmed':
-        dispatch('booking_confirmation', instance)
         dispatch('voucher_generated', instance)
-    elif instance.status == 'cancelled':
-        dispatch('booking_cancelled', instance)
 
 
 @receiver(post_save, sender=BookingPayment)

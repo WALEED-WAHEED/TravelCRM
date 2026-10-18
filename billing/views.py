@@ -107,16 +107,32 @@ def billing_home(request):
         return redirect('root')
 
     sub = get_subscription(agency)
-    plans = Plan.objects.filter(is_active=True).order_by('sort_order')
+    plans = list(Plan.objects.filter(is_active=True).order_by('sort_order', 'price_amount'))
+    current_price = sub.plan.price_amount if sub else None
+    for plan in plans:
+        if sub and plan.pk == sub.plan_id:
+            plan.cta = 'current'
+        elif current_price is not None and plan.price_amount > current_price:
+            plan.cta = 'upgrade'
+        elif current_price is not None and plan.price_amount < current_price:
+            plan.cta = 'downgrade'
+        else:
+            plan.cta = 'choose'
     payment_history = PaymentRecord.objects.filter(agency=agency).order_by('-submitted_at')[:50]
     can_manage = _can_manage_billing(request.user)
+    seats, bookings = get_seat_usage(agency), get_booking_usage_this_month(agency)
+
+    def pct(used, limit):
+        return min(100, round(used * 100 / limit)) if limit else 0
 
     return render(request, 'billing/home.html', {
         'subscription': sub,
         'plans': plans,
         'payment_history': payment_history,
-        'seat_usage': get_seat_usage(agency),
-        'booking_usage': get_booking_usage_this_month(agency),
+        'seat_usage': seats,
+        'booking_usage': bookings,
+        'seat_pct': pct(seats, sub.plan.max_seats if sub else None),
+        'booking_pct': pct(bookings, sub.plan.max_bookings_per_month if sub else None),
         'can_manage': can_manage,
     })
 

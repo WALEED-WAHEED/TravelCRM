@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% block title %}{% trans "My profile" %}{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/select-menu.css' %}">
+<style>
+  /* Identity header: banner, avatar overlapping it, name and badges */
+  .mp-head { padding: 0; overflow: hidden; }
+  .mp-banner { height: 104px; background:
+      radial-gradient(circle at 12% 120%, color-mix(in srgb, var(--primary) 38%, transparent), transparent 55%),
+      radial-gradient(circle at 88% -30%, color-mix(in srgb, var(--primary) 30%, transparent), transparent 50%),
+      linear-gradient(120deg, color-mix(in srgb, var(--primary) 20%, var(--card)), color-mix(in srgb, var(--primary) 6%, var(--card))); }
+  .mp-head__body { display: flex; align-items: flex-start; gap: 22px; padding: 0 28px 24px; flex-wrap: wrap; }
+  .mp-avatar-wrap { position: relative; flex: none; margin-top: -56px; }
+  .mp-avatar { width: 112px; height: 112px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: var(--primary); color: var(--primary-foreground); font-size: 2.3rem; font-weight: 700; border: 4px solid var(--card); box-shadow: var(--shadow-elevated, 0 6px 18px rgba(0,0,0,.12)); }
+  .mp-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .mp-camera { position: absolute; inset-inline-end: 2px; bottom: 4px; width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--card); background: var(--primary); color: var(--primary-foreground); display: grid; place-items: center; cursor: pointer; padding: 0; transition: var(--transition-fast); }
+  .mp-camera:hover { filter: brightness(1.1); transform: scale(1.06); }
+  .mp-camera:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+  .mp-who { flex: 1; min-width: 220px; padding-top: 16px; }
+  .mp-name { margin: 0; font-size: 1.55rem; font-weight: 800; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+  .mp-user { margin: 2px 0 10px; color: var(--muted-foreground); font-size: 0.92rem; }
+  .mp-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+  .mp-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; background: var(--muted); color: var(--foreground); }
+  .mp-badge--role { background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--primary); }
+  .mp-photo-tools { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; padding-top: 16px; max-width: 260px; }
+  .mp-photo-tools small { flex-basis: 100%; text-align: end; color: var(--muted-foreground); font-size: 0.76rem; }
+
+  .mp-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: stretch; margin-top: 18px; }
+  .mp-card .card-content { display: flex; flex-direction: column; height: 100%; }
+  .mp-card form { display: flex; flex-direction: column; flex: 1; }
+  .mp-card form > .mp-save { margin-top: auto; }
+  .mp-card .mp-facts { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+  .mp-card__head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .mp-card__icon { flex: none; width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: color-mix(in srgb, var(--primary) 11%, transparent); color: var(--primary); }
+  .mp-card__title { margin: 0; font-size: 1.05rem; font-weight: 700; }
+  .mp-card__hint { margin: 2px 0 0; font-size: 0.82rem; color: var(--muted-foreground); }
+  .mp-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; }
+  .mp-card .form-group { margin-bottom: 16px; }
+  .mp-save { display: flex; justify-content: flex-end; gap: 8px; }
+
+  .mp-meter { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 0.8rem; color: var(--muted-foreground); }
+  .mp-meter__bars { display: flex; gap: 4px; flex: 1; }
+  .mp-meter__bars i { flex: 1; height: 5px; border-radius: 999px; background: var(--muted); transition: background .15s; }
+  .mp-meter[data-level="1"] i:nth-child(-n+1) { background: var(--destructive, #dc2626); }
+  .mp-meter[data-level="2"] i:nth-child(-n+2) { background: var(--warning, #d97706); }
+  .mp-meter[data-level="3"] i:nth-child(-n+3) { background: var(--primary); }
+  .mp-meter[data-level="4"] i { background: var(--success); }
+  .mp-match { margin-top: 6px; font-size: 0.8rem; min-height: 1.2em; }
+  .mp-match.is-ok { color: var(--success); }
+  .mp-match.is-bad { color: var(--destructive, #dc2626); }
+
+  .mp-facts { margin: 0; }
+  .mp-facts > div { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid var(--border); font-size: 0.9rem; }
+  .mp-facts > div:first-child { border-top: 0; padding-top: 0; }
+  .mp-facts dt { display: flex; align-items: center; gap: 9px; color: var(--muted-foreground); }
+  .mp-facts dt svg { flex: none; opacity: 0.8; }
+  .mp-facts dd { margin: 0; font-weight: 600; text-align: end; overflow-wrap: anywhere; }
+
+  @media (max-width: 900px) { .mp-layout { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 560px) {
+    .mp-head__body { flex-direction: column; align-items: center; text-align: center; padding: 0 18px 22px; }
+    .mp-who, .mp-photo-tools { padding-top: 0; max-width: none; }
+    .mp-badges, .mp-photo-tools { justify-content: center; }
+    .mp-photo-tools small { text-align: center; }
+    .mp-grid { grid-template-columns: minmax(0, 1fr); }
+    .mp-save .btn { flex: 1; justify-content: center; }
+  }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-contacts">
+  <header class="hotels-hero hotels-reveal" style="--d:0ms">
+    <div class="hotels-hero__copy">
+      <p class="hotels-eyebrow">{% trans "Settings" %}</p>
+      <h1 class="page-title hotels-hero__title">{% trans "My profile" %}</h1>
+    </div>
+  </header>
+  {% include "member/partials/settings_nav.html" %}
+
+  <section class="card hotels-panel hotels-reveal mp-head" style="--d:80ms">
+    <div class="mp-banner" aria-hidden="true"></div>
+    <div class="mp-head__body">
+      <form method="post" enctype="multipart/form-data" id="avatar-form" class="mp-avatar-wrap">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="avatar">
+        <input type="file" name="avatar" id="avatar-input" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+        <div class="mp-avatar" aria-hidden="true">{% if user.avatar %}<img src="{{ user.avatar.url }}" alt="">{% else %}{{ user.first_name|first|default:user.username|first|upper }}{{ user.last_name|first|upper }}{% endif %}</div>
+        <button type="button" class="mp-camera" id="avatar-pick" title="{% if user.avatar %}{% trans 'Change photo' %}{% else %}{% trans 'Upload photo' %}{% endif %}" aria-label="{% if user.avatar %}{% trans 'Change photo' %}{% else %}{% trans 'Upload photo' %}{% endif %}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </button>
+      </form>
+      <div class="mp-who">
+        <h2 class="mp-name">{{ user.get_full_name|default:user.username }}</h2>
+        <p class="mp-user">@{{ user.username }}</p>
+        <div class="mp-badges">
+          <span class="mp-badge mp-badge--role">{{ role_label }}</span>
+          {% if user.agency %}<span class="mp-badge">{{ user.agency.name }}</span>{% endif %}
+        </div>
+      </div>
+      <div class="mp-photo-tools">
+        <button type="button" class="btn btn-outline btn-sm" id="avatar-pick-2">{% if user.avatar %}{% trans "Change photo" %}{% else %}{% trans "Upload photo" %}{% endif %}</button>
+        {% if user.avatar %}
+        <form method="post" style="display:inline;">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="remove_avatar">
+          <button type="submit" class="btn btn-outline btn-sm">{% trans "Remove photo" %}</button>
+        </form>
+        {% endif %}
+        <small>{% trans "JPG, PNG or WebP, up to 5 MB. It is cropped to a square." %}</small>
+      </div>
+    </div>
+  </section>
+
+  <div class="mp-layout">
+    <section class="card hotels-panel hotels-reveal mp-card" style="--d:120ms">
+        <div class="card-content hotels-panel__body">
+          <div class="mp-card__head">
+            <span class="mp-card__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+            <div><h2 class="mp-card__title">{% trans "Personal details" %}</h2><p class="mp-card__hint">{% trans "Your name and contact details, as your team sees them." %}</p></div>
+          </div>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="details">
+            <div class="mp-grid">
+              <div class="form-group"><label class="form-label" for="first_name">{% trans "First name" %}</label><input class="form-input" id="first_name" name="first_name" maxlength="150" value="{{ user.first_name }}" placeholder="{% trans 'e.g. Ayesha' %}" autocomplete="given-name"></div>
+              <div class="form-group"><label class="form-label" for="last_name">{% trans "Last name" %}</label><input class="form-input" id="last_name" name="last_name" maxlength="150" value="{{ user.last_name }}" placeholder="{% trans 'e.g. Khan' %}" autocomplete="family-name"></div>
+              <div class="form-group"><label class="form-label" for="username">{% trans "Username" %} *</label><input class="form-input" id="username" name="username" maxlength="150" value="{{ user.username }}" required autocapitalize="none" autocomplete="username"><p class="form-hint">{% trans "You sign in with this." %}</p></div>
+              <div class="form-group"><label class="form-label" for="phone">{% trans "Phone" %}</label><input class="form-input" id="phone" name="phone" maxlength="20" value="{{ user.phone }}" placeholder="+92 300 1234567" inputmode="tel" autocomplete="tel" dir="ltr"></div>
+            </div>
+            <div class="form-group"><label class="form-label" for="email">{% trans "Email" %}</label><input class="form-input" type="email" id="email" name="email" value="{{ user.email }}" placeholder="name@example.com" autocomplete="email"><p class="form-hint">{% trans "For notifications and password resets." %}</p></div>
+            <div class="mp-save"><button type="submit" class="btn btn-primary">{% trans "Save details" %}</button></div>
+          </form>
+        </div>
+      </section>
+    <section class="card hotels-panel hotels-reveal mp-card" style="--d:140ms">
+        <div class="card-content hotels-panel__body">
+          <div class="mp-card__head">
+            <span class="mp-card__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+            <div><h2 class="mp-card__title">{% trans "Password" %}</h2><p class="mp-card__hint">{% trans "You stay signed in on this device after changing it." %}</p></div>
+          </div>
+          <form method="post" autocomplete="off" id="pw-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="password">
+            <div class="form-group">
+              <label class="form-label" for="current_password">{% trans "Current password" %}</label>
+              <input class="form-input" type="password" id="current_password" name="current_password" required autocomplete="current-password">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new_password">{% trans "New password" %}</label>
+              <input class="form-input" type="password" id="new_password" name="new_password" minlength="8" required autocomplete="new-password" placeholder="{% trans 'At least 8 characters' %}">
+              <div class="mp-meter" id="mp-meter" data-level="0"><span class="mp-meter__bars"><i></i><i></i><i></i><i></i></span><span id="mp-meter-text"></span></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="confirm_password">{% trans "Confirm new password" %}</label>
+              <input class="form-input" type="password" id="confirm_password" name="confirm_password" minlength="8" required autocomplete="new-password">
+              <p class="mp-match" id="mp-match" aria-live="polite"></p>
+            </div>
+            <div class="mp-save">
+              <button type="button" class="btn btn-outline" id="mp-show">{% trans "Show" %}</button>
+              <button type="submit" class="btn btn-primary">{% trans "Change password" %}</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    <section class="card hotels-panel hotels-reveal mp-card" style="--d:160ms" id="language">
+        <div class="card-content hotels-panel__body">
+          <div class="mp-card__head">
+            <span class="mp-card__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
+            <div><h2 class="mp-card__title">{% trans "Language" %}</h2><p class="mp-card__hint">{% trans "Shown on every device you sign in from. Arabic and Urdu switch the layout to right-to-left." %}</p></div>
+          </div>
+          <form method="post" action="{% url 'language-settings' %}" data-lang-form>
+            {% csrf_token %}
+            <div class="form-group">
+              <label class="form-label" for="language-select">{% trans "Application language" %}</label>
+              <select class="form-select" id="language-select" name="language">
+                <option value="" {% if not current_language %}selected{% endif %}>{% trans "Auto-detect from browser" %}</option>
+                {% for code, native, label in languages %}
+                <option value="{{ code }}" {% if current_language == code %}selected{% endif %}>{{ native }}{% if native != label %} ({{ label }}){% endif %}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mp-save"><button type="submit" class="btn btn-primary">{% trans "Save language" %}</button></div>
+          </form>
+        </div>
+      </section>
+    <section class="card hotels-panel hotels-reveal mp-card" style="--d:180ms">
+        <div class="card-content hotels-panel__body">
+          <div class="mp-card__head">
+            <span class="mp-card__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+            <div><h2 class="mp-card__title">{% trans "Account" %}</h2><p class="mp-card__hint">{% trans "What your account is set up as." %}</p></div>
+          </div>
+          <dl class="mp-facts">
+            <div><dt>{% trans "Role" %}</dt><dd>{{ role_label }}</dd></div>
+            {% if user.agency %}<div><dt>{% trans "Agency" %}</dt><dd>{{ user.agency.name }}</dd></div>{% endif %}
+            <div><dt>{% trans "Member since" %}</dt><dd>{{ user.created_at|date:"j M Y" }}</dd></div>
+            <div><dt>{% trans "Last sign-in" %}</dt><dd>{% if user.last_login %}{{ user.last_login|date:"j M Y, H:i" }}{% else %}—{% endif %}</dd></div>
+          </dl>
+        </div>
+      </section>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+{% trans "Search…" as t_se %}{% trans "No match" as t_nm %}{% trans "Show" as t_show %}{% trans "Hide" as t_hide %}
+{% trans "Too short" as t_l1 %}{% trans "Weak" as t_l2 %}{% trans "Good" as t_l3 %}{% trans "Strong" as t_l4 %}
+{% trans "Passwords match" as t_ok %}{% trans "Passwords don't match yet" as t_bad %}
+<script>window.SELECT_MENU_I18N = { search: '{{ t_se|escapejs }}', none: '{{ t_nm|escapejs }}' };</script>
+<script src="{% static 'js/select-menu.js' %}"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  SelectMenu.init(document);
+
+  // Picking a photo uploads it straight away
+  function pick() { $('avatar-input').click(); }
+  $('avatar-pick').addEventListener('click', pick);
+  $('avatar-pick-2').addEventListener('click', pick);
+  $('avatar-input').addEventListener('change', function () { if (this.files.length) $('avatar-form').submit(); });
+
+  // One click, one request on the language form
+  document.querySelector('[data-lang-form]').addEventListener('submit', function (e) {
+    var b = e.target.querySelector('button[type=submit]');
+    setTimeout(function () { b.disabled = true; }, 0);
+  });
+
+  // Password: strength + match feedback, show/hide
+  var LEVELS = ['', '{{ t_l1|escapejs }}', '{{ t_l2|escapejs }}', '{{ t_l3|escapejs }}', '{{ t_l4|escapejs }}'];
+  function strength(p) {
+    if (!p) return 0;
+    if (p.length < 8) return 1;
+    var kinds = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter(function (r) { return r.test(p); }).length;
+    var score = 1 + (p.length >= 8 ? 1 : 0) + (p.length >= 12 ? 1 : 0) + (kinds >= 3 ? 1 : 0);
+    return Math.min(4, Math.max(2, score));
+  }
+  function feedback() {
+    var p = $('new_password').value, c = $('confirm_password').value, lv = strength(p);
+    $('mp-meter').setAttribute('data-level', lv);
+    $('mp-meter-text').textContent = LEVELS[lv];
+    var m = $('mp-match');
+    m.className = 'mp-match' + (c ? (p === c ? ' is-ok' : ' is-bad') : '');
+    m.textContent = c ? (p === c ? '{{ t_ok|escapejs }}' : '{{ t_bad|escapejs }}') : '';
+  }
+  $('new_password').addEventListener('input', feedback);
+  $('confirm_password').addEventListener('input', feedback);
+  $('mp-show').addEventListener('click', function () {
+    var show = $('new_password').type === 'password';
+    ['current_password', 'new_password', 'confirm_password'].forEach(function (id) { $(id).type = show ? 'text' : 'password'; });
+    this.textContent = show ? '{{ t_hide|escapejs }}' : '{{ t_show|escapejs }}';
+  });
+})();
+</script>
+{% endblock %}

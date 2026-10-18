@@ -13,6 +13,10 @@ class Agency(models.Model):
     country = models.CharField(max_length=100)
     postal_code = models.CharField(max_length=20)
     is_active = models.BooleanField(default=True)
+    roles_seeded = models.BooleanField(
+        default=False,
+        help_text="True once this agency has its own editable copies of the standard roles.",
+    )
     default_currency = models.CharField(
         max_length=3, default='PKR',
         help_text="ISO 4217 code used as the default for new bookings, inventory, and ledger entries in this agency.",
