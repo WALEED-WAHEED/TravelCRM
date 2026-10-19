@@ -19,6 +19,16 @@ Always run backup/restore with the `postgres` admin credentials, not the
 app's own scoped `travelcrm_app` role — see `travelcrm/settings.py` and
 `.env` for why that role is deliberately limited.
 
+## Nightly off-site backups (production)
+
+In `docker-compose.prod.yml` the `backup` service runs `offsite-backup.sh`: every day at
+`BACKUP_TIME` (UTC) it calls `backup.sh`, then — when `R2_BUCKET` is set — uploads the dump and
+the uploaded images to Cloudflare R2 through an rclone `crypt` remote, so they are encrypted with
+`BACKUP_PASSPHRASE` before leaving the server. R2 keeps the newest `BACKUP_KEEP` (14) dumps; images
+are copied incrementally and are never deleted from R2. `now`, `list` and
+`restore <file|latest> [--force-target]` run the same steps by hand; the README's Backups section has
+the commands, including disaster recovery on a new server.
+
 ## Restoring a backup
 
 ```bash

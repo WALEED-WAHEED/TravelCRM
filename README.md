@@ -178,9 +178,37 @@ automatically before the app restarts.
 
 ## Backups
 
-The production database lives in a Docker volume on the server. It survives restarts, rebuilds and updates,
-but **not** the loss of the server itself, so keep regular off-site backups. See `scripts/README.md`:
+The production database and uploaded images live in Docker volumes on the server. They survive restarts,
+rebuilds and updates, but **not** the loss of the server itself. The `backup` service in
+`docker-compose.prod.yml` therefore runs every night (`BACKUP_TIME`, UTC):
 
+- dumps the database and keeps the latest 14 dumps on the server;
+- with `R2_*` and `BACKUP_PASSPHRASE` set in `.env.production`, encrypts each dump and the uploaded images on the
+  server and copies them to a **Cloudflare R2** bucket (free up to 10 GB), keeping the latest 14 dumps there too;
+- shows as `unhealthy` in `docker compose ps` if no backup has succeeded for 26 hours.
+
+Keep `BACKUP_PASSPHRASE` in a password manager as well: without it the R2 copies cannot be restored. Code
+comes back from GitHub, and voucher PDFs are generated on demand, so neither needs a backup.
+
+```bash
+DC="docker compose -f docker-compose.prod.yml --env-file .env.production"
+$DC run --rm --no-deps backup now                      # back up immediately
+$DC run --rm --no-deps backup list                     # dumps stored in R2
+$DC run --rm --no-deps backup restore latest           # safe test: restores into travelcrm_restore_test
+```
+
+**Disaster recovery (new server):** clone the repo, put the same `.env.production` in place, then
+
+```bash
+$DC up -d db
+$DC run --rm --no-deps backup restore latest --force-target   # database + images; asks for confirmation
+$DC up -d --build
+```
+
+The restore also re-applies the `travelcrm_app` grants. On an existing server stop the app first
+(`$DC stop web worker`). The scripts underneath are described in `scripts/README.md`:
+
+- `scripts/offsite-backup.sh` — the schedule, the R2 copy and the restore commands above.
 - `scripts/backup.sh` — timestamped, compressed `pg_dump`, keeping the latest 14.
 - `scripts/restore.sh` — restores into a throwaway database by default (safe to test any time).
 - `python manage.py verify_backup` — dumps, restores and compares row counts to prove a backup is usable.

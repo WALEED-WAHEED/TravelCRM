@@ -39,6 +39,10 @@ Python 3.12 in `.venv/`. UI in English, Urdu and Arabic (RTL).
   web/worker run as `travelcrm_app` (real RLS). `scripts/init-scoped-role.sql` (via `init-scoped-role.sh` on a fresh
   volume, `psql -v app_password=… -f` by hand, and in CI) creates that role with default privileges on future tables.
   Postgres 18 images mount their volume at `/var/lib/postgresql` (not `/data`).
+  The `backup` service (`scripts/offsite-backup.sh`, postgres image + rclone) dumps nightly, keeps 14, and sends
+  rclone-crypt-encrypted copies of the dumps and media to Cloudflare R2; `restore … --force-target` re-applies the
+  `travelcrm_app` grants (a recreated database loses its default privileges). Hosting plan: Hetzner CX23 +
+  Hetzner Backups + R2. Shell scripts must stay LF (a CRLF working copy breaks them in the container).
 - Env files: `.env` (shared, also read by compose) and `.env.local` (this machine's overrides, e.g. `DB_HOST`).
   Precedence: real environment variables > `.env.local` > `.env` (`travelcrm/settings.py`). Both are gitignored.
 - Test: `.venv/Scripts/python -m pytest tests/` (~6 min on an idle machine; needs Postgres + scoped role `travelcrm_app` — create it with `psql -v app_password=… -f scripts/init-scoped-role.sql` — and `SCOPED_DB_PASSWORD` in `.env`). Run long suites in the background. `tests/conftest.py` runs Celery tasks inline, so a running Redis/worker never receives test notifications.

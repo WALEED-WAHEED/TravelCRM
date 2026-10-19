@@ -113,6 +113,42 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # Nightly database dump (14 kept on the server) plus an encrypted copy of it and the uploaded images
+  # in Cloudflare R2 — see scripts/offsite-backup.sh. Without R2_BUCKET it keeps local dumps only.
+  backup:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM postgres:18-alpine
+        RUN apk add --no-cache rclone && mkdir -p /root/.config/rclone && touch /root/.config/rclone/rclone.conf
+        COPY scripts/backup.sh scripts/restore.sh scripts/offsite-backup.sh scripts/init-scoped-role.sql /scripts/
+    entrypoint: ["bash", "/scripts/offsite-backup.sh"]
+    command: ["schedule"]
+    environment:
+      DB_NAME: ${DB_NAME:-travelcrm}
+      DB_USER: ${DB_ADMIN_USER:-postgres}
+      DB_PASSWORD: ${DB_ADMIN_PASSWORD}
+      DB_HOST: db
+      APP_DB_PASSWORD: ${DB_PASSWORD}
+      BACKUP_TIME: ${BACKUP_TIME:-21:00}
+      BACKUP_KEEP: ${BACKUP_KEEP:-14}
+      BACKUP_PASSPHRASE: ${BACKUP_PASSPHRASE:-}
+      R2_BUCKET: ${R2_BUCKET:-}
+      R2_ENDPOINT: ${R2_ENDPOINT:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+    volumes:
+      - backups:/backups
+      - media:/app/media
+    healthcheck:                               # "unhealthy" in `docker compose ps` when no backup succeeded for 26 hours
+      test: ["CMD-SHELL", "find /backups/last-success -mmin -1560 | grep -q ."]
+      interval: 10m
+      start_period: 15m
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
   caddy:
     image: caddy:2-alpine
     ports:
@@ -132,5 +168,6 @@ services:
 volumes:
   postgres_data:
   media:
+  backups:
   caddy_data:
   caddy_config:
