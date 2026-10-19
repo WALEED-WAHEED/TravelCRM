@@ -28,7 +28,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15-alpine
+        image: postgres:18-alpine
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -71,21 +71,10 @@ jobs:
         # Row-Level Security is inert for a table owner or superuser, so
         # the RLS-layer tests need a real non-superuser role to connect
         # through — see travelcrm/settings.py DATABASES['scoped'] and
-        # scripts/README.md. Grants on tables/sequences are re-applied by
-        # tests/conftest.py's django_db_setup override once the test
-        # database itself has been created and migrated.
+        # scripts/README.md. Same script the Docker images run on first boot.
         env:
           PGPASSWORD: postgres
-        run: |
-          psql -h localhost -U postgres -d travelcrm_ci -c "
-            DO \$\$
-            BEGIN
-              IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'travelcrm_app') THEN
-                CREATE ROLE travelcrm_app WITH LOGIN PASSWORD '${SCOPED_DB_PASSWORD}';
-              END IF;
-            END
-            \$\$;
-          "
+        run: psql -h localhost -U postgres -d travelcrm_ci -v app_password="${SCOPED_DB_PASSWORD}" -f scripts/init-scoped-role.sql
 
       - name: Django system check
         run: python manage.py check

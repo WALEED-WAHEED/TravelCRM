@@ -15,12 +15,19 @@ from django.utils import timezone, translation
 from django.utils.translation import gettext
 
 from billing.models import Subscription
+from utils.tenancy import tenant_context
 
 
 class Command(BaseCommand):
     help = "Email agency owners whose trial ends within 3 days and haven't been warned yet."
 
     def handle(self, *args, **options):
+        # Runs across every agency outside a request: under the scoped travelcrm_app role, RLS would
+        # otherwise hide every row and the command would silently do nothing.
+        with tenant_context(bypass=True):
+            return self._run(*args, **options)
+
+    def _run(self, *args, **options):
         cutoff = timezone.now() + timezone.timedelta(days=3)
         due = Subscription.all_tenants.filter(
             status='trialing',

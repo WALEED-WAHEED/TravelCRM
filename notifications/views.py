@@ -18,7 +18,7 @@ from .models import NotificationDeliveryLog
 # (event label, email field, sms field, one-line help, icon) — one row per message on the settings page.
 EVENTS = [
     (gettext_lazy('Payment received'), 'email_payment_received', 'sms_payment_received',
-     gettext_lazy('A receipt for each payment recorded in the ledger.'), 'payment'),
+     gettext_lazy('A receipt when a payment is collected on a voucher (it is added to the ledger too).'), 'payment'),
     (gettext_lazy('Voucher generated'), 'email_voucher_generated', 'sms_voucher_generated',
      gettext_lazy('The voucher, once a booking is confirmed.'), 'voucher'),
 ]

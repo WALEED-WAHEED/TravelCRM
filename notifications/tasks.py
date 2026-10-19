@@ -2,7 +2,7 @@ import logging
 
 from celery import shared_task
 
-from utils.tenancy import apply_db_session_context, set_current_tenant, set_platform_admin_bypass
+from utils.tenancy import tenant_context
 
 logger = logging.getLogger(__name__)
 
@@ -20,17 +20,17 @@ def send_notification_task(event_type, booking_id, payment_id=None):
 
     from .engine import send_notification
 
-    booking = Booking.all_tenants.filter(pk=booking_id).select_related('agency').first()
-    if not booking:
-        logger.warning("send_notification_task: booking %s no longer exists", booking_id)
-        return
-
-    set_platform_admin_bypass(True)
-    set_current_tenant(booking.agency_id)
-    apply_db_session_context(bypass=True, tenant_id=booking.agency_id)
-
-    payment = BookingPayment.objects.filter(pk=payment_id).first() if payment_id else None
-    send_notification(event_type, booking, payment=payment)
+    # The context must be set *before* the first query: when the app runs as the scoped travelcrm_app role,
+    # RLS hides the booking from a session with no tenant set, and the task would silently do nothing.
+    # tenant_context also restores the previous state, so nothing leaks into the next task on this worker.
+    with tenant_context(bypass=True):
+        booking = Booking.all_tenants.filter(pk=booking_id).select_related('agency').first()
+        if not booking:
+            logger.warning("send_notification_task: booking %s no longer exists", booking_id)
+            return
+        with tenant_context(agency_id=booking.agency_id, bypass=True):
+            payment = BookingPayment.objects.filter(pk=payment_id).first() if payment_id else None
+            send_notification(event_type, booking, payment=payment)
 
 
 def dispatch(event_type, booking, payment=None):

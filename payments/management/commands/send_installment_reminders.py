@@ -13,12 +13,19 @@ from django.utils.translation import gettext
 
 from notifications.engine import _resolve_recipient
 from payments.models import Installment
+from utils.tenancy import tenant_context
 
 
 class Command(BaseCommand):
     help = "Email booking contacts about installments due within 3 days or already overdue."
 
     def handle(self, *args, **options):
+        # Runs across every agency outside a request: under the scoped travelcrm_app role, RLS would
+        # otherwise hide every row and the command would silently do nothing.
+        with tenant_context(bypass=True):
+            return self._run(*args, **options)
+
+    def _run(self, *args, **options):
         today = timezone.localdate()
         cutoff = today + timezone.timedelta(days=3)
         due = Installment.all_tenants.filter(

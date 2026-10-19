@@ -10513,9 +10513,6 @@ msgstr "شریک کمپنی"
 msgid "How the top of your vouchers will look."
 msgstr "آپ کے واؤچرز کا اوپری حصہ ایسا نظر آئے گا۔"
 
-msgid "A receipt for each payment recorded in the ledger."
-msgstr "لیجر میں درج ہر ادائیگی کی رسید۔"
-
 msgid "The voucher, once a booking is confirmed."
 msgstr "بکنگ کی تصدیق کے بعد واؤچر۔"
 
@@ -10545,3 +10542,20 @@ msgstr "کمپنی کا ملک"
 
 msgid "Company WhatsApp"
 msgstr "کمپنی واٹس ایپ"
+
+msgid ""
+"A receipt when a payment is collected on a voucher (it is added to the "
+"ledger too)."
+msgstr "واؤچر پر ادائیگی وصول ہونے پر رسید (یہ لیجر میں بھی درج ہو جاتی ہے)۔"
+
+msgid "Switch on one or more checks. Everything switched on must pass."
+msgstr "ایک یا زیادہ جانچیں آن کریں۔ آن کی گئی ہر جانچ کا پاس ہونا ضروری ہے۔"
+
+msgid "SAR"
+msgstr "SAR"
+
+msgid "USD"
+msgstr "USD"
+
+msgid "AED"
+msgstr "AED"

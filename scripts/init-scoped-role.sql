@@ -1,21 +1,29 @@
--- Runs automatically on first boot of a fresh Postgres data volume, via
--- Postgres's own /docker-entrypoint-initdb.d/ convention (docker-compose
--- mounts this file there — see docker-compose.staging.yml). Creates the
--- scoped, non-superuser role the app actually connects as. Row-Level
--- Security (member/migrations/0009_row_level_security.py and siblings)
--- is inert for a table owner or superuser, so this role — not the
--- POSTGRES_USER superuser docker-compose creates — is what SCOPED_DB_USER
--- / the runtime DB_USER should point at.
+-- Creates the scoped, non-superuser role the app connects as day to day.
+-- Row-Level Security (member/migrations/0009_row_level_security.py and
+-- siblings) is inert for a table owner or superuser, so the running app
+-- must use this role; migrations keep running as the owner/admin.
 --
--- The password here is a placeholder; ALTER ROLE it to match
--- SCOPED_DB_PASSWORD in your real .env before pointing traffic at this
--- environment. Table/sequence grants are applied after migrations run
--- (see docker-entrypoint.sh), not here — this file only runs once, before
--- the app's own tables exist yet.
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'travelcrm_app') THEN
-        CREATE ROLE travelcrm_app WITH LOGIN PASSWORD 'change-me-see-env-staging-example';
-    END IF;
-END
-$$;
+-- Run it as the admin (the role that runs `migrate` and owns the tables),
+-- connected to the app database, passing the password as a psql variable:
+--
+--   psql -U postgres -d travelcrm -v app_password='...' -f scripts/init-scoped-role.sql
+--
+-- Docker runs it automatically on a fresh data volume through
+-- scripts/init-scoped-role.sh. Safe to re-run: it only creates what is
+-- missing, resets the password, and re-applies the grants.
+\set ON_ERROR_STOP on
+
+SELECT format('CREATE ROLE travelcrm_app WITH LOGIN PASSWORD %L', :'app_password')
+WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'travelcrm_app') \gexec
+
+SELECT format('ALTER ROLE travelcrm_app WITH LOGIN NOSUPERUSER NOBYPASSRLS PASSWORD %L', :'app_password') \gexec
+
+GRANT USAGE ON SCHEMA public TO travelcrm_app;
+
+-- Tables that already exist (re-running on a migrated database) ...
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO travelcrm_app;
+GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO travelcrm_app;
+
+-- ... and every table/sequence the admin creates from now on (each later `migrate`).
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO travelcrm_app;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO travelcrm_app;

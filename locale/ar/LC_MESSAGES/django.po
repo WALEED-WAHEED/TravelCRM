@@ -10594,9 +10594,6 @@ msgstr "الشركة الشريكة"
 msgid "How the top of your vouchers will look."
 msgstr "هكذا ستظهر ترويسة قسائمك."
 
-msgid "A receipt for each payment recorded in the ledger."
-msgstr "إيصال لكل دفعة مسجلة في دفتر الأستاذ."
-
 msgid "The voucher, once a booking is confirmed."
 msgstr "القسيمة بعد تأكيد الحجز."
 
@@ -10626,3 +10623,20 @@ msgstr "بلد الشركة"
 
 msgid "Company WhatsApp"
 msgstr "واتساب الشركة"
+
+msgid ""
+"A receipt when a payment is collected on a voucher (it is added to the "
+"ledger too)."
+msgstr "إيصال عند تحصيل دفعة على قسيمة (وتُسجَّل في دفتر الأستاذ أيضًا)."
+
+msgid "Switch on one or more checks. Everything switched on must pass."
+msgstr "فعّل فحصًا واحدًا أو أكثر. يجب أن ينجح كل فحص مفعّل."
+
+msgid "SAR"
+msgstr "SAR"
+
+msgid "USD"
+msgstr "USD"
+
+msgid "AED"
+msgstr "AED"

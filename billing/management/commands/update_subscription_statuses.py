@@ -28,6 +28,7 @@ from django.utils import timezone, translation
 from django.utils.translation import gettext
 
 from billing.models import Subscription
+from utils.tenancy import tenant_context
 
 GRACE_DAYS = 7
 
@@ -36,6 +37,12 @@ class Command(BaseCommand):
     help = "Transition trial/active/past_due subscriptions that have actually lapsed, per is_usable's own rules."
 
     def handle(self, *args, **options):
+        # Runs across every agency outside a request: under the scoped travelcrm_app role, RLS would
+        # otherwise hide every row and the command would silently do nothing.
+        with tenant_context(bypass=True):
+            return self._run(*args, **options)
+
+    def _run(self, *args, **options):
         now = timezone.now()
         expired_from_trial = 0
         past_due = 0

@@ -403,6 +403,7 @@
 
   // ── Save: rows → the JSON fields the server reads ──
   form.addEventListener('submit', function (e) {
+    refresh();  // the hidden PAX counts must match the rows even when a value arrived without an input event (autofill)
     var mutamers = [], hotels = [], transports = [], flights = [];
     document.querySelectorAll('#ws-mutamer-rows tr').forEach(function (tr) {
       var name = v(tr, '.js-name');

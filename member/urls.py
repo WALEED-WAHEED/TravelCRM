@@ -3,7 +3,7 @@ from django.views.generic import RedirectView
 
 from rbac import views as rbac_views
 
-from . import attendance_views, instruction_views, note_views, views
+from . import account_views, attendance_views, instruction_views, note_views, views
 
 urlpatterns = [
     # Auth
@@ -54,8 +54,8 @@ urlpatterns = [
     path("member/attendance/correction/", attendance_views.attendance_correction_request, name="attendance-correction"),
     path("member/attendance/corrections/<int:correction_id>/review/", attendance_views.attendance_correction_review,
          name="attendance-correction-review"),
-    path("member/settings/", views.settings_home, name="settings-home"),
-    path("member/settings/me/", views.my_profile, name="my-profile"),
+    path("member/settings/", account_views.settings_home, name="settings-home"),
+    path("member/settings/me/", account_views.my_profile, name="my-profile"),
     path("member/settings/attendance/", attendance_views.attendance_settings, name="attendance-settings"),
     path("member/attendance/settings/", RedirectView.as_view(pattern_name="attendance-settings", permanent=True)),
     path("attendance/display/<str:token>/", attendance_views.attendance_display, name="attendance-display"),
@@ -85,7 +85,7 @@ urlpatterns = [
 
     path("profile/", views.profile, name="profile"),
     path("profile/update-branding/", views.profile_update_branding, name="profile-update-branding"),
-    path("settings/language/", views.language_settings, name="language-settings"),
+    path("settings/language/", account_views.language_settings, name="language-settings"),
 
     # Public (no auth)
     path("public/voucher/<str:token>/", views.public_voucher, name="public-voucher"),

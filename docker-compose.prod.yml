@@ -1,0 +1,136 @@
+# Production (and staging): one server running everything, HTTPS by Caddy with automatic Let's Encrypt
+# certificates. Runs from the built image, never a bind mount of the working tree.
+#
+#   cp env.production.example .env.production        # fill it in (DOMAIN, passwords, secret key, email)
+#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+#
+# Staging: run this same file on a separate (small) server with its own env file, e.g. DOMAIN=staging.yourdomain.com
+# (two copies on one server would both need ports 80/443).
+#
+# Roles: `migrate` runs as the database owner (DB_ADMIN_*); web and worker run as the scoped
+# `travelcrm_app` role, so Row-Level Security is enforced at runtime. The role and its grants are created
+# on the first boot of a fresh data volume by scripts/init-scoped-role.sh.
+
+x-app-env: &app_env
+  DJANGO_DEBUG: "False"
+  DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?set DJANGO_SECRET_KEY}
+  ALLOWED_HOSTS: ${DOMAIN:?set DOMAIN}
+  FRONTEND_URL: https://${DOMAIN}
+  CSRF_TRUSTED_ORIGINS: https://${DOMAIN}
+  CORS_ALLOWED_ORIGINS: https://${DOMAIN}
+  DB_NAME: ${DB_NAME:-travelcrm}
+  DB_USER: travelcrm_app
+  DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD (the travelcrm_app password)}
+  SCOPED_DB_USER: travelcrm_app
+  SCOPED_DB_PASSWORD: ${DB_PASSWORD}
+  DB_HOST: db
+  DB_PORT: "5432"
+  SECURE_PROXY_SSL_HEADER: "True"
+  SECURE_SSL_REDIRECT: "True"
+  SECURE_HSTS_SECONDS: ${SECURE_HSTS_SECONDS:-3600}
+  SECURE_HSTS_INCLUDE_SUBDOMAINS: ${SECURE_HSTS_INCLUDE_SUBDOMAINS:-False}
+  SESSION_COOKIE_SECURE: "True"
+  CSRF_COOKIE_SECURE: "True"
+  ATTENDANCE_TRUSTED_PROXIES: "1"          # Caddy sits in front: read the client IP from X-Forwarded-For
+  CELERY_BROKER_URL: redis://redis:6379/0
+  CELERY_RESULT_BACKEND: redis://redis:6379/1
+  EMAIL_BACKEND: ${EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}
+  EMAIL_HOST: ${EMAIL_HOST:-}
+  EMAIL_PORT: ${EMAIL_PORT:-587}
+  EMAIL_USE_TLS: ${EMAIL_USE_TLS:-True}
+  EMAIL_HOST_USER: ${EMAIL_HOST_USER:-}
+  EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD:-}
+  DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-noreply@example.com}
+  GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+  GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+  SENTRY_DSN: ${SENTRY_DSN:-}
+  SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-production}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-travelcrm}
+      POSTGRES_USER: ${DB_ADMIN_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_ADMIN_PASSWORD:?set DB_ADMIN_PASSWORD}
+      APP_DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql        # Postgres 18 images keep data in /var/lib/postgresql/18/docker
+      - ./scripts/init-scoped-role.sh:/docker-entrypoint-initdb.d/10-init-scoped-role.sh:ro
+      - ./scripts/init-scoped-role.sql:/scripts/init-scoped-role.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_ADMIN_USER:-postgres} -d ${DB_NAME:-travelcrm}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  migrate:
+    build: .
+    command: python manage.py migrate --noinput
+    environment:
+      <<: *app_env
+      DB_USER: ${DB_ADMIN_USER:-postgres}            # schema changes and RLS policies need the table owner
+      DB_PASSWORD: ${DB_ADMIN_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  web:
+    build: .
+    command: gunicorn travelcrm.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 2 --timeout 120
+    environment: *app_env
+    volumes:
+      - media:/app/media
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build: .
+    command: celery -A travelcrm worker --loglevel=info
+    environment: *app_env
+    volumes:
+      - media:/app/media
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - media:/srv/media:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  media:
+  caddy_data:
+  caddy_config:

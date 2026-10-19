@@ -12,9 +12,6 @@
   .team-who__text { display: flex; flex-direction: column; min-width: 0; line-height: 1.35; }
   .team-who__text small { overflow-wrap: anywhere; }
   .team-role-select { width: auto; min-width: 130px; padding: 6px 10px; }
-  .team-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
-  .team-delete { color: var(--destructive, #dc2626); }
-  .team-delete:hover { background: color-mix(in srgb, var(--destructive, #dc2626) 10%, transparent); }
 </style>
 {% endblock %}
 {% block content %}
@@ -80,25 +77,25 @@
             {% if can_manage %}
             <td class="hotels-col-actions">
               {% if u.pk != request.user.pk %}
-              <div class="team-actions">
+              <div class="vx-actions">
                 {% if u.is_active %}
                 {% blocktrans asvar deactivate_confirm_msg with username=u.username %}{{ username }} will lose access straight away. Their bookings, payments and vouchers are kept, and you can reactivate them any time.{% endblocktrans %}
                 {% blocktrans asvar deactivate_title with username=u.username %}Deactivate {{ username }}?{% endblocktrans %}
-                <form method="post" action="{% url 'member-team-deactivate' u.id %}" data-confirm="{{ deactivate_confirm_msg }}" data-confirm-title="{{ deactivate_title }}" data-confirm-ok="{% trans 'Deactivate' %}">
+                <form method="post" class="vx-form" action="{% url 'member-team-deactivate' u.id %}" data-confirm="{{ deactivate_confirm_msg }}" data-confirm-title="{{ deactivate_title }}" data-confirm-ok="{% trans 'Deactivate' %}">
                   {% csrf_token %}
-                  <button type="submit" class="btn btn-outline btn-sm">{% trans "Deactivate" %}</button>
+                  <button type="submit" class="vx" title="{% trans 'Deactivate' %}" aria-label="{% trans 'Deactivate' %}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/></svg></button>
                 </form>
                 {% else %}
-                <form method="post" action="{% url 'member-team-reactivate' u.id %}">
+                <form method="post" class="vx-form" action="{% url 'member-team-reactivate' u.id %}">
                   {% csrf_token %}
-                  <button type="submit" class="btn btn-outline btn-sm">{% trans "Reactivate" %}</button>
+                  <button type="submit" class="vx vx--ok" title="{% trans 'Reactivate' %}" aria-label="{% trans 'Reactivate' %}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg></button>
                 </form>
                 {% endif %}
                 {% blocktrans asvar delete_confirm_msg with username=u.username %}{{ username }} will be removed from your team and can no longer sign in. Everything they created (bookings, payments, vouchers) is kept.{% endblocktrans %}
                 {% blocktrans asvar delete_title with username=u.username %}Delete {{ username }}?{% endblocktrans %}
-                <form method="post" action="{% url 'member-team-delete' u.id %}" data-confirm="{{ delete_confirm_msg }}" data-confirm-title="{{ delete_title }}" data-confirm-ok="{% trans 'Delete' %}" data-confirm-danger>
+                <form method="post" class="vx-form" action="{% url 'member-team-delete' u.id %}" data-confirm="{{ delete_confirm_msg }}" data-confirm-title="{{ delete_title }}" data-confirm-ok="{% trans 'Delete' %}" data-confirm-danger>
                   {% csrf_token %}
-                  <button type="submit" class="btn btn-outline btn-sm team-delete">{% trans "Delete" %}</button>
+                  <button type="submit" class="vx vx--del" title="{% trans 'Delete' %}" aria-label="{% trans 'Delete' %}"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
                 </form>
               </div>
               {% endif %}

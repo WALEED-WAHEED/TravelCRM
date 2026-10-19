@@ -50,3 +50,18 @@ Needs `PG_ADMIN_USER`/`PG_ADMIN_PASSWORD` env vars (falls back to the
 app's own `DB_USER`/`DB_PASSWORD` if unset) — the verification database
 create/drop step needs `CREATEDB`, which the scoped `travelcrm_app` role
 intentionally does not have.
+
+## The scoped app role (`travelcrm_app`)
+
+Row-Level Security only applies to a role that neither owns the tables nor is a superuser, so the
+running app connects as `travelcrm_app` while migrations run as the admin/owner.
+`init-scoped-role.sql` creates that role, sets its password and grants it access to every current
+and future table/sequence (via `ALTER DEFAULT PRIVILEGES`, so later migrations need no extra step):
+
+```bash
+psql -U postgres -d travelcrm -v app_password='...' -f scripts/init-scoped-role.sql
+```
+
+Run it as the admin that runs `migrate`. It is safe to re-run. In Docker
+(`docker-compose.prod.yml`) `init-scoped-role.sh` runs it automatically on the first start of a fresh
+database volume, using `DB_PASSWORD`; CI runs the same file.

@@ -11,13 +11,18 @@ ENV PYTHONUNBUFFERED 1
 # Set work directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install system dependencies. Chromium prints the voucher PDFs (member/pdf_chrome.py finds it on PATH)
+# so the PDF matches the on-screen voucher; without it the app falls back to the plainer xhtml2pdf
+# renderer. The Arabic-script font is embedded by the voucher itself; Liberation/DejaVu cover Latin text.
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     gcc \
     curl \
     gettext \
+    chromium \
+    fonts-liberation \
+    fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
 # Install python dependencies
@@ -44,5 +49,6 @@ ENV DJANGO_SECRET_KEY=
 # Ensure the app starts on port 8000
 EXPOSE 8000
 
-# Run gunicorn
-CMD ["gunicorn", "travelcrm.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--threads", "2"]
+# Run gunicorn. --timeout 120: a voucher PDF can take up to 60s in Chrome (pdf_chrome.TIMEOUT); the 30s
+# default would kill the worker mid-print.
+CMD ["gunicorn", "travelcrm.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--threads", "2", "--timeout", "120"]

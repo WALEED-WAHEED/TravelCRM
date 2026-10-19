@@ -28,3 +28,14 @@ def test_company_country_and_whatsapp_are_saved_like_the_partner_ones(client_a, 
     assert (b.company_country, b.company_whatsapp) == ("Pakistan", "03001112222")
     page = client_a.get("/profile/").content.decode()
     assert "Company country" in page and "Company WhatsApp" in page and "03001112222" in page
+
+
+def test_company_profile_sends_signed_out_visitors_to_login(client):
+    r = client.get("/profile/")
+    assert r.status_code == 302 and "/login/" in r["Location"]  # used to be a server error
+
+
+def test_settings_pages_need_a_login(client):
+    for url in ("/member/settings/", "/member/settings/me/", "/settings/language/", "/member/notifications/recent/"):
+        r = client.get(url)
+        assert r.status_code == 302 and "/login/" in r["Location"], url

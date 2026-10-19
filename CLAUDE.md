@@ -28,12 +28,29 @@ Python 3.12 in `.venv/`. UI in English, Urdu and Arabic (RTL).
 
 ## 2. Commands
 
-- Run: `.venv/Scripts/python manage.py runserver` (or `START_DEV.bat`; Docker: `docker-compose.yml` = db, redis, web, worker)
-- Test: `.venv/Scripts/python -m pytest tests/` (~8 min; needs Postgres + scoped role `travelcrm_app`, see `scripts/init-scoped-role.sql`). Run long suites in the background.
+- Run: `.venv/Scripts/python manage.py runserver` (or `START_DEV.bat`). Redis for the manual run comes from the
+  compose container: `docker compose up -d redis`.
+- Docker (dev): `docker compose up -d` = redis, web, worker on port 8000, using the **host's** Postgres via
+  `host.docker.internal` (`DOCKER_DB_HOST`); the bundled `db` service (Postgres 18) is opt-in (`--profile bundled-db`).
+  Run one of manual/Docker at a time (both use 8000). The image includes Chromium, so Docker PDFs match the View page.
+- **Production/staging**: `docker-compose.prod.yml` + `Caddyfile` + `env.production.example` (copy to
+  `.env.production`). Caddy terminates HTTPS (automatic Let's Encrypt) and serves `/media/`; `DEBUG` off, secure
+  cookies and `SECURE_PROXY_SSL_HEADER` are fixed in the file. A one-off `migrate` service runs as the DB owner;
+  web/worker run as `travelcrm_app` (real RLS). `scripts/init-scoped-role.sql` (via `init-scoped-role.sh` on a fresh
+  volume, `psql -v app_password=… -f` by hand, and in CI) creates that role with default privileges on future tables.
+  Postgres 18 images mount their volume at `/var/lib/postgresql` (not `/data`).
+- Env files: `.env` (shared, also read by compose) and `.env.local` (this machine's overrides, e.g. `DB_HOST`).
+  Precedence: real environment variables > `.env.local` > `.env` (`travelcrm/settings.py`). Both are gitignored.
+- Test: `.venv/Scripts/python -m pytest tests/` (~6 min on an idle machine; needs Postgres + scoped role `travelcrm_app` — create it with `psql -v app_password=… -f scripts/init-scoped-role.sql` — and `SCOPED_DB_PASSWORD` in `.env`). Run long suites in the background. `tests/conftest.py` runs Celery tasks inline, so a running Redis/worker never receives test notifications.
 - Lint: `.venv/Scripts/python -m ruff check .` · Check: `python manage.py check` · CI: `.github/workflows/ci.yml`
 - Migrations: write them with `makemigrations`, but **never run `migrate` on the user's database** — tell the user to run it.
 - Dev server reload after Python edits: touch `member/templatetags/currency_tags.py`.
 - Translations: edit `locale/{ur,ar}/LC_MESSAGES/django.po` with `polib` and compile `.mo` (no GNU gettext on this machine). Every new user-visible string needs Urdu **and** Arabic.
+  Pitfalls: `{% trans "Rate (%)" %}` is looked up with the `%` doubled, so the msgid must be `Rate (%%)`;
+  `{% blocktrans count %}` needs a plural entry (`msgid_plural`); model `choices`/`verbose_name` must use
+  `gettext_lazy`. English names stored in the DB (standard role names, plan names, delivery-log details) are
+  translated at display time with the `tr` filter (`{% load i18n_extra %}`, `member/templatetags/i18n_extra.py`).
+  Urdu uses Noto Nastaliq Urdu and Arabic Noto Naskh Arabic (Google Fonts in every page head; rules in `app.css`).
 
 ## 3. Database & PostgreSQL rules
 
@@ -47,7 +64,9 @@ Python 3.12 in `.venv/`. UI in English, Urdu and Arabic (RTL).
 - **Queries**: no N+1 — use `select_related`/`prefetch_related`/annotations; aggregate in SQL, not Python loops,
   when data can grow; paginate lists; never load whole tables into memory for display.
 - **Migrations** must be reversible where practical; data migrations use `apps.get_model` + `_base_manager`.
-- Known state (audit 2026-10-14): 66 tables, every FK indexed, 28 tables with RLS. RLS is **inert for the
+- Known state (audit 2026-10-19): 66 tables, all 122 FKs indexed, 28 tables with RLS (29 once
+  `notifications/0004_deliverylog_row_level_security` is migrated). Deliberate exceptions without RLS:
+  `accounts_user` (auth model) and `system_config_auditlog` (see its migration 0010). RLS is **inert for the
   role the app runs as** (`postgres` superuser in dev `.env`; a table owner in the production example), so
   isolation in the running app relies on `TenantManager`; only the `scoped` test connection proves RLS.
   To get real RLS at runtime run the app as the non-owner `travelcrm_app` role (set `DB_USER`/`DB_PASSWORD` to the
@@ -83,7 +102,12 @@ Python 3.12 in `.venv/`. UI in English, Urdu and Arabic (RTL).
   - Pop-ups: `.modal-overlay` + `.modal-box`, opened with `openModal(id)`; detail views use a side drawer
     (`.modal-overlay.drawer-wrap > aside.drawer`). `app.js` moves overlays to `<body>` (animated ancestors
     break `position:fixed`); any custom floating menu must also be attached to `<body>`.
+  - Confirmations: never `confirm()` — add `data-confirm="…" data-confirm-title data-confirm-ok [data-confirm-danger]`
+    to the `<form>`; `app.js` shows the shared `#app-confirm` dialog (markup in `base.html`).
   - Dropdowns: `SelectMenu.init(root)` (`static/js/select-menu.js`); dates: vendored flatpickr.
+  - Settings tabs (`member/partials/settings_nav.html`): My profile (everyone, `member/account_views.py`),
+    Company profile (owner; branding, Shirka partner, live voucher-header preview, notification switches),
+    Attendance (owner). The old Language and Notifications pages redirect into these.
   - Insights pages: `member/inventory_insights.py` (declarative KPIs/sections) + `templates/member/inventory_insights.html`;
     voucher/approval insights have their own modules. Charts via Chart.js 4.4.0.
     Shared period/KPI helpers live in `member/analytics.py` (xlsx styling: `member/xlsx.py`). There is no standalone
@@ -92,8 +116,8 @@ Python 3.12 in `.venv/`. UI in English, Urdu and Arabic (RTL).
 
 ## 6. Domain map & invariants
 
-- **Apps** (routes in `travelcrm/urls.py`): `member/` (core domain + most UI; `views.py` ≈2050 lines — prefer
-  new focused modules like `note_views.py`, `instruction_views.py`, `*_insights.py`), `agent/` (agent portal,
+- **Apps** (routes in `travelcrm/urls.py`): `member/` (core domain + most UI; `views.py` ≈2030 lines — prefer
+  new focused modules like `note_views.py`, `instruction_views.py`, `account_views.py`, `*_insights.py`), `agent/` (agent portal,
   reuses member views/forms), `agencies/` (Agency = tenant), `accounts/` (custom `User`: `role`, `agency`,
   `custom_role`), `rbac/` (`engine.has_capability(user, cap, 'view'|'manage')` = single authz source; Activity Log),
   `system_config/` (branding, AuditLog …), `billing/`, `payments/`, `notifications/`,
@@ -101,7 +125,17 @@ Python 3.12 in `.venv/`. UI in English, Urdu and Arabic (RTL).
 - **Tenant isolation**: context from `utils.middleware.TenantMiddleware` (session) / `utils.api.TenantScopedAPIMixin`
   (JWT DRF — must be mixed in). Outside requests: `with tenant_context(agency_id=…)` / `tenant_context(bypass=True)`.
 - **Authz**: new views use `rbac.decorators.permission_required(cap, action)`; legacy `member_required` /
-  `agent_required` bridge via `role_level`. Agents only ever see/edit their own records.
+  `agent_required` bridge via `role_level`. Agents only ever see/edit their own records. Every view needs one
+  of these decorators (a view without one 500s for signed-out visitors — `profile` did until 2026-10-19).
+- **Roles**: each agency owns its roles. On first use `rbac.views._tenant_roles()` copies the four global
+  templates into the agency (`Agency.roles_seeded`) and moves its users onto the copies; after that roles are
+  added/edited/deleted in the Roles pop-up. You can't delete your own role or the last role, or remove your own
+  `team:manage`. Deleting a role leaves its users on the legacy access for their `User.role`.
+- **Removing a teammate is a soft delete** (`User.deleted_at` + `is_active=False`): they vanish from Team and can't
+  sign in, but bookings/payments/vouchers keep them (those FKs are `CASCADE` — never hard-delete a user who has any).
+- **Notifications**: only `voucher_generated` (booking confirmed) and `payment_receipt` (a `BookingPayment` is
+  collected — manual ledger entries don't send) are dispatched (`notifications/signals.py`). The header bell
+  lazy-loads the latest delivery-log rows from `notifications-recent` when opened.
 - **Vouchers = `Booking`.** Status: `draft` (Drafted), `pending` (submitted by an agent), `rejected` (Sent back,
   with `rejection_reason`), `confirmed`/`completed` (Saved/Approved), `cancelled` (hidden). One shared form
   (`booking_voucher_worksheet.html`, `worksheet_save(request, actor)`) serves team and agents. Approvals page =

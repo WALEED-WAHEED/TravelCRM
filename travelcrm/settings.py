@@ -308,6 +308,10 @@ VOICE_PROVIDER = os.getenv("VOICE_PROVIDER", "web-speech")
 # These names match env.production.example. Previously that file documented
 # them but settings.py never read them, so setting them in .env did nothing.
 SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "False") == "True"
+# Behind an HTTPS reverse proxy (Caddy in docker-compose.prod.yml) the app only sees plain HTTP; trust the
+# proxy's X-Forwarded-Proto so SECURE_SSL_REDIRECT doesn't loop. Only enable when such a proxy is in front.
+if os.getenv("SECURE_PROXY_SSL_HEADER", "False") == "True":
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "0"))
 SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv("SECURE_HSTS_INCLUDE_SUBDOMAINS", "False") == "True"
 SECURE_HSTS_PRELOAD = os.getenv("SECURE_HSTS_PRELOAD", "False") == "True"

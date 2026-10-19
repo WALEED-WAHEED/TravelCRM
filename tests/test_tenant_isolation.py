@@ -107,6 +107,7 @@ RLS_TABLES = [
     "member_hotel", "member_flight", "member_transport", "member_package", "member_attendancelog",
     "member_contact", "member_contactinstruction", "member_voucherinstruction",
     "member_booking", "member_voucher", "member_ledgerentry", "member_vouchersequence",
+    "notifications_notificationdeliverylog",
 ]
 
 
@@ -236,3 +237,16 @@ def test_tenant_context_sets_and_restores_db_session(agency_a, agency_b):
     after = _guc()
     assert after[1] == "false"
     assert after[0] in ("", None, before[0])
+
+
+@pytest.mark.django_db(databases=["default", "scoped"], transaction=True, serialized_rollback=True)
+def test_rls_blocks_cross_tenant_notification_delivery_log(agency_a, agency_b):
+    from notifications.models import NotificationDeliveryLog
+
+    with tenant_context(bypass=True):
+        NotificationDeliveryLog.all_tenants.create(agency=agency_a, event_type="voucher_generated", channel="email", status="sent", recipient="a@example.com")
+        NotificationDeliveryLog.all_tenants.create(agency=agency_b, event_type="voucher_generated", channel="email", status="sent", recipient="b@example.com")
+    cur = connections["scoped"].cursor()
+    _set_rls_context(cur, agency_a.id)
+    cur.execute("SELECT recipient FROM notifications_notificationdeliverylog")
+    assert [r[0] for r in cur.fetchall()] == ["a@example.com"]

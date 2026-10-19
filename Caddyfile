@@ -1,0 +1,13 @@
+# HTTPS front door for docker-compose.prod.yml. Caddy gets and renews the Let's Encrypt certificate for
+# $DOMAIN on its own (the DNS A record must point at this server and ports 80/443 must be open).
+{$DOMAIN} {
+	encode zstd gzip
+
+	# Uploaded images (logos, profile photos, hotel pictures) — Django only serves these when DEBUG is on.
+	handle_path /media/* {
+		root * /srv/media
+		file_server
+	}
+
+	reverse_proxy web:8000
+}
